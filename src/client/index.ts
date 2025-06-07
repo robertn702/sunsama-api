@@ -4,7 +4,7 @@
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 
-import type { SunsamaClientConfig } from '../types/client.js';
+import type { SunsamaClientConfig, RequestOptions } from '../types/client.js';
 import { SunsamaAuthError } from '../errors/index.js';
 
 /**
@@ -15,6 +15,7 @@ import { SunsamaAuthError } from '../errors/index.js';
 export class SunsamaClient {
   private readonly _config: SunsamaClientConfig;
   private _sessionToken?: string;
+  private readonly baseUrl = 'https://api.sunsama.com';
 
   /**
    * Creates a new Sunsama client instance
@@ -59,21 +60,18 @@ export class SunsamaClient {
    * @throws SunsamaAuthError if login fails
    */
   public async login(email: string, password: string): Promise<void> {
-    const loginUrl = 'https://api.sunsama.com/account/login/email';
-    
     // Prepare form data
     const formData = new URLSearchParams();
     formData.append('email', email);
     formData.append('password', password);
 
     try {
-      const response = await fetch(loginUrl, {
+      const response = await this.request('/account/login/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Origin': 'https://app.sunsama.com',
         },
-        body: formData.toString(),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -108,6 +106,53 @@ export class SunsamaClient {
    */
   public logout(): void {
     this._sessionToken = undefined;
+  }
+
+  /**
+   * Makes an authenticated request to the Sunsama API
+   * 
+   * @param path - The API endpoint path (e.g., '/tasks')
+   * @param options - Request options
+   * @returns The response from the API
+   * @internal
+   */
+  private async request(
+    path: string,
+    options: RequestOptions
+  ): Promise<Response> {
+    const url = `${this.baseUrl}${path}`;
+    
+    // Build headers
+    const headers: HeadersInit = {
+      'Origin': 'https://app.sunsama.com',
+      ...options.headers,
+    };
+
+    // Add session token if available
+    if (this._sessionToken) {
+      headers['Cookie'] = `sunsamaSession=${this._sessionToken}`;
+    }
+
+    // Build query string if params provided
+    let fullUrl = url;
+    if (options.params) {
+      const params = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        params.append(key, String(value));
+      });
+      fullUrl = `${url}?${params.toString()}`;
+    }
+
+    // Make the request
+    const response = await fetch(fullUrl, {
+      method: options.method,
+      headers,
+      body: options.body instanceof URLSearchParams 
+        ? options.body.toString() 
+        : options.body ? JSON.stringify(options.body) : undefined,
+    });
+
+    return response;
   }
 
   /**
