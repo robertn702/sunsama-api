@@ -55,13 +55,7 @@
   - ✅ Set `Origin: https://app.sunsama.com` header on all requests
   - ✅ Handle cookie persistence across requests (via session token)
 
-### 7. Update Client Constructor
-- [ ] Modify `SunsamaClient` constructor to:
-  - [ ] Initialize `AuthManager`
-  - [ ] Call `login()` if email/password provided
-  - [ ] Set session token if provided directly
-
-### 8. Basic Error Handling ✅ COMPLETED
+### 7. Basic Error Handling ✅ COMPLETED
 - ✅ Add simple `SunsamaAuthError` class
 - ✅ Throw auth errors for:
   - ✅ Login failures (placeholder implementation)
@@ -145,12 +139,12 @@ const tasks = await client.tasks.list(); // Should work after authentication
 - ✅ Fixed test configuration (vitest run)
 
 ### Day 3
-- [ ] Update HTTP client for authenticated requests
-- [ ] Update client constructor
+- [ ] Complete HTTP client authentication (cookie jar implementation)
+- [ ] Test authenticated API calls
 
 ### Day 4
-- [ ] Basic error handling
-- [ ] Manual testing and fixes
+- [ ] Manual testing with real credentials
+- [ ] Bug fixes and refinements
 
 ### Day 5
 - [ ] Polish and basic test
