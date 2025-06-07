@@ -13,9 +13,10 @@ import { SunsamaAuthError } from '../errors/index.js';
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 export class SunsamaClient {
-  private readonly _config: SunsamaClientConfig;
-  private _sessionToken?: string;
-  private readonly baseUrl = 'https://api.sunsama.com';
+  private static readonly BASE_URL = 'https://api.sunsama.com';
+  
+  private readonly config: SunsamaClientConfig;
+  private sessionToken?: string;
 
   /**
    * Creates a new Sunsama client instance
@@ -23,15 +24,15 @@ export class SunsamaClient {
    * @param config - Client configuration options (optional)
    */
   constructor(config: SunsamaClientConfig = {}) {
-    this._config = config;
-    this._sessionToken = config.sessionToken;
+    this.config = config;
+    this.sessionToken = config.sessionToken;
   }
 
   /**
    * Gets the current client configuration
    */
-  public get config(): SunsamaClientConfig {
-    return { ...this._config };
+  getConfig(): SunsamaClientConfig {
+    return { ...this.config };
   }
 
   /**
@@ -39,8 +40,8 @@ export class SunsamaClient {
    * 
    * @returns True if a valid session token is available
    */
-  public isAuthenticated(): boolean {
-    return !!this._sessionToken;
+  isAuthenticated(): boolean {
+    return !!this.sessionToken;
   }
 
   /**
@@ -48,8 +49,8 @@ export class SunsamaClient {
    * 
    * @returns The session token if available, undefined otherwise
    */
-  public getSessionToken(): string | undefined {
-    return this._sessionToken;
+  getSessionToken(): string | undefined {
+    return this.sessionToken;
   }
 
   /**
@@ -59,7 +60,7 @@ export class SunsamaClient {
    * @param password - User password
    * @throws SunsamaAuthError if login fails
    */
-  public async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string): Promise<void> {
     // Prepare form data
     const formData = new URLSearchParams();
     formData.append('email', email);
@@ -104,8 +105,8 @@ export class SunsamaClient {
   /**
    * Clears the current session token
    */
-  public logout(): void {
-    this._sessionToken = undefined;
+  logout(): void {
+    this.sessionToken = undefined;
   }
 
   /**
@@ -120,7 +121,7 @@ export class SunsamaClient {
     path: string,
     options: RequestOptions
   ): Promise<Response> {
-    const url = `${this.baseUrl}${path}`;
+    const url = `${SunsamaClient.BASE_URL}${path}`;
     
     // Build headers
     const headers: HeadersInit = {
@@ -129,8 +130,8 @@ export class SunsamaClient {
     };
 
     // Add session token if available
-    if (this._sessionToken) {
-      headers['Cookie'] = `sunsamaSession=${this._sessionToken}`;
+    if (this.sessionToken) {
+      headers['Cookie'] = `sunsamaSession=${this.sessionToken}`;
     }
 
     // Build query string if params provided
@@ -162,6 +163,6 @@ export class SunsamaClient {
    * @internal
    */
   private setSessionToken(token: string): void {
-    this._sessionToken = token;
+    this.sessionToken = token;
   }
 }

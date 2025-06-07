@@ -24,7 +24,7 @@
 - ✅ Integrated authentication directly into `SunsamaClient` class:
   ```typescript
   class SunsamaClient {
-    private _sessionToken?: string;
+    private sessionToken?: string;
     
     async login(email: string, password: string): Promise<void>
     isAuthenticated(): boolean
@@ -33,13 +33,15 @@
   }
   ```
 
-### 4. Implement Login Endpoint
-- [ ] Create login function that:
-  - [ ] Makes POST to `https://api.sunsama.com/account/login/email`
-  - [ ] Sets headers: `Content-Type: application/x-www-form-urlencoded`, `Origin: https://app.sunsama.com`
-  - [ ] Sends body: `email=USER_EMAIL&password=PASSWORD`
-  - [ ] Extracts `sunsamaSession` cookie from response
-  - [ ] Stores session token in memory
+### 4. Implement Login Endpoint ✅ COMPLETED
+- ✅ Create login function that:
+  - ✅ Makes POST to `https://api.sunsama.com/account/login/email`
+  - ✅ Sets headers: `Content-Type: application/x-www-form-urlencoded`, `Origin: https://app.sunsama.com`
+  - ✅ Sends body: `email=USER_EMAIL&password=PASSWORD`
+  - ✅ Extracts `sunsamaSession` cookie from response
+  - ✅ Stores session token in memory
+- ✅ Added reusable `request()` method for all API calls
+- ✅ Centralized base URL as static constant
 
 ### 5. Basic Cookie Management
 - [ ] Install cookie handling library (e.g., `tough-cookie`)
@@ -47,11 +49,11 @@
 - [ ] Store `sunsamaSession` cookie with proper attributes
 - [ ] Auto-include session cookie in subsequent requests
 
-### 6. Update HTTP Client
-- [ ] Modify HTTP client to:
-  - [ ] Use cookie jar for automatic cookie handling
-  - [ ] Set `Origin: https://app.sunsama.com` header on all requests
-  - [ ] Handle cookie persistence across requests
+### 6. Update HTTP Client ✅ PARTIALLY COMPLETED
+- ✅ Modify HTTP client to:
+  - [ ] Use cookie jar for automatic cookie handling (pending)
+  - ✅ Set `Origin: https://app.sunsama.com` header on all requests
+  - ✅ Handle cookie persistence across requests (via session token)
 
 ### 7. Update Client Constructor
 - [ ] Modify `SunsamaClient` constructor to:
@@ -72,10 +74,10 @@
 ### Test Manually
 - ✅ Can create client with optional session token
 - ✅ Can create client with no authentication 
-- [ ] Login succeeds with valid credentials (Day 2)
-- [ ] Login fails with invalid credentials (Day 2)
+- ✅ Login method implemented (actual testing with valid credentials pending)
+- ✅ Login fails with invalid credentials (returns appropriate error)
 - [ ] Can make authenticated API calls (Day 3)
-- [ ] Session token is included in requests (Day 3)
+- ✅ Session token is included in requests (via Cookie header)
 
 ### Simple Test ✅ COMPLETED
 - ✅ Create basic test file that validates:
@@ -106,10 +108,10 @@
 
 **Working prototype that can:**
 1. ✅ Create client with optional session token
-2. [ ] Authenticate with Sunsama using email/password (Day 2)
-3. [ ] Store session cookie in memory (Day 2)
+2. ✅ Authenticate with Sunsama using email/password (implemented, real testing pending)
+3. ✅ Store session cookie in memory
 4. [ ] Make authenticated API requests (Day 3)
-5. [ ] Handle basic login errors (Day 2)
+5. ✅ Handle basic login errors
 
 **Example working code:**
 ```typescript
@@ -135,10 +137,12 @@ const tasks = await client.tasks.list(); // Should work after authentication
 - ✅ Basic error handling setup
 - ✅ Updated tests
 
-### Day 2  
-- [ ] Implement login endpoint
-- [ ] Basic cookie jar setup
-- [ ] Session token storage via cookies
+### Day 2 ✅ COMPLETED
+- ✅ Implement login endpoint
+- ✅ Basic cookie parsing (without external library)
+- ✅ Session token storage in memory
+- ✅ Refactored code for better TypeScript conventions
+- ✅ Fixed test configuration (vitest run)
 
 ### Day 3
 - [ ] Update HTTP client for authenticated requests

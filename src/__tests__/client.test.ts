@@ -11,7 +11,7 @@ describe('SunsamaClient', () => {
       const client = new SunsamaClient();
 
       expect(client).toBeInstanceOf(SunsamaClient);
-      expect(client.config).toEqual({});
+      expect(client.getConfig()).toEqual({});
       expect(client.isAuthenticated()).toBe(false);
     });
 
@@ -19,7 +19,7 @@ describe('SunsamaClient', () => {
       const client = new SunsamaClient({});
 
       expect(client).toBeInstanceOf(SunsamaClient);
-      expect(client.config).toEqual({});
+      expect(client.getConfig()).toEqual({});
       expect(client.isAuthenticated()).toBe(false);
     });
 
@@ -29,7 +29,7 @@ describe('SunsamaClient', () => {
       });
 
       expect(client).toBeInstanceOf(SunsamaClient);
-      expect(client.config).toEqual({
+      expect(client.getConfig()).toEqual({
         sessionToken: 'test-session-token',
       });
       expect(client.isAuthenticated()).toBe(true);
