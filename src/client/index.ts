@@ -13,7 +13,7 @@ import type { SunsamaClientConfig } from '../types/client.js';
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 export class SunsamaClient {
-  private readonly config: Required<SunsamaClientConfig>;
+  private readonly _config: Required<SunsamaClientConfig>;
 
   /**
    * Creates a new Sunsama client instance
@@ -22,7 +22,7 @@ export class SunsamaClient {
    */
   constructor(config: SunsamaClientConfig) {
     // TODO: Implement client initialization
-    this.config = {
+    this._config = {
       baseUrl: 'https://api.sunsama.com',
       timeout: 30000,
       retries: 3,
@@ -33,7 +33,8 @@ export class SunsamaClient {
   /**
    * Gets the current client configuration
    */
-  public getConfig(): Required<SunsamaClientConfig> {
-    return { ...this.config };
+  public get config(): Required<SunsamaClientConfig> {
+    return { ...this._config };
   }
+  
 }

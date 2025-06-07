@@ -2,9 +2,8 @@
  * Tests for the main Sunsama client
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SunsamaClient } from '../client/index.js';
-import { SunsamaConfigError } from '../errors/index.js';
 
 describe('SunsamaClient', () => {
   describe('constructor', () => {
@@ -21,8 +20,8 @@ describe('SunsamaClient', () => {
         apiKey: 'test-api-key',
       });
 
-      const config = client.getConfig();
-      
+      const config = client.config;
+
       expect(config.apiKey).toBe('test-api-key');
       expect(config.baseUrl).toBe('https://api.sunsama.com');
       expect(config.timeout).toBe(30000);
@@ -37,8 +36,8 @@ describe('SunsamaClient', () => {
         retries: 1,
       });
 
-      const config = client.getConfig();
-      
+      const config = client.config;
+
       expect(config.baseUrl).toBe('https://custom.api.com');
       expect(config.timeout).toBe(5000);
       expect(config.retries).toBe(1);

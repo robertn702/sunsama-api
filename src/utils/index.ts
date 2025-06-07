@@ -29,15 +29,6 @@ export function validatePositiveNumber(value: number, fieldName: string): void {
 }
 
 /**
- * Sleeps for the specified number of milliseconds
- * 
- * @param ms - Number of milliseconds to sleep
- */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
  * Builds a URL with query parameters
  * 
  * @param baseUrl - The base URL
@@ -74,31 +65,4 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
     value.constructor === Object &&
     Object.prototype.toString.call(value) === '[object Object]'
   );
-}
-
-/**
- * Deep merges two objects
- * 
- * @param target - The target object
- * @param source - The source object
- * @returns The merged object
- */
-export function deepMerge<T extends Record<string, unknown>>(
-  target: T,
-  source: Partial<T>
-): T {
-  const result = { ...target };
-
-  Object.keys(source).forEach(key => {
-    const sourceValue = source[key];
-    const targetValue = target[key];
-
-    if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
-      result[key] = deepMerge(targetValue, sourceValue);
-    } else {
-      result[key] = sourceValue;
-    }
-  });
-
-  return result;
 }

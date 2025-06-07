@@ -2,14 +2,8 @@
  * Tests for utility functions
  */
 
-import { describe, it, expect } from 'vitest';
-import {
-  validateNonEmptyString,
-  validatePositiveNumber,
-  buildUrlWithParams,
-  isPlainObject,
-  deepMerge,
-} from '../utils/index.js';
+import { describe, expect, it } from 'vitest';
+import { buildUrlWithParams, isPlainObject, validateNonEmptyString, validatePositiveNumber, } from '../utils/index.js';
 
 describe('Utility Functions', () => {
   describe('validateNonEmptyString', () => {
@@ -55,7 +49,7 @@ describe('Utility Functions', () => {
         active: true,
         name: 'test',
       });
-      
+
       expect(url).toContain('page=1');
       expect(url).toContain('limit=10');
       expect(url).toContain('active=true');
@@ -66,7 +60,7 @@ describe('Utility Functions', () => {
   describe('isPlainObject', () => {
     it('should return true for plain objects', () => {
       expect(isPlainObject({})).toBe(true);
-      expect(isPlainObject({ a: 1 })).toBe(true);
+      expect(isPlainObject({a: 1})).toBe(true);
       expect(isPlainObject(Object.create(null))).toBe(false); // No prototype
     });
 
@@ -78,44 +72,6 @@ describe('Utility Functions', () => {
       expect(isPlainObject(123)).toBe(false);
       expect(isPlainObject(new Date())).toBe(false);
       expect(isPlainObject(new Error())).toBe(false);
-    });
-  });
-
-  describe('deepMerge', () => {
-    it('should merge simple objects', () => {
-      const target = { a: 1, b: 2 };
-      const source = { b: 3, c: 4 };
-      const result = deepMerge(target, source);
-      
-      expect(result).toEqual({ a: 1, b: 3, c: 4 });
-    });
-
-    it('should deep merge nested objects', () => {
-      const target = { 
-        a: 1, 
-        nested: { x: 1, y: 2 } 
-      };
-      const source = { 
-        b: 2, 
-        nested: { y: 3, z: 4 } 
-      };
-      const result = deepMerge(target, source);
-      
-      expect(result).toEqual({
-        a: 1,
-        b: 2,
-        nested: { x: 1, y: 3, z: 4 }
-      });
-    });
-
-    it('should not mutate the original objects', () => {
-      const target = { a: 1, nested: { x: 1 } };
-      const source = { b: 2, nested: { y: 2 } };
-      const result = deepMerge(target, source);
-      
-      expect(target).toEqual({ a: 1, nested: { x: 1 } });
-      expect(source).toEqual({ b: 2, nested: { y: 2 } });
-      expect(result).toEqual({ a: 1, b: 2, nested: { x: 1, y: 2 } });
     });
   });
 });
