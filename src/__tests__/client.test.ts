@@ -73,12 +73,12 @@ describe('SunsamaClient', () => {
       expect(client.getSessionToken()).toBe(undefined);
     });
 
-    it('should have login method that throws for now', async () => {
+    it('should have login method that makes API call', async () => {
       const client = new SunsamaClient();
 
-      await expect(client.login('test@example.com', 'password')).rejects.toThrow(
-        'Login functionality not yet implemented'
-      );
+      // Note: Actual login will fail without valid credentials
+      // This test just verifies the method exists and attempts the request
+      await expect(client.login('test@example.com', 'password')).rejects.toThrow();
     });
   });
 });

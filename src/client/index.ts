@@ -59,8 +59,48 @@ export class SunsamaClient {
    * @throws SunsamaAuthError if login fails
    */
   public async login(email: string, password: string): Promise<void> {
-    // TODO: Implement login endpoint call in Day 2
-    throw new SunsamaAuthError('Login functionality not yet implemented');
+    const loginUrl = 'https://api.sunsama.com/account/login/email';
+    
+    // Prepare form data
+    const formData = new URLSearchParams();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    try {
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Origin': 'https://app.sunsama.com',
+        },
+        body: formData.toString(),
+      });
+
+      if (!response.ok) {
+        throw new SunsamaAuthError(`Login failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Extract sunsamaSession cookie from response headers
+      const setCookieHeader = response.headers.get('set-cookie');
+      if (!setCookieHeader) {
+        throw new SunsamaAuthError('No session cookie received from login');
+      }
+
+      // Parse the sunsamaSession cookie value
+      const sessionMatch = setCookieHeader.match(/sunsamaSession=([^;]+)/);
+      if (!sessionMatch || !sessionMatch[1]) {
+        throw new SunsamaAuthError('Invalid session cookie format');
+      }
+
+      // Store session token in memory
+      const sessionToken = sessionMatch[1];
+      this.setSessionToken(sessionToken);
+    } catch (error) {
+      if (error instanceof SunsamaAuthError) {
+        throw error;
+      }
+      throw new SunsamaAuthError(`Login request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
