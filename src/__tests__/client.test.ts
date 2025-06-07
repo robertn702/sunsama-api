@@ -63,5 +63,18 @@ describe('SunsamaClient', () => {
       // This test just verifies the method exists and attempts the request
       await expect(client.login('test@example.com', 'password')).rejects.toThrow();
     });
+
+    it('should have getUser method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getUser).toBe('function');
+    });
+
+    it('should throw error when calling getUser without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getUser()).rejects.toThrow();
+    });
   });
 });

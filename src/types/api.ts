@@ -66,3 +66,82 @@ export interface DateRangeFilter {
   /** End date (ISO string) */
   end?: string;
 }
+
+/**
+ * GraphQL response structure
+ */
+export interface GraphQLResponse<T = any> {
+  data?: T;
+  errors?: Array<{
+    message: string;
+    locations?: Array<{
+      line: number;
+      column: number;
+    }>;
+    path?: Array<string | number>;
+  }>;
+}
+
+/**
+ * GraphQL request structure
+ */
+export interface GraphQLRequest {
+  operationName: string;
+  variables: Record<string, any>;
+  query: string;
+}
+
+/**
+ * User profile data
+ */
+export interface User {
+  _id: string;
+  activationDate?: string;
+  admin?: boolean;
+  aka?: string;
+  emails: Array<{
+    address: string;
+    verified: boolean;
+  }>;
+  profile: {
+    profilePictureURL?: string;
+    firstname?: string;
+    lastname?: string;
+    timezone?: string;
+    timezoneWarningDisabled?: boolean;
+    profileThumbs?: {
+      image_24?: string;
+      image_32?: string;
+      image_48?: string;
+      image_72?: string;
+      image_192?: string;
+    };
+    useCase?: string;
+    onboardingEventSent?: boolean;
+  };
+  preferences: {
+    clockStyle?: string;
+    defaultCalendarView?: string;
+    defaultHomeView?: string;
+    defaultMainPanel?: string;
+    darkMode?: boolean;
+    keyboardShortcuts?: boolean;
+    autoArchiveThreshold?: number;
+    workingSessionDuration?: number;
+    // Add more preference fields as needed
+  };
+  username?: string;
+  createdAt?: string;
+  lastModified?: string;
+  nodeId?: string;
+  daysPlanned?: number;
+  daysShutdown?: number;
+  // Simplified - the full response has many more fields
+}
+
+/**
+ * Response for getUser query
+ */
+export interface GetUserResponse {
+  currentUser: User;
+}

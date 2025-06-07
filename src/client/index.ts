@@ -7,6 +7,7 @@
 import { CookieJar, Cookie } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors/index.js';
 import type { RequestOptions, SunsamaClientConfig } from '../types/client.js';
+import type { GraphQLRequest, GraphQLResponse, GetUserResponse, User } from '../types/api.js';
 
 /**
  * Main Sunsama API client class
@@ -161,16 +162,121 @@ export class SunsamaClient {
       fullUrl = `${url}?${params.toString()}`;
     }
 
+    // Process request body
+    let body: string | undefined;
+    if (options.body instanceof URLSearchParams) {
+      body = options.body.toString();
+    } else if (options.body) {
+      body = JSON.stringify(options.body);
+    }
+
     // Make the request
     const response = await fetch(fullUrl, {
       method: options.method,
       headers,
-      body: options.body instanceof URLSearchParams
-        ? options.body.toString()
-        : options.body ? JSON.stringify(options.body) : undefined,
+      body,
     });
 
     return response;
+  }
+
+  /**
+   * Makes a GraphQL request to the Sunsama API
+   * 
+   * @param request - The GraphQL request
+   * @returns The GraphQL response
+   * @internal
+   */
+  private async graphqlRequest<T>(request: GraphQLRequest): Promise<GraphQLResponse<T>> {
+    const response = await this.request('/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(request.operationName && { 'x-gql-operation-name': request.operationName }),
+      },
+      body: request,
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new SunsamaAuthError(`GraphQL request failed: ${response.status} ${response.statusText}. Response: ${responseText}`);
+    }
+
+    const result = await response.json() as GraphQLResponse<T>;
+    
+    if (result.errors && result.errors.length > 0) {
+      throw new SunsamaAuthError(`GraphQL errors: ${result.errors.map(e => e.message).join(', ')}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Gets the current user information
+   * 
+   * @returns The current user data
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getUser(): Promise<User> {
+    const query = `query getUser {
+  currentUser {
+    _id
+    activationDate
+    admin
+    aka
+    emails {
+      address
+      verified
+    }
+    profile {
+      profilePictureURL
+      firstname
+      lastname
+      timezone
+      timezoneWarningDisabled
+      profileThumbs {
+        image_24
+        image_32
+        image_48
+        image_72
+        image_192
+      }
+      useCase
+      onboardingEventSent
+    }
+    preferences {
+      clockStyle
+      defaultCalendarView
+      defaultHomeView
+      defaultMainPanel
+      darkMode
+      keyboardShortcuts
+      autoArchiveThreshold
+      workingSessionDuration
+    }
+    username
+    createdAt
+    lastModified
+    nodeId
+    daysPlanned
+    daysShutdown
+  }
+}`;
+
+    const request: GraphQLRequest = {
+      operationName: 'getUser',
+      variables: {},
+      query,
+    };
+
+    const response = await this.graphqlRequest<GetUserResponse>(request);
+    
+    if (!response.data) {
+      throw new SunsamaAuthError('No user data received');
+    }
+
+    return response.data.currentUser;
   }
 
   /**
