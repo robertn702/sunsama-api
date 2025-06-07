@@ -18,17 +18,16 @@
   ```typescript
   sessionToken?: string;
   ```
-- ✅ Simplified to only accept optional session token (removed email/password from constructor)
+- ✅ Session token automatically converted to cookie when provided
 
 ### 3. Create Simple AuthManager ✅ COMPLETED (Simplified)
 - ✅ Integrated authentication directly into `SunsamaClient` class:
   ```typescript
   class SunsamaClient {
-    private sessionToken?: string;
+    private readonly cookieJar: CookieJar;
     
     async login(email: string, password: string): Promise<void>
-    isAuthenticated(): boolean
-    getSessionToken(): string | undefined
+    async isAuthenticated(): Promise<boolean>
     logout(): void
   }
   ```
@@ -43,17 +42,17 @@
 - ✅ Added reusable `request()` method for all API calls
 - ✅ Centralized base URL as static constant
 
-### 5. Basic Cookie Management
-- [ ] Install cookie handling library (e.g., `tough-cookie`)
-- [ ] Create simple cookie jar for session management
-- [ ] Store `sunsamaSession` cookie with proper attributes
-- [ ] Auto-include session cookie in subsequent requests
+### 5. Basic Cookie Management ✅ COMPLETED
+- ✅ Install cookie handling library (e.g., `tough-cookie`)
+- ✅ Create simple cookie jar for session management
+- ✅ Store `sunsamaSession` cookie with proper attributes
+- ✅ Auto-include session cookie in subsequent requests
 
-### 6. Update HTTP Client ✅ PARTIALLY COMPLETED
+### 6. Update HTTP Client ✅ COMPLETED
 - ✅ Modify HTTP client to:
-  - [ ] Use cookie jar for automatic cookie handling (pending)
+  - ✅ Use cookie jar for automatic cookie handling
   - ✅ Set `Origin: https://app.sunsama.com` header on all requests
-  - ✅ Handle cookie persistence across requests (via session token)
+  - ✅ Handle cookie persistence across requests (via cookie jar)
 
 ### 7. Basic Error Handling ✅ COMPLETED
 - ✅ Add simple `SunsamaAuthError` class
@@ -109,15 +108,20 @@
 
 **Example working code:**
 ```typescript
-// Current (Day 1 complete)
-const client = new SunsamaClient({
-  sessionToken: 'existing-token' // optional
+// Option 1: Login with email/password
+const client1 = new SunsamaClient();
+await client1.login('user@example.com', 'password');
+
+// Option 2: Use existing session token
+const client2 = new SunsamaClient({
+  sessionToken: 'existing-token'
 });
 
-// Goal (Day 2-3)
-const client = new SunsamaClient();
-await client.login('user@example.com', 'password');
-const tasks = await client.tasks.list(); // Should work after authentication
+// Check authentication status
+const isAuth = await client2.isAuthenticated();
+
+// Future goal (Day 3)
+const tasks = await client2.tasks.list(); // Should work after authentication
 ```
 
 ---

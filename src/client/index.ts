@@ -1,61 +1,59 @@
 /**
  * Main Sunsama API client
- * 
+ *
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 
-import type { SunsamaClientConfig, RequestOptions } from '../types/client.js';
+import { CookieJar, Cookie } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors/index.js';
+import type { RequestOptions, SunsamaClientConfig } from '../types/client.js';
 
 /**
  * Main Sunsama API client class
- * 
+ *
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 export class SunsamaClient {
   private static readonly BASE_URL = 'https://api.sunsama.com';
-  
+
   private readonly config: SunsamaClientConfig;
-  private sessionToken?: string;
+  private readonly cookieJar: CookieJar;
 
   /**
    * Creates a new Sunsama client instance
-   * 
+   *
    * @param config - Client configuration options (optional)
    */
   constructor(config: SunsamaClientConfig = {}) {
     this.config = config;
-    this.sessionToken = config.sessionToken;
+    this.cookieJar = new CookieJar();
+    
+    // If a session token is provided, set it as a cookie
+    if (config.sessionToken) {
+      this.setSessionTokenAsCookie(config.sessionToken);
+    }
   }
 
   /**
    * Gets the current client configuration
    */
   getConfig(): SunsamaClientConfig {
-    return { ...this.config };
+    return {...this.config};
   }
 
   /**
    * Checks if the client is authenticated
-   * 
-   * @returns True if a valid session token is available
+   *
+   * @returns True if cookies are present in the jar
    */
-  isAuthenticated(): boolean {
-    return !!this.sessionToken;
-  }
-
-  /**
-   * Gets the current session token
-   * 
-   * @returns The session token if available, undefined otherwise
-   */
-  getSessionToken(): string | undefined {
-    return this.sessionToken;
+  async isAuthenticated(): Promise<boolean> {
+    const cookies = await this.cookieJar.getCookies(SunsamaClient.BASE_URL);
+    return cookies.some(cookie => cookie.key === 'sunsamaSession');
   }
 
   /**
    * Authenticates with email and password
-   * 
+   *
    * @param email - User email address
    * @param password - User password
    * @throws SunsamaAuthError if login fails
@@ -79,21 +77,19 @@ export class SunsamaClient {
         throw new SunsamaAuthError(`Login failed: ${response.status} ${response.statusText}`);
       }
 
-      // Extract sunsamaSession cookie from response headers
+      // Extract and store cookies from response
       const setCookieHeader = response.headers.get('set-cookie');
       if (!setCookieHeader) {
         throw new SunsamaAuthError('No session cookie received from login');
       }
 
-      // Parse the sunsamaSession cookie value
-      const sessionMatch = setCookieHeader.match(/sunsamaSession=([^;]+)/);
-      if (!sessionMatch || !sessionMatch[1]) {
-        throw new SunsamaAuthError('Invalid session cookie format');
+      // Store the cookie in the jar
+      try {
+        const loginUrl = `${SunsamaClient.BASE_URL}/account/login/email`;
+        await this.cookieJar.setCookie(setCookieHeader, loginUrl);
+      } catch (error) {
+        throw new SunsamaAuthError(`Failed to store session cookie: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-
-      // Store session token in memory
-      const sessionToken = sessionMatch[1];
-      this.setSessionToken(sessionToken);
     } catch (error) {
       if (error instanceof SunsamaAuthError) {
         throw error;
@@ -103,15 +99,15 @@ export class SunsamaClient {
   }
 
   /**
-   * Clears the current session token
+   * Clears all cookies from the jar
    */
   logout(): void {
-    this.sessionToken = undefined;
+    this.cookieJar.removeAllCookiesSync();
   }
 
   /**
    * Makes an authenticated request to the Sunsama API
-   * 
+   *
    * @param path - The API endpoint path (e.g., '/tasks')
    * @param options - Request options
    * @returns The response from the API
@@ -122,16 +118,17 @@ export class SunsamaClient {
     options: RequestOptions
   ): Promise<Response> {
     const url = `${SunsamaClient.BASE_URL}${path}`;
-    
+
     // Build headers
     const headers: HeadersInit = {
       'Origin': 'https://app.sunsama.com',
       ...options.headers,
     };
 
-    // Add session token if available
-    if (this.sessionToken) {
-      headers['Cookie'] = `sunsamaSession=${this.sessionToken}`;
+    // Get cookies from jar for this URL
+    const cookies = await this.cookieJar.getCookies(url);
+    if (cookies.length > 0) {
+      headers['Cookie'] = cookies.map(cookie => cookie.cookieString()).join('; ');
     }
 
     // Build query string if params provided
@@ -148,8 +145,8 @@ export class SunsamaClient {
     const response = await fetch(fullUrl, {
       method: options.method,
       headers,
-      body: options.body instanceof URLSearchParams 
-        ? options.body.toString() 
+      body: options.body instanceof URLSearchParams
+        ? options.body.toString()
         : options.body ? JSON.stringify(options.body) : undefined,
     });
 
@@ -157,12 +154,26 @@ export class SunsamaClient {
   }
 
   /**
-   * Sets the session token (internal use)
+   * Sets a session token as a cookie in the jar
    * 
    * @param token - The session token to set
    * @internal
    */
-  private setSessionToken(token: string): void {
-    this.sessionToken = token;
+  private setSessionTokenAsCookie(token: string): void {
+    try {
+      const cookie = new Cookie({
+        key: 'sunsamaSession',
+        value: token,
+        domain: 'api.sunsama.com',
+        path: '/',
+        httpOnly: true,
+        secure: true,
+      });
+      
+      this.cookieJar.setCookieSync(cookie, SunsamaClient.BASE_URL);
+    } catch (error) {
+      // Silently fail if cookie cannot be set
+      console.warn('Failed to set session token as cookie:', error);
+    }
   }
 }
