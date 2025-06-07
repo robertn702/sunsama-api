@@ -62,6 +62,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
     "@types/node": "^20.14.10",
+    "@types/tough-cookie": "^4.0.5",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
     "@vitest/coverage-v8": "^1.6.0",
@@ -76,8 +77,9 @@
     "typescript": "^5.5.3",
     "vitest": "^1.6.0"
   },
-  "dependencies": {},
-  "peerDependencies": {},
+  "dependencies": {
+    "tough-cookie": "^5.1.2"
+  },
   "publishConfig": {
     "access": "public"
   }
