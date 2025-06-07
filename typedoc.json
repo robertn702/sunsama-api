@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "theme": "default",
+  "name": "Sunsama API TypeScript Wrapper",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "readme": "README.md",
+  "plugin": ["typedoc-plugin-markdown"],
+  "gitRevision": "main",
+  "hideGenerator": true,
+  "sort": ["source-order"]
+}

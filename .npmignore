@@ -1,0 +1,63 @@
+# Source files
+src/
+tests/
+test/
+__tests__/
+
+# Configuration files
+tsconfig*.json
+.eslintrc*
+.prettierrc*
+vitest.config.*
+.changeset/
+
+# Development dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.vitest/
+*.test.ts
+*.spec.ts
+
+# Documentation source
+docs/
+
+# Build artifacts (keep only dist/)
+*.tsbuildinfo
+
+# Linting and formatting
+.eslintcache
+
+# Environment
+.env*
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Development scripts
+scripts/
+
+# Examples (if they exist)
+examples/
+
+# Temporary files
+tmp/
+temp/
