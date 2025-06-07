@@ -65,22 +65,42 @@ export class SunsamaClient {
     formData.append('password', password);
 
     try {
-      const response = await this.request('/account/login/email', {
+      // For login, we need to handle redirects manually to capture the session cookie
+      const loginUrl = `${SunsamaClient.BASE_URL}/account/login/email`;
+      
+      // Get cookies from jar for this URL
+      const cookies = await this.cookieJar.getCookies(loginUrl);
+      const headers: HeadersInit = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://app.sunsama.com',
+      };
+      
+      if (cookies.length > 0) {
+        headers['Cookie'] = cookies.map(cookie => cookie.cookieString()).join('; ');
+      }
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
+        headers,
+        body: formData.toString(),
+        redirect: 'manual', // Don't follow redirects automatically
       });
 
-      if (!response.ok) {
-        throw new SunsamaAuthError(`Login failed: ${response.status} ${response.statusText}`);
+      // For login, we expect a 302 redirect on success
+      if (response.status !== 302) {
+        const responseText = await response.text();
+        throw new SunsamaAuthError(`Login failed: ${response.status} ${response.statusText}. Response: ${responseText}`);
       }
 
       // Extract and store cookies from response
       const setCookieHeader = response.headers.get('set-cookie');
       if (!setCookieHeader) {
-        throw new SunsamaAuthError('No session cookie received from login');
+        // Debug: print all response headers
+        const allHeaders: Record<string, string> = {};
+        response.headers.forEach((value, key) => {
+          allHeaders[key] = value;
+        });
+        throw new SunsamaAuthError(`No session cookie received from login. Response headers: ${JSON.stringify(allHeaders, null, 2)}`);
       }
 
       // Store the cookie in the jar
