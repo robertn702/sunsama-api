@@ -75,6 +75,16 @@ export class SunsamaConfigError extends SunsamaError {
 }
 
 /**
+ * Error thrown when authentication fails
+ */
+export class SunsamaAuthError extends SunsamaError {
+  constructor(message: string, code?: string, cause?: Error) {
+    super(message, code, cause);
+    this.name = 'SunsamaAuthError';
+  }
+}
+
+/**
  * Error thrown when request validation fails
  */
 export class SunsamaValidationError extends SunsamaError {

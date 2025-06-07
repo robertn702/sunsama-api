@@ -7,48 +7,78 @@ import { SunsamaClient } from '../client/index.js';
 
 describe('SunsamaClient', () => {
   describe('constructor', () => {
-    it('should create a client with valid configuration', () => {
+    it('should create a client with no configuration', () => {
+      const client = new SunsamaClient();
+
+      expect(client).toBeInstanceOf(SunsamaClient);
+      expect(client.config).toEqual({});
+      expect(client.isAuthenticated()).toBe(false);
+    });
+
+    it('should create a client with empty configuration', () => {
+      const client = new SunsamaClient({});
+
+      expect(client).toBeInstanceOf(SunsamaClient);
+      expect(client.config).toEqual({});
+      expect(client.isAuthenticated()).toBe(false);
+    });
+
+    it('should create a client with session token configuration', () => {
       const client = new SunsamaClient({
-        apiKey: 'test-api-key',
+        sessionToken: 'test-session-token',
       });
 
       expect(client).toBeInstanceOf(SunsamaClient);
+      expect(client.config).toEqual({
+        sessionToken: 'test-session-token',
+      });
+      expect(client.isAuthenticated()).toBe(true);
     });
 
-    it('should use default configuration values', () => {
+    it('should have authentication methods', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.isAuthenticated).toBe('function');
+      expect(typeof client.getSessionToken).toBe('function');
+      expect(typeof client.login).toBe('function');
+      expect(typeof client.logout).toBe('function');
+    });
+
+    it('should be authenticated when session token is provided', () => {
       const client = new SunsamaClient({
-        apiKey: 'test-api-key',
+        sessionToken: 'test-session-token',
       });
 
-      const config = client.config;
-
-      expect(config.apiKey).toBe('test-api-key');
-      expect(config.baseUrl).toBe('https://api.sunsama.com');
-      expect(config.timeout).toBe(30000);
-      expect(config.retries).toBe(3);
+      expect(client.isAuthenticated()).toBe(true);
+      expect(client.getSessionToken()).toBe('test-session-token');
     });
 
-    it('should allow custom configuration', () => {
+    it('should not be authenticated by default', () => {
+      const client = new SunsamaClient();
+
+      expect(client.isAuthenticated()).toBe(false);
+      expect(client.getSessionToken()).toBe(undefined);
+    });
+
+    it('should allow logout', () => {
       const client = new SunsamaClient({
-        apiKey: 'test-api-key',
-        baseUrl: 'https://custom.api.com',
-        timeout: 5000,
-        retries: 1,
+        sessionToken: 'test-session-token',
       });
 
-      const config = client.config;
-
-      expect(config.baseUrl).toBe('https://custom.api.com');
-      expect(config.timeout).toBe(5000);
-      expect(config.retries).toBe(1);
+      expect(client.isAuthenticated()).toBe(true);
+      
+      client.logout();
+      
+      expect(client.isAuthenticated()).toBe(false);
+      expect(client.getSessionToken()).toBe(undefined);
     });
 
-    it('should throw error for empty API key', () => {
-      expect(() => {
-        new SunsamaClient({
-          apiKey: '',
-        });
-      }).toThrow(); // TODO: Implement validation and update test
+    it('should have login method that throws for now', async () => {
+      const client = new SunsamaClient();
+
+      await expect(client.login('test@example.com', 'password')).rejects.toThrow(
+        'Login functionality not yet implemented'
+      );
     });
   });
 });

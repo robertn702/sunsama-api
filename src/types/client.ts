@@ -6,17 +6,8 @@
  * Configuration options for the Sunsama client
  */
 export interface SunsamaClientConfig {
-  /** API key for authentication */
-  apiKey: string;
-  
-  /** Base URL for the API (optional, defaults to official Sunsama API) */
-  baseUrl?: string;
-  
-  /** Request timeout in milliseconds (optional, defaults to 30000) */
-  timeout?: number;
-  
-  /** Number of retries for failed requests (optional, defaults to 3) */
-  retries?: number;
+  /** Session token for authentication (optional) */
+  sessionToken?: string;
 }
 
 /**
