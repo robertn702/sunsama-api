@@ -7,10 +7,12 @@
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors/index.js';
-import { GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries/index.js';
+import { GET_TASKS_BY_DAY_QUERY, GET_TASKS_BACKLOG_QUERY, GET_USER_QUERY } from '../queries/index.js';
 import type {
   GetTasksByDayInput,
   GetTasksByDayResponse,
+  GetTasksBacklogInput,
+  GetTasksBacklogResponse,
   GetUserResponse,
   GraphQLRequest,
   GraphQLResponse,
@@ -305,6 +307,42 @@ export class SunsamaClient {
     }
 
     return response.data.tasksByDayV2;
+  }
+
+  /**
+   * Gets tasks from the backlog
+   *
+   * @returns Array of backlog tasks
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getTasksBacklog(): Promise<Task[]> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+    }
+
+    const variables: GetTasksBacklogInput = {
+      userId: this.userId!,
+      groupId: this.groupId,
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'getTasksBacklog',
+      variables,
+      query: GET_TASKS_BACKLOG_QUERY,
+    };
+
+    const response = await this.graphqlRequest<GetTasksBacklogResponse>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No backlog data received');
+    }
+
+    return response.data.tasksBacklog;
   }
 
   /**
