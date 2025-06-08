@@ -26,3 +26,20 @@ export const GET_TASKS_BY_DAY_QUERY = gql`
 
   ${TASK_INTEGRATION_FRAGMENT}
 `;
+
+export const GET_TASKS_BACKLOG_QUERY = gql`
+  query getTasksBacklog($userId: String!, $groupId: String!) {
+    tasksBacklog(userId: $userId, groupId: $groupId) {
+      ...Task
+      __typename
+    }
+  }
+
+  ${TASK_FRAGMENT}
+
+  ${TASK_ACTUAL_TIME_FRAGMENT}
+
+  ${TASK_SCHEDULED_TIME_FRAGMENT}
+
+  ${TASK_INTEGRATION_FRAGMENT}
+`;
