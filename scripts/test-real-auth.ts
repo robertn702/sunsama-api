@@ -120,6 +120,32 @@ async function testRealAuth() {
       console.log('   No tasks found in backlog');
     }
     
+    // Test getStreamsByGroupId method
+    console.log('\n🌊 Testing getStreamsByGroupId method...');
+    const streams = await client.getStreamsByGroupId();
+    
+    console.log('✅ getStreamsByGroupId successful!');
+    console.log(`\n📊 Streams Information: ${streams.length} streams`);
+    
+    if (streams.length > 0) {
+      console.log('\n📝 Sample streams:');
+      streams.slice(0, 5).forEach((stream, index) => {
+        console.log(`   ${index + 1}. ${stream.streamName}`);
+        console.log(`      ID: ${stream._id}`);
+        console.log(`      Status: ${stream.status}`);
+        console.log(`      Color: ${stream.color}`);
+        console.log(`      Private: ${stream.private}`);
+        console.log(`      Members: ${stream.memberIds.length}`);
+        console.log(`      Integrations: ${stream.projectIntegrations.length}`);
+        if (stream.description) {
+          console.log(`      Description: ${stream.description}`);
+        }
+        console.log('');
+      });
+    } else {
+      console.log('   No streams found for group');
+    }
+    
     // Test logout
     console.log('\n🚪 Testing logout...');
     client.logout();
