@@ -80,7 +80,10 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "tough-cookie": "^5.1.2"
+    "graphql": "^16.11.0",
+    "graphql-tag": "^2.12.6",
+    "tough-cookie": "^5.1.2",
+    "tslib": "^2.8.1"
   },
   "publishConfig": {
     "access": "public"
