@@ -35,18 +35,37 @@ pnpm add sunsama-api
 import { SunsamaClient } from 'sunsama-api';
 
 // Initialize the client
-const client = new SunsamaClient({
-  apiKey: 'your-api-key',
-});
+const client = new SunsamaClient();
 
-// Example usage (implementation coming soon)
+// Example usage
 async function example() {
   try {
-    // Get current user tasks
-    const tasks = await client.tasks.list();
-    console.log('Your tasks:', tasks);
+    // Authenticate with email/password
+    await client.login('your-email@example.com', 'your-password');
+    
+    // Get current user information
+    const user = await client.getUser();
+    console.log('User:', user.profile.firstname, user.profile.lastname);
+    
+    // Get tasks for today
+    const today = new Date().toISOString().split('T')[0];
+    const tasks = await client.getTasksByDay(today);
+    console.log('Today\'s tasks:', tasks.length);
+    
+    // Get backlog tasks
+    const backlog = await client.getTasksBacklog();
+    console.log('Backlog tasks:', backlog.length);
+    
+    // Get streams/projects
+    const streams = await client.getStreamsByGroupId();
+    console.log('Streams:', streams.length);
+    
+    // Get user's timezone
+    const timezone = await client.getUserTimezone();
+    console.log('Timezone:', timezone);
+    
   } catch (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Error:', error);
   }
 }
 ```
@@ -55,16 +74,58 @@ async function example() {
 
 Full API documentation is available at [docs link - to be added].
 
-## Configuration
+## Authentication
 
-The client can be configured with various options:
+The client uses email/password authentication or session tokens:
 
 ```typescript
+// Method 1: Email/Password authentication
+const client = new SunsamaClient();
+await client.login('your-email@example.com', 'your-password');
+
+// Method 2: Session token (if you have one)
 const client = new SunsamaClient({
-  apiKey: 'your-api-key',
-  baseUrl: 'https://api.sunsama.com', // Optional: custom base URL
-  timeout: 30000, // Optional: request timeout in ms
-  retries: 3, // Optional: number of retries for failed requests
+  sessionToken: 'your-session-token'
+});
+
+// Check authentication status
+const isAuth = await client.isAuthenticated();
+console.log('Authenticated:', isAuth);
+
+// Logout
+client.logout();
+```
+
+## API Methods
+
+The client provides the following methods:
+
+### User Information
+```typescript
+// Get current user details
+const user = await client.getUser();
+console.log(user.profile.firstname, user.profile.lastname);
+
+// Get user's timezone
+const timezone = await client.getUserTimezone();
+```
+
+### Tasks
+```typescript
+// Get tasks for a specific day
+const tasks = await client.getTasksByDay('2025-01-15');
+const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York');
+
+// Get backlog tasks
+const backlog = await client.getTasksBacklog();
+```
+
+### Streams (Channels)
+```typescript
+// Get all streams for the user's group
+const streams = await client.getStreamsByGroupId();
+streams.forEach(stream => {
+  console.log(stream.streamName, stream.color);
 });
 ```
 
@@ -73,12 +134,15 @@ const client = new SunsamaClient({
 The wrapper provides structured error handling:
 
 ```typescript
-import { SunsamaError, SunsamaApiError } from 'sunsama-api';
+import { SunsamaError, SunsamaAuthError, SunsamaApiError } from 'sunsama-api';
 
 try {
-  const result = await client.tasks.create(taskData);
+  await client.login('email@example.com', 'password');
+  const user = await client.getUser();
 } catch (error) {
-  if (error instanceof SunsamaApiError) {
+  if (error instanceof SunsamaAuthError) {
+    console.error('Authentication Error:', error.message);
+  } else if (error instanceof SunsamaApiError) {
     console.error('API Error:', error.message, error.status);
   } else if (error instanceof SunsamaError) {
     console.error('Client Error:', error.message);
