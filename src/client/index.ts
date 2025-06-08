@@ -4,10 +4,20 @@
  * Provides a type-safe interface to interact with all Sunsama API endpoints.
  */
 
-import { CookieJar, Cookie } from 'tough-cookie';
+import { print } from 'graphql';
+import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors/index.js';
+import { GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries/index.js';
+import type {
+  GetTasksByDayInput,
+  GetTasksByDayResponse,
+  GetUserResponse,
+  GraphQLRequest,
+  GraphQLResponse,
+  Task,
+  User
+} from '../types/api.js';
 import type { RequestOptions, SunsamaClientConfig } from '../types/client.js';
-import type { GraphQLRequest, GraphQLResponse, GetUserResponse, User } from '../types/api.js';
 
 /**
  * Main Sunsama API client class
@@ -28,7 +38,7 @@ export class SunsamaClient {
   constructor(config: SunsamaClientConfig = {}) {
     this.config = config;
     this.cookieJar = new CookieJar();
-    
+
     // If a session token is provided, set it as a cookie
     if (config.sessionToken) {
       this.setSessionTokenAsCookie(config.sessionToken);
@@ -68,18 +78,18 @@ export class SunsamaClient {
     try {
       // For login, we need to handle redirects manually to capture the session cookie
       const loginUrl = `${SunsamaClient.BASE_URL}/account/login/email`;
-      
+
       // Get cookies from jar for this URL
       const cookies = await this.cookieJar.getCookies(loginUrl);
       const headers: HeadersInit = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Origin': 'https://app.sunsama.com',
       };
-      
+
       if (cookies.length > 0) {
         headers['Cookie'] = cookies.map(cookie => cookie.cookieString()).join('; ');
       }
-      
+
       const response = await fetch(loginUrl, {
         method: 'POST',
         headers,
@@ -182,20 +192,28 @@ export class SunsamaClient {
 
   /**
    * Makes a GraphQL request to the Sunsama API
-   * 
+   *
    * @param request - The GraphQL request
    * @returns The GraphQL response
    * @internal
    */
   private async graphqlRequest<T>(request: GraphQLRequest): Promise<GraphQLResponse<T>> {
+    // Convert DocumentNode to string if needed
+    const queryString = typeof request.query === 'string' ? request.query : print(request.query);
+
+    const requestBody = {
+      ...request,
+      query: queryString,
+    };
+
     const response = await this.request('/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        ...(request.operationName && { 'x-gql-operation-name': request.operationName }),
+        ...(request.operationName && {'x-gql-operation-name': request.operationName}),
       },
-      body: request,
+      body: requestBody,
     });
 
     if (!response.ok) {
@@ -204,7 +222,7 @@ export class SunsamaClient {
     }
 
     const result = await response.json() as GraphQLResponse<T>;
-    
+
     if (result.errors && result.errors.length > 0) {
       throw new SunsamaAuthError(`GraphQL errors: ${result.errors.map(e => e.message).join(', ')}`);
     }
@@ -214,64 +232,19 @@ export class SunsamaClient {
 
   /**
    * Gets the current user information
-   * 
+   *
    * @returns The current user data
    * @throws SunsamaAuthError if not authenticated or request fails
    */
   async getUser(): Promise<User> {
-    const query = `query getUser {
-  currentUser {
-    _id
-    activationDate
-    admin
-    aka
-    emails {
-      address
-      verified
-    }
-    profile {
-      profilePictureURL
-      firstname
-      lastname
-      timezone
-      timezoneWarningDisabled
-      profileThumbs {
-        image_24
-        image_32
-        image_48
-        image_72
-        image_192
-      }
-      useCase
-      onboardingEventSent
-    }
-    preferences {
-      clockStyle
-      defaultCalendarView
-      defaultHomeView
-      defaultMainPanel
-      darkMode
-      keyboardShortcuts
-      autoArchiveThreshold
-      workingSessionDuration
-    }
-    username
-    createdAt
-    lastModified
-    nodeId
-    daysPlanned
-    daysShutdown
-  }
-}`;
-
     const request: GraphQLRequest = {
       operationName: 'getUser',
       variables: {},
-      query,
+      query: GET_USER_QUERY,
     };
 
     const response = await this.graphqlRequest<GetUserResponse>(request);
-    
+
     if (!response.data) {
       throw new SunsamaAuthError('No user data received');
     }
@@ -280,8 +253,50 @@ export class SunsamaClient {
   }
 
   /**
+   * Gets tasks for a specific day
+   *
+   * @param day - ISO date string (e.g., "2025-05-31")
+   * @param timezone - Timezone string (e.g., "America/New_York", defaults to user's timezone)
+   * @returns Array of tasks for the specified day
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getTasksByDay(day: string, timezone?: string): Promise<Task[]> {
+    // Get user info to extract userId and groupId if not provided
+    const user = await this.getUser();
+    const userTimezone = timezone || user.profile.timezone || 'UTC';
+
+    // Get group ID from user data
+    // Note: From examining the API, groupId seems to be derived from nodeId
+    const groupId = user.primaryGroup?.groupId;
+    if (!groupId) {
+      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+    }
+
+    const variables: GetTasksByDayInput = {
+      day,
+      timezone: userTimezone,
+      userId: user._id,
+      groupId,
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'getTasksByDay',
+      variables: {input: variables},
+      query: GET_TASKS_BY_DAY_QUERY,
+    };
+
+    const response = await this.graphqlRequest<GetTasksByDayResponse>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No task data received');
+    }
+
+    return response.data.tasksByDayV2;
+  }
+
+  /**
    * Sets a session token as a cookie in the jar
-   * 
+   *
    * @param token - The session token to set
    * @internal
    */
@@ -295,7 +310,7 @@ export class SunsamaClient {
         httpOnly: true,
         secure: true,
       });
-      
+
       this.cookieJar.setCookieSync(cookie, SunsamaClient.BASE_URL);
     } catch (error) {
       // Silently fail if cookie cannot be set

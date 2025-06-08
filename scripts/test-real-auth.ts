@@ -14,8 +14,8 @@ async function testRealAuth() {
   console.log('🧪 Testing Sunsama Authentication with Real Credentials\n');
   
   // Get credentials from environment
-  const email = process.env.SUNSAMA_EMAIL;
-  const password = process.env.SUNSAMA_PASSWORD;
+  const email = process.env['SUNSAMA_EMAIL'];
+  const password = process.env['SUNSAMA_PASSWORD'];
   
   if (!email || !password) {
     console.error('❌ Missing credentials in .env file');
@@ -60,6 +60,41 @@ async function testRealAuth() {
     console.log(`   Created: ${user.createdAt || 'N/A'}`);
     console.log(`   Days Planned: ${user.daysPlanned || 0}`);
     console.log(`   Admin: ${user.admin || false}`);
+    
+    // Test getTasksByDay method
+    console.log('\n📋 Testing getTasksByDay method...');
+    const today = new Date().toISOString().split('T')[0]!; // Get today in YYYY-MM-DD format
+    console.log(`   Testing with date: ${today}`);
+    const tasks = await client.getTasksByDay(today);
+    
+    // Also test with a specific date that we know has tasks
+    console.log('\n📋 Testing getTasksByDay with known date (2025-06-10)...');
+    const testDate = '2025-06-10';
+    const testTasks = await client.getTasksByDay(testDate);
+    
+    console.log('✅ getTasksByDay successful!');
+    console.log('\n📊 Tasks Information:');
+    console.log(`   Tasks for ${today}: ${tasks.length}`);
+    console.log(`   Tasks for ${testDate}: ${testTasks.length}`);
+    
+    // Display sample tasks from either date
+    const allTasks = [...tasks, ...testTasks];
+    if (allTasks.length > 0) {
+      console.log('\n📝 Sample tasks:');
+      allTasks.slice(0, 3).forEach((task, index) => {
+        console.log(`   ${index + 1}. ${task.text}`);
+        console.log(`      ID: ${task._id}`);
+        console.log(`      Completed: ${task.completed}`);
+        console.log(`      Time Estimate: ${task.timeEstimate || 'N/A'} minutes`);
+        console.log(`      Subtasks: ${task.subtasks.length}`);
+        if (task.integration) {
+          console.log(`      Integration: ${task.integration.service}`);
+        }
+        console.log('');
+      });
+    } else {
+      console.log('   No tasks found for either date');
+    }
     
     // Test logout
     console.log('\n🚪 Testing logout...');
