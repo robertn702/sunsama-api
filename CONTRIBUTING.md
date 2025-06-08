@@ -30,7 +30,6 @@ We maintain high code quality standards:
 - **ESLint**: Code must pass linting
 - **Prettier**: Code must be formatted
 - **Tests**: All new features must include tests
-- **Coverage**: Maintain test coverage above 80%
 
 ### Before Submitting
 
@@ -54,23 +53,23 @@ We maintain high code quality standards:
    pnpm build
    ```
 
-### Commit Convention
+### Commit Messages
 
-We use conventional commits for clear change tracking:
+Write clear, descriptive commit messages that explain what and why:
 
-- `feat:` new features
-- `fix:` bug fixes
-- `docs:` documentation changes
-- `style:` formatting, no code change
-- `refactor:` code change that neither fixes bug nor adds feature
-- `test:` adding tests
-- `chore:` updating build tasks, package manager configs, etc.
+- Use the imperative mood ("Add feature" not "Added feature")
+- Keep the first line under 50 characters
+- Add detailed explanation in the body if needed
+- Reference issues when applicable
 
 Example:
 ```
-feat: add task creation endpoint
-fix: handle API rate limiting properly
-docs: update README with new examples
+Add getStreamsByGroupId method to client
+
+Implements stream fetching functionality using GraphQL query.
+Follows existing patterns for caching and error handling.
+
+Fixes #123
 ```
 
 ## Project Structure
@@ -135,7 +134,7 @@ src/
 
 4. **Commit your changes**
    ```bash
-   git commit -m "feat: add new feature"
+   git commit -m "Add new feature"
    ```
 
 5. **Push to your fork**
@@ -172,21 +171,5 @@ When reviewing code, consider:
 - **Performance**: Are there any performance concerns?
 - **Security**: Are there any security implications?
 - **Documentation**: Is the code well-documented?
-
-## Getting Help
-
-If you need help:
-
-1. Check existing [issues](https://github.com/yourusername/sunsama-ts/issues)
-2. Join our [discussions](https://github.com/yourusername/sunsama-ts/discussions)
-3. Create a new issue with the `question` label
-
-## Recognition
-
-Contributors will be recognized in:
-
-- The project README
-- Release notes for significant contributions
-- The contributors section (coming soon)
 
 Thank you for contributing to make this project better! 🎉
