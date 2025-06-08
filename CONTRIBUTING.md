@@ -146,7 +146,6 @@ src/
    - Use a clear, descriptive title
    - Include a detailed description of changes
    - Reference any related issues
-   - Add screenshots for UI changes (if applicable)
 
 ## Release Process
 
