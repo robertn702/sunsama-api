@@ -6,20 +6,21 @@
 
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
-import { SunsamaAuthError } from '../errors/index.js';
-import { GET_TASKS_BY_DAY_QUERY, GET_TASKS_BACKLOG_QUERY, GET_USER_QUERY } from '../queries/index.js';
+import { SunsamaAuthError } from '../errors';
+import { GET_TASKS_BACKLOG_QUERY, GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries';
 import type {
-  GetTasksByDayInput,
-  GetTasksByDayResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
+  GetTasksByDayInput,
+  GetTasksByDayResponse,
   GetUserResponse,
   GraphQLRequest,
   GraphQLResponse,
+  RequestOptions,
+  SunsamaClientConfig,
   Task,
   User
-} from '../types/api.js';
-import type { RequestOptions, SunsamaClientConfig } from '../types/client.js';
+} from '../types';
 
 /**
  * Main Sunsama API client class
@@ -189,13 +190,11 @@ export class SunsamaClient {
     }
 
     // Make the request
-    const response = await fetch(fullUrl, {
+    return await fetch(fullUrl, {
       method: options.method,
       headers,
       body,
     });
-
-    return response;
   }
 
   /**
@@ -258,7 +257,7 @@ export class SunsamaClient {
     }
 
     const user = response.data.currentUser;
-    
+
     // Cache user ID, group ID, and timezone for future requests
     this.userId = user._id;
     this.groupId = user.primaryGroup?.groupId;
