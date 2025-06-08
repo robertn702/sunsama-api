@@ -76,5 +76,31 @@ describe('SunsamaClient', () => {
       // Should fail because no authentication
       await expect(client.getUser()).rejects.toThrow();
     });
+
+    it('should have getTasksByDay method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getTasksByDay).toBe('function');
+    });
+
+    it('should throw error when calling getTasksByDay without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getTasksByDay('2025-01-01')).rejects.toThrow();
+    });
+
+    it('should have getTasksBacklog method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getTasksBacklog).toBe('function');
+    });
+
+    it('should throw error when calling getTasksBacklog without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getTasksBacklog()).rejects.toThrow();
+    });
   });
 });
