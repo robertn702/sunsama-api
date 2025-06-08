@@ -102,5 +102,18 @@ describe('SunsamaClient', () => {
       // Should fail because no authentication
       await expect(client.getTasksBacklog()).rejects.toThrow();
     });
+
+    it('should have getStreamsByGroupId method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getStreamsByGroupId).toBe('function');
+    });
+
+    it('should throw error when calling getStreamsByGroupId without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getStreamsByGroupId()).rejects.toThrow();
+    });
   });
 });
