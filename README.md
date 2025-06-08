@@ -102,7 +102,7 @@ This project uses modern development tools:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/sunsama-api.git
+git clone https://github.com/robertn702/sunsama-api.git
 cd sunsama-api
 
 # Install dependencies
@@ -143,8 +143,8 @@ This is an unofficial wrapper for the Sunsama API. It is not affiliated with or 
 
 If you encounter any issues or have questions:
 
-1. Search [existing issues](https://github.com/yourusername/sunsama-api/issues)
-2. Create a [new issue](https://github.com/yourusername/sunsama-api/issues/new)
+1. Search [existing issues](https://github.com/robertn702/sunsama-api/issues)
+2. Create a [new issue](https://github.com/robertn702/sunsama-api/issues/new)
 
 ---
 
