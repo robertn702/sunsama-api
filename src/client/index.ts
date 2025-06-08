@@ -29,6 +29,9 @@ export class SunsamaClient {
 
   private readonly config: SunsamaClientConfig;
   private readonly cookieJar: CookieJar;
+  private userId?: string;
+  private groupId?: string;
+  private timezone?: string;
 
   /**
    * Creates a new Sunsama client instance
@@ -130,10 +133,13 @@ export class SunsamaClient {
   }
 
   /**
-   * Clears all cookies from the jar
+   * Clears all cookies from the jar and cached user data
    */
   logout(): void {
     this.cookieJar.removeAllCookiesSync();
+    this.userId = undefined;
+    this.groupId = undefined;
+    this.timezone = undefined;
   }
 
   /**
@@ -249,7 +255,14 @@ export class SunsamaClient {
       throw new SunsamaAuthError('No user data received');
     }
 
-    return response.data.currentUser;
+    const user = response.data.currentUser;
+    
+    // Cache user ID, group ID, and timezone for future requests
+    this.userId = user._id;
+    this.groupId = user.primaryGroup?.groupId;
+    this.timezone = user.profile.timezone;
+
+    return user;
   }
 
   /**
@@ -261,22 +274,22 @@ export class SunsamaClient {
    * @throws SunsamaAuthError if not authenticated or request fails
    */
   async getTasksByDay(day: string, timezone?: string): Promise<Task[]> {
-    // Get user info to extract userId and groupId if not provided
-    const user = await this.getUser();
-    const userTimezone = timezone || user.profile.timezone || 'UTC';
+    // Use cached values if available, otherwise fetch user data
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
 
-    // Get group ID from user data
-    // Note: From examining the API, groupId seems to be derived from nodeId
-    const groupId = user.primaryGroup?.groupId;
-    if (!groupId) {
+    const userTimezone = timezone || this.timezone || 'UTC';
+
+    if (!this.groupId) {
       throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
     }
 
     const variables: GetTasksByDayInput = {
       day,
       timezone: userTimezone,
-      userId: user._id,
-      groupId,
+      userId: this.userId!,
+      groupId: this.groupId,
     };
 
     const request: GraphQLRequest = {
