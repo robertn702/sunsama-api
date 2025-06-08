@@ -15,10 +15,11 @@
 - [ ] Research `getTasksBacklog` and `getTasksByDay` operations
 - ✅ Document GraphQL request/response formats
 
-### 2. Implement Three Core API Methods
+### 2. Implement Core API Methods
 - ✅ `getUser()` - Get current user profile/information
 - [ ] `getTasksBacklog()` - Get tasks in the backlog
-- [ ] `getTasksByDay(date)` - Get tasks for a specific day
+- ✅ `getTasksByDay(date)` - Get tasks for a specific day
+- [ ] `streamsByGroupId()` - Get streams by group ID
 - ✅ Implement proper TypeScript types for user responses
 - ✅ Add GraphQL error handling
 
