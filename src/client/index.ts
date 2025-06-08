@@ -216,7 +216,9 @@ export class SunsamaClient {
    * @returns The GraphQL response
    * @internal
    */
-  private async graphqlRequest<T>(request: GraphQLRequest): Promise<GraphQLResponse<T>> {
+  private async graphqlRequest<T, TVariables = Record<string, unknown>>(
+    request: GraphQLRequest<TVariables>
+  ): Promise<GraphQLResponse<T>> {
     // Convert DocumentNode to string if needed
     const queryString = typeof request.query === 'string' ? request.query : print(request.query);
 
@@ -258,13 +260,13 @@ export class SunsamaClient {
    * @throws SunsamaAuthError if not authenticated or request fails
    */
   async getUser(): Promise<User> {
-    const request: GraphQLRequest = {
+    const request: GraphQLRequest<Record<string, never>> = {
       operationName: 'getUser',
       variables: {},
       query: GET_USER_QUERY,
     };
 
-    const response = await this.graphqlRequest<GetUserResponse>(request);
+    const response = await this.graphqlRequest<GetUserResponse, Record<string, never>>(request);
 
     if (!response.data) {
       throw new SunsamaAuthError('No user data received');
@@ -309,13 +311,16 @@ export class SunsamaClient {
       groupId: this.groupId,
     };
 
-    const request: GraphQLRequest = {
+    const request: GraphQLRequest<{ input: GetTasksByDayInput }> = {
       operationName: 'getTasksByDay',
       variables: { input: variables },
       query: GET_TASKS_BY_DAY_QUERY,
     };
 
-    const response = await this.graphqlRequest<GetTasksByDayResponse>(request);
+    const response = await this.graphqlRequest<
+      GetTasksByDayResponse,
+      { input: GetTasksByDayInput }
+    >(request);
 
     if (!response.data) {
       throw new SunsamaAuthError('No task data received');
@@ -347,13 +352,15 @@ export class SunsamaClient {
       groupId: this.groupId,
     };
 
-    const request: GraphQLRequest = {
+    const request: GraphQLRequest<GetTasksBacklogInput> = {
       operationName: 'getTasksBacklog',
       variables,
       query: GET_TASKS_BACKLOG_QUERY,
     };
 
-    const response = await this.graphqlRequest<GetTasksBacklogResponse>(request);
+    const response = await this.graphqlRequest<GetTasksBacklogResponse, GetTasksBacklogInput>(
+      request
+    );
 
     if (!response.data) {
       throw new SunsamaAuthError('No backlog data received');
@@ -380,13 +387,15 @@ export class SunsamaClient {
       );
     }
 
-    const request: GraphQLRequest = {
+    const request: GraphQLRequest<{ groupId: string }> = {
       operationName: 'getStreamsByGroupId',
       variables: { groupId: this.groupId },
       query: GET_STREAMS_BY_GROUP_ID_QUERY,
     };
 
-    const response = await this.graphqlRequest<GetStreamsByGroupIdResponse>(request);
+    const response = await this.graphqlRequest<GetStreamsByGroupIdResponse, { groupId: string }>(
+      request
+    );
 
     if (!response.data) {
       throw new SunsamaAuthError('No stream data received');
@@ -436,7 +445,7 @@ export class SunsamaClient {
       this.cookieJar.setCookieSync(cookie, SunsamaClient.BASE_URL);
     } catch (error) {
       // Silently fail if cookie cannot be set
-      console.warn('Failed to set session token as cookie:', error);
+      // Note: Error intentionally ignored to avoid breaking authentication flow
     }
   }
 }

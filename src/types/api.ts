@@ -72,7 +72,7 @@ export interface DateRangeFilter {
 /**
  * GraphQL response structure
  */
-export interface GraphQLResponse<T = any> {
+export interface GraphQLResponse<T = unknown> {
   data?: T;
   errors?: Array<{
     message: string;
@@ -87,9 +87,9 @@ export interface GraphQLResponse<T = any> {
 /**
  * GraphQL request structure
  */
-export interface GraphQLRequest {
+export interface GraphQLRequest<TVariables = Record<string, unknown>> {
   operationName: string;
-  variables: Record<string, any>;
+  variables: TVariables;
   query: string | DocumentNode;
 }
 
@@ -477,7 +477,7 @@ export interface User {
   services?: Services;
   emails: UserEmail[];
   primaryGroup?: PrimaryGroup;
-  onboarding?: any;
+  onboarding?: unknown;
   preferences: UserPreferences;
   contacts?: Contacts;
   createdAt?: string;
@@ -494,18 +494,18 @@ export interface User {
   profile: UserProfile;
   toursCompleted?: string[];
   username?: string;
-  waitList?: any;
+  waitList?: unknown;
   weeklyPlanning?: WeeklySchedule;
   weeklyReview?: WeeklySchedule;
   lastArchiveCheckDate?: string;
-  integrationRequests?: any;
+  integrationRequests?: unknown;
   dayStart?: DayBoundary;
   plannedDayStart?: DayBoundary;
   dayEnd?: DayBoundary;
   waitlistId?: string;
-  trialPeriod?: any;
-  qualificationAssessment?: any;
-  disappointmentIndex?: any;
+  trialPeriod?: unknown;
+  qualificationAssessment?: unknown;
+  disappointmentIndex?: unknown;
   emailCourses?: EmailCourse[];
   tracking?: Tracking;
   proficiencies?: Proficiency[];
@@ -643,7 +643,7 @@ export interface TaskSequence {
   } | null;
   master?: string | null;
   finalDate?: string | null;
-  template?: any | null; // Complex nested structure
+  template?: unknown | null; // Complex nested structure
   __typename: 'TaskSequence';
 }
 
@@ -764,7 +764,7 @@ export interface Task {
   notesMarkdown?: string | null;
   notesChecksum?: string | null;
   editorVersion?: number | null;
-  collabSnapshot?: any | null; // Complex object for collaborative editing
+  collabSnapshot?: unknown | null; // Complex object for collaborative editing
   completed: boolean;
   completedBy?: string | null;
   completeDate?: string | null;

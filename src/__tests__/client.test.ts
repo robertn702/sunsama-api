@@ -51,7 +51,7 @@ describe('SunsamaClient', () => {
 
     it('should have logout method', () => {
       const client = new SunsamaClient();
-      
+
       // Just verify logout method exists and can be called
       expect(() => client.logout()).not.toThrow();
     });

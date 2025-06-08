@@ -3,7 +3,12 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { buildUrlWithParams, isPlainObject, validateNonEmptyString, validatePositiveNumber, } from '../utils/index.js';
+import {
+  buildUrlWithParams,
+  isPlainObject,
+  validateNonEmptyString,
+  validatePositiveNumber,
+} from '../utils/index.js';
 
 describe('Utility Functions', () => {
   describe('validateNonEmptyString', () => {
@@ -60,7 +65,7 @@ describe('Utility Functions', () => {
   describe('isPlainObject', () => {
     it('should return true for plain objects', () => {
       expect(isPlainObject({})).toBe(true);
-      expect(isPlainObject({a: 1})).toBe(true);
+      expect(isPlainObject({ a: 1 })).toBe(true);
       expect(isPlainObject(Object.create(null))).toBe(false); // No prototype
     });
 
