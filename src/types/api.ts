@@ -799,3 +799,18 @@ export interface Task {
 export interface GetTasksByDayResponse {
   tasksByDayV2: Task[];
 }
+
+/**
+ * Input for getTasksBacklog query
+ */
+export interface GetTasksBacklogInput {
+  userId: string;     // User ID
+  groupId: string;    // Group ID
+}
+
+/**
+ * Response for getTasksBacklog query
+ */
+export interface GetTasksBacklogResponse {
+  tasksBacklog: Task[];
+}
