@@ -814,3 +814,107 @@ export interface GetTasksBacklogInput {
 export interface GetTasksBacklogResponse {
   tasksBacklog: Task[];
 }
+
+/**
+ * Stream standup rule structure
+ */
+export interface StreamStandupRule {
+  isoDays: string[];
+  hour: number;
+  minute: number;
+  __typename: 'StreamStandupRule';
+}
+
+/**
+ * Stream standup configuration
+ */
+export interface StreamStandup {
+  channel: string;
+  rule: StreamStandupRule;
+  nextStandupDate?: string | null;
+  lastStandupDate?: string | null;
+  timezone: string;
+  __typename: 'StreamStandup';
+}
+
+/**
+ * Stream edit trail entry
+ */
+export interface StreamEditTrail {
+  userId: string;
+  editDate: string;
+  __typename: 'StreamEditTrail';
+}
+
+/**
+ * Stream project integration
+ */
+export interface StreamProjectIntegration {
+  integration: string;
+  projectId: string;
+  accountId: string;
+  userId: string;
+  __typename: 'StreamProjectIntegration';
+}
+
+/**
+ * Stream schedule time slot
+ */
+export interface StreamScheduleTimeSlot {
+  id: string;
+  dayIndex: number;
+  start: TimeSlot;
+  end: TimeSlot;
+  __typename: 'StreamScheduleTimeSlot';
+}
+
+/**
+ * Stream schedule for a user
+ */
+export interface StreamSchedule {
+  userId: string;
+  timeSpans: StreamScheduleTimeSlot[];
+  __typename: 'StreamSchedule';
+}
+
+/**
+ * Stream structure
+ */
+export interface Stream {
+  _id: string;
+  groupId: string;
+  createdAt: string;
+  createdBy: string;
+  streamName: string;
+  category?: string | null;
+  categoryStreamId?: string | null;
+  personal?: boolean | null;
+  description: string;
+  status: string;
+  lastModified: string;
+  slackChannelId?: string | null;
+  slackAccountId?: string | null;
+  standup?: StreamStandup | null;
+  editTrail: StreamEditTrail[];
+  color: string;
+  memberIds: string[];
+  private: boolean;
+  projectIntegrations: StreamProjectIntegration[];
+  schedules: StreamSchedule[];
+  deleted: boolean;
+  __typename: 'Stream';
+}
+
+/**
+ * Input for getStreamsByGroupId query
+ */
+export interface GetStreamsByGroupIdInput {
+  groupId: string;
+}
+
+/**
+ * Response for getStreamsByGroupId query
+ */
+export interface GetStreamsByGroupIdResponse {
+  streamsByGroupId: Stream[];
+}
