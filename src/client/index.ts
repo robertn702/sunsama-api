@@ -7,8 +7,9 @@
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors';
-import { GET_TASKS_BACKLOG_QUERY, GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries';
+import { GET_STREAMS_BY_GROUP_ID_QUERY, GET_TASKS_BACKLOG_QUERY, GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries';
 import type {
+  GetStreamsByGroupIdResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
   GetTasksByDayInput,
@@ -17,6 +18,7 @@ import type {
   GraphQLRequest,
   GraphQLResponse,
   RequestOptions,
+  Stream,
   SunsamaClientConfig,
   Task,
   User
@@ -342,6 +344,37 @@ export class SunsamaClient {
     }
 
     return response.data.tasksBacklog;
+  }
+
+  /**
+   * Gets streams for the user's group
+   *
+   * @returns Array of streams for the user's group
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getStreamsByGroupId(): Promise<Stream[]> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+    }
+
+    const request: GraphQLRequest = {
+      operationName: 'getStreamsByGroupId',
+      variables: { groupId: this.groupId },
+      query: GET_STREAMS_BY_GROUP_ID_QUERY,
+    };
+
+    const response = await this.graphqlRequest<GetStreamsByGroupIdResponse>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No stream data received');
+    }
+
+    return response.data.streamsByGroupId;
   }
 
   /**
