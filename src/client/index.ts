@@ -378,6 +378,25 @@ export class SunsamaClient {
   }
 
   /**
+   * Gets the user's timezone
+   *
+   * @returns The user's timezone string (e.g., "America/New_York")
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getUserTimezone(): Promise<string> {
+    // Use cached timezone if available, otherwise fetch user data
+    if (!this.timezone) {
+      await this.getUser();
+    }
+
+    if (!this.timezone) {
+      throw new SunsamaAuthError('Unable to determine timezone from user data. User profile.timezone is required.');
+    }
+
+    return this.timezone;
+  }
+
+  /**
    * Sets a session token as a cookie in the jar
    *
    * @param token - The session token to set
