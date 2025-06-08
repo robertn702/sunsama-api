@@ -1,6 +1,6 @@
 /**
  * Type definitions for the Sunsama API wrapper
- * 
+ *
  * This file exports all type definitions used throughout the library.
  */
 

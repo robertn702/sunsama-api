@@ -7,7 +7,12 @@
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors';
-import { GET_STREAMS_BY_GROUP_ID_QUERY, GET_TASKS_BACKLOG_QUERY, GET_TASKS_BY_DAY_QUERY, GET_USER_QUERY } from '../queries';
+import {
+  GET_STREAMS_BY_GROUP_ID_QUERY,
+  GET_TASKS_BACKLOG_QUERY,
+  GET_TASKS_BY_DAY_QUERY,
+  GET_USER_QUERY,
+} from '../queries';
 import type {
   GetStreamsByGroupIdResponse,
   GetTasksBacklogInput,
@@ -21,7 +26,7 @@ import type {
   Stream,
   SunsamaClientConfig,
   Task,
-  User
+  User,
 } from '../types';
 
 /**
@@ -57,7 +62,7 @@ export class SunsamaClient {
    * Gets the current client configuration
    */
   getConfig(): SunsamaClientConfig {
-    return {...this.config};
+    return { ...this.config };
   }
 
   /**
@@ -91,7 +96,7 @@ export class SunsamaClient {
       const cookies = await this.cookieJar.getCookies(loginUrl);
       const headers: HeadersInit = {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://app.sunsama.com',
+        Origin: 'https://app.sunsama.com',
       };
 
       if (cookies.length > 0) {
@@ -108,7 +113,9 @@ export class SunsamaClient {
       // For login, we expect a 302 redirect on success
       if (response.status !== 302) {
         const responseText = await response.text();
-        throw new SunsamaAuthError(`Login failed: ${response.status} ${response.statusText}. Response: ${responseText}`);
+        throw new SunsamaAuthError(
+          `Login failed: ${response.status} ${response.statusText}. Response: ${responseText}`
+        );
       }
 
       // Extract and store cookies from response
@@ -119,7 +126,9 @@ export class SunsamaClient {
         response.headers.forEach((value, key) => {
           allHeaders[key] = value;
         });
-        throw new SunsamaAuthError(`No session cookie received from login. Response headers: ${JSON.stringify(allHeaders, null, 2)}`);
+        throw new SunsamaAuthError(
+          `No session cookie received from login. Response headers: ${JSON.stringify(allHeaders, null, 2)}`
+        );
       }
 
       // Store the cookie in the jar
@@ -127,13 +136,17 @@ export class SunsamaClient {
         const loginUrl = `${SunsamaClient.BASE_URL}/account/login/email`;
         await this.cookieJar.setCookie(setCookieHeader, loginUrl);
       } catch (error) {
-        throw new SunsamaAuthError(`Failed to store session cookie: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new SunsamaAuthError(
+          `Failed to store session cookie: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     } catch (error) {
       if (error instanceof SunsamaAuthError) {
         throw error;
       }
-      throw new SunsamaAuthError(`Login request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new SunsamaAuthError(
+        `Login request failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -155,15 +168,12 @@ export class SunsamaClient {
    * @returns The response from the API
    * @internal
    */
-  private async request(
-    path: string,
-    options: RequestOptions
-  ): Promise<Response> {
+  private async request(path: string, options: RequestOptions): Promise<Response> {
     const url = `${SunsamaClient.BASE_URL}${path}`;
 
     // Build headers
     const headers: HeadersInit = {
-      'Origin': 'https://app.sunsama.com',
+      Origin: 'https://app.sunsama.com',
       ...options.headers,
     };
 
@@ -219,18 +229,20 @@ export class SunsamaClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...(request.operationName && {'x-gql-operation-name': request.operationName}),
+        Accept: 'application/json',
+        ...(request.operationName && { 'x-gql-operation-name': request.operationName }),
       },
       body: requestBody,
     });
 
     if (!response.ok) {
       const responseText = await response.text();
-      throw new SunsamaAuthError(`GraphQL request failed: ${response.status} ${response.statusText}. Response: ${responseText}`);
+      throw new SunsamaAuthError(
+        `GraphQL request failed: ${response.status} ${response.statusText}. Response: ${responseText}`
+      );
     }
 
-    const result = await response.json() as GraphQLResponse<T>;
+    const result = (await response.json()) as GraphQLResponse<T>;
 
     if (result.errors && result.errors.length > 0) {
       throw new SunsamaAuthError(`GraphQL errors: ${result.errors.map(e => e.message).join(', ')}`);
@@ -285,7 +297,9 @@ export class SunsamaClient {
     const userTimezone = timezone || this.timezone || 'UTC';
 
     if (!this.groupId) {
-      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
     }
 
     const variables: GetTasksByDayInput = {
@@ -297,7 +311,7 @@ export class SunsamaClient {
 
     const request: GraphQLRequest = {
       operationName: 'getTasksByDay',
-      variables: {input: variables},
+      variables: { input: variables },
       query: GET_TASKS_BY_DAY_QUERY,
     };
 
@@ -323,7 +337,9 @@ export class SunsamaClient {
     }
 
     if (!this.groupId) {
-      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
     }
 
     const variables: GetTasksBacklogInput = {
@@ -359,7 +375,9 @@ export class SunsamaClient {
     }
 
     if (!this.groupId) {
-      throw new SunsamaAuthError('Unable to determine group ID from user data. User primaryGroup is required.');
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
     }
 
     const request: GraphQLRequest = {
@@ -390,7 +408,9 @@ export class SunsamaClient {
     }
 
     if (!this.timezone) {
-      throw new SunsamaAuthError('Unable to determine timezone from user data. User profile.timezone is required.');
+      throw new SunsamaAuthError(
+        'Unable to determine timezone from user data. User profile.timezone is required.'
+      );
     }
 
     return this.timezone;

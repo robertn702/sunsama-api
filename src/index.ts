@@ -1,9 +1,9 @@
 /**
  * Sunsama API TypeScript Wrapper
- * 
- * A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe access 
+ *
+ * A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe access
  * to daily planning and task management functionality.
- * 
+ *
  * @author Your Name
  * @version 0.1.0
  */

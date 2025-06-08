@@ -55,10 +55,10 @@ export type ListResponse<T> = {
 export interface BaseEntity {
   /** Unique identifier */
   id: UUID;
-  
+
   /** Creation timestamp */
   createdAt: ISODateString;
-  
+
   /** Last update timestamp */
   updatedAt: ISODateString;
 }

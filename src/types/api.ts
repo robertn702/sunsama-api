@@ -1,6 +1,6 @@
 /**
  * API response and data types
- * 
+ *
  * These types represent the structure of data returned by the Sunsama API.
  * They will be populated based on the actual API documentation.
  */
@@ -13,15 +13,15 @@ import type { DocumentNode } from 'graphql';
 export interface ApiResponse<T = unknown> {
   /** Response data */
   data: T;
-  
+
   /** Response metadata */
   meta?: {
     /** Total number of items (for paginated responses) */
     total?: number;
-    
+
     /** Current page (for paginated responses) */
     page?: number;
-    
+
     /** Items per page (for paginated responses) */
     limit?: number;
   };
@@ -33,10 +33,10 @@ export interface ApiResponse<T = unknown> {
 export interface ApiErrorResponse {
   /** Error message */
   message: string;
-  
+
   /** Error code */
   code?: string;
-  
+
   /** Additional error details */
   details?: Record<string, unknown>;
 }
@@ -47,13 +47,13 @@ export interface ApiErrorResponse {
 export interface PaginationParams {
   /** Page number (1-based) */
   page?: number;
-  
+
   /** Number of items per page */
   limit?: number;
-  
+
   /** Sort field */
   sort?: string;
-  
+
   /** Sort order */
   order?: 'asc' | 'desc';
 }
@@ -64,7 +64,7 @@ export interface PaginationParams {
 export interface DateRangeFilter {
   /** Start date (ISO string) */
   start?: string;
-  
+
   /** End date (ISO string) */
   end?: string;
 }
@@ -526,10 +526,10 @@ export interface GetUserResponse {
  * Input for getTasksByDay query
  */
 export interface GetTasksByDayInput {
-  day: string;        // ISO date string like "2025-05-31"
-  timezone: string;   // Timezone like "America/New_York"
-  userId: string;     // User ID
-  groupId: string;    // Group ID
+  day: string; // ISO date string like "2025-05-31"
+  timezone: string; // Timezone like "America/New_York"
+  userId: string; // User ID
+  groupId: string; // Group ID
 }
 
 /**
@@ -804,8 +804,8 @@ export interface GetTasksByDayResponse {
  * Input for getTasksBacklog query
  */
 export interface GetTasksBacklogInput {
-  userId: string;     // User ID
-  groupId: string;    // Group ID
+  userId: string; // User ID
+  groupId: string; // Group ID
 }
 
 /**

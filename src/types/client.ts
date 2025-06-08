@@ -21,16 +21,16 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 export interface RequestOptions {
   /** HTTP method */
   method: HttpMethod;
-  
+
   /** Request headers */
   headers?: Record<string, string>;
-  
+
   /** Request body */
   body?: unknown;
-  
+
   /** Query parameters */
   params?: Record<string, string | number | boolean>;
-  
+
   /** Custom timeout for this request */
   timeout?: number;
 }
