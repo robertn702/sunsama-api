@@ -6,8 +6,8 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/sunsama-ts.git
-   cd sunsama-ts
+   git clone https://github.com/yourusername/sunsama-api.git
+   cd sunsama-api
    ```
 
 2. **Install Dependencies**

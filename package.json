@@ -10,16 +10,16 @@
     "task-management",
     "productivity"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Robert Niimi <robertn702@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/sunsama-ts.git"
+    "url": "git+https://github.com/yourusername/sunsama-api.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/sunsama-ts/issues"
+    "url": "https://github.com/robertn702/sunsama-api/issues"
   },
-  "homepage": "https://github.com/yourusername/sunsama-ts#readme",
+  "homepage": "https://github.com/robertn702/sunsama-api#readme",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",

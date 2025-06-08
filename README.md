@@ -102,8 +102,8 @@ This project uses modern development tools:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/sunsama-ts.git
-cd sunsama-ts
+git clone https://github.com/yourusername/sunsama-api.git
+cd sunsama-api
 
 # Install dependencies
 pnpm install
@@ -143,9 +143,8 @@ This is an unofficial wrapper for the Sunsama API. It is not affiliated with or 
 
 If you encounter any issues or have questions:
 
-1. Check the [documentation](docs-link)
-2. Search [existing issues](https://github.com/yourusername/sunsama-ts/issues)
-3. Create a [new issue](https://github.com/yourusername/sunsama-ts/issues/new)
+1. Search [existing issues](https://github.com/yourusername/sunsama-api/issues)
+2. Create a [new issue](https://github.com/yourusername/sunsama-api/issues/new)
 
 ---
 
