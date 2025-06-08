@@ -96,6 +96,30 @@ async function testRealAuth() {
       console.log('   No tasks found for either date');
     }
     
+    // Test getTasksBacklog method
+    console.log('\n📋 Testing getTasksBacklog method...');
+    const backlogTasks = await client.getTasksBacklog();
+    
+    console.log('✅ getTasksBacklog successful!');
+    console.log(`\n📊 Backlog Information: ${backlogTasks.length} tasks`);
+    
+    if (backlogTasks.length > 0) {
+      console.log('\n📝 Sample backlog tasks:');
+      backlogTasks.slice(0, 3).forEach((task, index) => {
+        console.log(`   ${index + 1}. ${task.text}`);
+        console.log(`      ID: ${task._id}`);
+        console.log(`      Completed: ${task.completed}`);
+        console.log(`      Time Estimate: ${task.timeEstimate || 'N/A'} minutes`);
+        console.log(`      Subtasks: ${task.subtasks.length}`);
+        if (task.integration) {
+          console.log(`      Integration: ${task.integration.service}`);
+        }
+        console.log('');
+      });
+    } else {
+      console.log('   No tasks found in backlog');
+    }
+    
     // Test logout
     console.log('\n🚪 Testing logout...');
     client.logout();
