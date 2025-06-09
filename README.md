@@ -127,6 +127,36 @@ const result = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z')
 
 // Get full task details in response
 const result = await client.updateTaskComplete('taskId', new Date(), false);
+
+// Create a new task
+const newTask = await client.createTask('Complete project documentation');
+
+// Create a task with options
+const taskWithOptions = await client.createTask('Review pull requests', {
+  notes: 'Check all open PRs in the main repository',
+  timeEstimate: 30,
+  streamIds: ['stream-id-1']
+});
+
+// Create a task with due date and snooze
+const scheduledTask = await client.createTask('Follow up with client', {
+  dueDate: new Date('2025-01-20'),
+  snoozeUntil: new Date('2025-01-15T09:00:00')
+});
+
+// Create a task with full control (advanced)
+const taskInput = {
+  _id: 'custom-task-id',
+  groupId: 'group-id',
+  taskType: 'outcomes',
+  text: 'Custom task',
+  notes: 'Detailed description',
+  private: false,
+  streamIds: ['stream-1', 'stream-2'],
+  timeEstimate: 60,
+  // ... other required fields
+};
+const advancedTask = await client.createTaskAdvanced(taskInput);
 ```
 
 ### Streams (Channels)
