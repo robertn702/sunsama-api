@@ -918,3 +918,49 @@ export interface GetStreamsByGroupIdInput {
 export interface GetStreamsByGroupIdResponse {
   streamsByGroupId: Stream[];
 }
+
+/**
+ * Partial task structure returned in update operations
+ * Contains only the fields that were modified
+ */
+export interface PartialTask {
+  _id: string;
+  recommendedStreamId?: string | null;
+  streamIds?: string[];
+  recommendedTimeEstimate?: number | null;
+  subtasks?: TaskSubtask[];
+  __typename: 'PartialTask';
+}
+
+/**
+ * Input for updateTaskComplete mutation
+ */
+export interface UpdateTaskCompleteInput {
+  /** The ID of the task to mark as complete */
+  taskId: string;
+  
+  /** ISO 8601 timestamp when the task was completed */
+  completeOn: string;
+  
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Payload returned by updateTaskComplete mutation
+ */
+export interface UpdateTaskPayload {
+  /** The updated task (null when limitResponsePayload is true) */
+  updatedTask: Task | null;
+  
+  /** Partial task containing only updated fields (null when limitResponsePayload is true) */
+  updatedFields: PartialTask | null;
+  
+  /** Whether the operation succeeded */
+  success: boolean;
+  
+  /** Whether the operation was skipped */
+  skipped: boolean | null;
+  
+  __typename: 'UpdateTaskPayload';
+}
