@@ -195,7 +195,7 @@ describe('SunsamaClient', () => {
         createdAt: new Date().toISOString(),
         lastModified: new Date().toISOString(),
         objectiveId: null,
-        ritual: null
+        ritual: null,
       };
 
       // Should fail because no authentication

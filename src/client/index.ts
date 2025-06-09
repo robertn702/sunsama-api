@@ -545,24 +545,21 @@ export class SunsamaClient {
     // Handle snooze configuration
     let snooze: TaskSnooze | null = null;
     if (options?.snoozeUntil) {
-      const snoozeDate = options.snoozeUntil instanceof Date 
-        ? options.snoozeUntil 
-        : new Date(options.snoozeUntil);
-      
+      const snoozeDate =
+        options.snoozeUntil instanceof Date ? options.snoozeUntil : new Date(options.snoozeUntil);
+
       snooze = {
         userId: this.userId,
         date: now,
         until: snoozeDate.toISOString(),
-        __typename: 'TaskSnooze'
+        __typename: 'TaskSnooze',
       };
     }
 
     // Handle due date
     let dueDate: string | null = null;
     if (options?.dueDate) {
-      dueDate = options.dueDate instanceof Date 
-        ? options.dueDate.toISOString() 
-        : options.dueDate;
+      dueDate = options.dueDate instanceof Date ? options.dueDate.toISOString() : options.dueDate;
     }
 
     // Build the complete task input
@@ -609,13 +606,13 @@ export class SunsamaClient {
       createdAt: now,
       lastModified: now,
       objectiveId: null,
-      ritual: null
+      ritual: null,
     };
 
     const variables: CreateTaskInput = {
       task: taskInput,
       groupId: this.groupId,
-      position: undefined
+      position: undefined,
     };
 
     const request: GraphQLRequest<CreateTaskInput> = {
@@ -653,7 +650,7 @@ export class SunsamaClient {
     const variables: CreateTaskInput = {
       task: taskInput,
       groupId: this.groupId,
-      position: undefined
+      position: undefined,
     };
 
     const request: GraphQLRequest<CreateTaskInput> = {
@@ -684,11 +681,12 @@ export class SunsamaClient {
       crypto.getRandomValues(randomBytes);
     } else {
       // Fallback for Node.js environments
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const cryptoModule = require('crypto');
       const buffer = cryptoModule.randomBytes(12);
       randomBytes.set(buffer);
     }
-    
+
     return Array.from(randomBytes)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
@@ -709,21 +707,23 @@ export class SunsamaClient {
 
     // This is a simplified version - the actual encoding might be more complex
     const docName = `tasks/notes/${taskId}`;
-    
+
     return {
       state: {
         version: 'v1_sv',
         docName,
         clock: 0,
-        value: 'AeC61NgLAQ==' // Base64 encoded empty state
+        value: 'AeC61NgLAQ==', // Base64 encoded empty state
       },
-      updates: [{
-        version: 'v1',
-        action: 'update',
-        docName,
-        clock: 0,
-        value: 'AQHgutTYCwAHAQdkZWZhdWx0AwlwYXJhZ3JhcGgA' // Base64 encoded paragraph structure
-      }]
+      updates: [
+        {
+          version: 'v1',
+          action: 'update',
+          docName,
+          clock: 0,
+          value: 'AQHgutTYCwAHAQdkZWZhdWx0AwlwYXJhZ3JhcGgA', // Base64 encoded paragraph structure
+        },
+      ],
     };
   }
 
