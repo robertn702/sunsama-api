@@ -1,5 +1,9 @@
 # Sunsama API TypeScript Wrapper
 
+> **Disclaimer**: This is an unofficial wrapper for the Sunsama API. It is not affiliated with or endorsed by Sunsama.
+
+> **A Note from the Author**: I'm a huge fan and advocate of Sunsama. I've been using it daily for over a year and it's transformed how I plan my days. I created this package because I wanted to pull my tasks into other systems. I plan to maintain this package until either Sunsama releases an official API or I stop using the service. If you build something on top of `sunsama-api` feel free to share what you're building. 
+
 A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe access to daily planning and task management functionality.
 
 [![npm version](https://badge.fury.io/js/sunsama-api.svg)](https://www.npmjs.com/package/sunsama-api)
@@ -69,10 +73,6 @@ async function example() {
   }
 }
 ```
-
-## API Documentation
-
-Full API documentation is available at [docs link - to be added].
 
 ## Authentication
 
@@ -198,10 +198,6 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This is an unofficial wrapper for the Sunsama API. It is not affiliated with or endorsed by Sunsama.
 
 ## Support
 
