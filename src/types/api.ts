@@ -1177,3 +1177,17 @@ export interface CreateTaskPayload {
 export interface CreateTaskResponse {
   createTaskV2: CreateTaskPayload;
 }
+
+/**
+ * Input for updateTaskDelete mutation
+ */
+export interface UpdateTaskDeleteInput {
+  /** The ID of the task to delete */
+  taskId: string;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+
+  /** Whether the task was merged before deletion */
+  wasTaskMerged?: boolean;
+}

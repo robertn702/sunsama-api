@@ -14,6 +14,7 @@ import {
   GET_TASKS_BY_DAY_QUERY,
   GET_USER_QUERY,
   UPDATE_TASK_COMPLETE_MUTATION,
+  UPDATE_TASK_DELETE_MUTATION,
 } from '../queries';
 import type {
   CollabSnapshot,
@@ -36,6 +37,7 @@ import type {
   TaskInput,
   TaskSnooze,
   UpdateTaskCompleteInput,
+  UpdateTaskDeleteInput,
   UpdateTaskPayload,
   User,
 } from '../types';
@@ -495,6 +497,56 @@ export class SunsamaClient {
     }
 
     return response.data.updateTaskComplete;
+  }
+
+  /**
+   * Deletes a task
+   *
+   * @param taskId - The ID of the task to delete
+   * @param limitResponsePayload - Whether to limit response size (defaults to true)
+   * @param wasTaskMerged - Whether the task was merged before deletion (defaults to false)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Delete a task
+   * const result = await client.deleteTask('taskId');
+   *
+   * // Delete with full response payload
+   * const result = await client.deleteTask('taskId', false);
+   *
+   * // Delete a merged task
+   * const result = await client.deleteTask('taskId', true, true);
+   * ```
+   */
+  async deleteTask(
+    taskId: string,
+    limitResponsePayload = true,
+    wasTaskMerged = false
+  ): Promise<UpdateTaskPayload> {
+    const variables: UpdateTaskDeleteInput = {
+      taskId,
+      limitResponsePayload,
+      wasTaskMerged,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskDeleteInput }> = {
+      operationName: 'updateTaskDelete',
+      variables: { input: variables },
+      query: UPDATE_TASK_DELETE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskDelete: UpdateTaskPayload },
+      { input: UpdateTaskDeleteInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.updateTaskDelete;
   }
 
   /**
