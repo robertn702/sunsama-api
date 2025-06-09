@@ -145,8 +145,9 @@ const scheduledTask = await client.createTask('Follow up with client', {
 });
 
 // Create a task with full control (advanced)
+const taskId = SunsamaClient.generateTaskId(); // Generate MongoDB ObjectId-style ID
 const taskInput = {
-  _id: 'custom-task-id',
+  _id: taskId,
   groupId: 'group-id',
   taskType: 'outcomes',
   text: 'Custom task',
@@ -157,6 +158,27 @@ const taskInput = {
   // ... other required fields
 };
 const advancedTask = await client.createTaskAdvanced(taskInput);
+
+// Generate task IDs for external use
+const uniqueId = SunsamaClient.generateTaskId();
+console.log(uniqueId); // "675a1b2c3d4e5f6789abcdef"
+```
+
+### Task ID Generation
+```typescript
+// Generate MongoDB ObjectId-style task IDs
+const taskId = SunsamaClient.generateTaskId();
+console.log(taskId); // "675a1b2c3d4e5f6789abcdef"
+
+// Use with createTaskAdvanced for full control
+const customTask = {
+  _id: SunsamaClient.generateTaskId(),
+  groupId: user.primaryGroup.groupId,
+  taskType: 'outcomes',
+  text: 'My custom task',
+  // ... other required fields
+};
+await client.createTaskAdvanced(customTask);
 ```
 
 ### Streams (Channels)

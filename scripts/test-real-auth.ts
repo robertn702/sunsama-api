@@ -172,10 +172,8 @@ async function testRealAuth() {
     console.log('\n✨ Testing createTaskAdvanced method...');
     const advancedTaskText = `Advanced Test Task - ${timestamp}`;
     
-    // Generate a unique task ID
-    const taskId = Array.from(new Uint8Array(12))
-      .map(() => Math.floor(Math.random() * 256).toString(16).padStart(2, '0'))
-      .join('');
+    // Generate a unique task ID using the static method
+    const taskId = SunsamaClient.generateTaskId();
     
     const taskInput = {
       _id: taskId,

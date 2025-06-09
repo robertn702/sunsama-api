@@ -533,8 +533,8 @@ export class SunsamaClient {
       throw new SunsamaAuthError('Unable to determine user ID or group ID');
     }
 
-    // Generate a unique task ID (similar to MongoDB ObjectId format)
-    const taskId = this.generateTaskId();
+    // Generate a unique task ID (MongoDB ObjectId format)
+    const taskId = SunsamaClient.generateTaskId();
 
     // Generate timestamps
     const now = new Date().toISOString();
@@ -669,27 +669,66 @@ export class SunsamaClient {
   }
 
   /**
-   * Generates a unique task ID in MongoDB ObjectId-like format
+   * Generates a unique task ID in MongoDB ObjectId format
    *
-   * @returns A 24-character hexadecimal string
+   * This method creates a 24-character hexadecimal string following MongoDB ObjectId conventions:
+   * - First 8 chars: Unix timestamp (4 bytes)
+   * - Next 10 chars: Random value (5 bytes)
+   * - Last 6 chars: Incrementing counter (3 bytes)
+   *
+   * @returns A 24-character hexadecimal string compatible with Sunsama's task ID format
+   * @example
+   * ```typescript
+   * const taskId = SunsamaClient.generateTaskId();
+   * console.log(taskId); // "507f1f77bcf86cd799439011"
+   * ```
+   */
+  public static generateTaskId(): string {
+    // Get current timestamp (4 bytes = 8 hex chars)
+    const timestamp = Math.floor(Date.now() / 1000);
+    const timestampHex = timestamp.toString(16).padStart(8, '0');
+
+    // Generate random value (5 bytes = 10 hex chars)
+    const randomValue = SunsamaClient.getRandomValue();
+
+    // Generate counter (3 bytes = 6 hex chars) - increment for each ID generation
+    const counter = SunsamaClient.getNextCounter();
+    const counterHex = counter.toString(16).padStart(6, '0');
+
+    return timestampHex + randomValue + counterHex;
+  }
+
+  private static _counter = Math.floor(Math.random() * 0xffffff);
+
+  /**
+   * Gets a random value for ObjectId generation (5 bytes = 10 hex chars)
    * @internal
    */
-  private generateTaskId(): string {
-    // Generate 12 random bytes and convert to hex (24 characters)
-    const randomBytes = new Uint8Array(12);
+  private static getRandomValue(): string {
+    // Generate 5 random bytes for the random portion
+    const randomBytes = new Uint8Array(5);
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       crypto.getRandomValues(randomBytes);
     } else {
       // Fallback for Node.js environments
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const cryptoModule = require('crypto');
-      const buffer = cryptoModule.randomBytes(12);
+      const buffer = cryptoModule.randomBytes(5);
       randomBytes.set(buffer);
     }
 
     return Array.from(randomBytes)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
+  }
+
+  /**
+   * Gets the next counter value for ID generation (3 bytes = 6 hex chars)
+   * @internal
+   */
+  private static getNextCounter(): number {
+    SunsamaClient._counter = (SunsamaClient._counter + 1) % 0xffffff;
+    return SunsamaClient._counter;
   }
 
   /**
