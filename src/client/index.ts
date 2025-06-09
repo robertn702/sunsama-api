@@ -8,6 +8,7 @@ import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors';
 import {
+  CREATE_TASK_MUTATION,
   GET_STREAMS_BY_GROUP_ID_QUERY,
   GET_TASKS_BACKLOG_QUERY,
   GET_TASKS_BY_DAY_QUERY,
@@ -15,6 +16,11 @@ import {
   UPDATE_TASK_COMPLETE_MUTATION,
 } from '../queries';
 import type {
+  CollabSnapshot,
+  CreateTaskInput,
+  CreateTaskOptions,
+  CreateTaskPayload,
+  CreateTaskResponse,
   GetStreamsByGroupIdResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
@@ -27,6 +33,8 @@ import type {
   Stream,
   SunsamaClientConfig,
   Task,
+  TaskInput,
+  TaskSnooze,
   UpdateTaskCompleteInput,
   UpdateTaskPayload,
   User,
@@ -487,6 +495,236 @@ export class SunsamaClient {
     }
 
     return response.data.updateTaskComplete;
+  }
+
+  /**
+   * Creates a new task with simplified options
+   *
+   * @param text - The main text/title of the task
+   * @param options - Additional task properties
+   * @returns The created task result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Create a simple task
+   * const result = await client.createTask('Complete project documentation');
+   *
+   * // Create a task with options
+   * const result = await client.createTask('Review pull requests', {
+   *   notes: 'Check all open PRs in the main repository',
+   *   timeEstimate: 30,
+   *   streamIds: ['stream-id-1']
+   * });
+   *
+   * // Create a task with snooze
+   * const result = await client.createTask('Follow up with client', {
+   *   snoozeUntil: new Date('2025-01-15T09:00:00')
+   * });
+   * ```
+   */
+  async createTask(text: string, options?: CreateTaskOptions): Promise<CreateTaskPayload> {
+    // Ensure we have user context
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.userId || !this.groupId) {
+      throw new SunsamaAuthError('Unable to determine user ID or group ID');
+    }
+
+    // Generate a unique task ID (similar to MongoDB ObjectId format)
+    const taskId = this.generateTaskId();
+
+    // Generate timestamps
+    const now = new Date().toISOString();
+
+    // Build collaborative editing snapshot for notes
+    const collabSnapshot = this.createCollabSnapshot(taskId, options?.notes || '');
+
+    // Handle snooze configuration
+    let snooze: TaskSnooze | null = null;
+    if (options?.snoozeUntil) {
+      const snoozeDate = options.snoozeUntil instanceof Date 
+        ? options.snoozeUntil 
+        : new Date(options.snoozeUntil);
+      
+      snooze = {
+        userId: this.userId,
+        date: now,
+        until: snoozeDate.toISOString(),
+        __typename: 'TaskSnooze'
+      };
+    }
+
+    // Handle due date
+    let dueDate: string | null = null;
+    if (options?.dueDate) {
+      dueDate = options.dueDate instanceof Date 
+        ? options.dueDate.toISOString() 
+        : options.dueDate;
+    }
+
+    // Build the complete task input
+    const taskInput: TaskInput = {
+      _id: taskId,
+      groupId: this.groupId,
+      taskType: 'outcomes',
+      streamIds: options?.streamIds || [],
+      recommendedStreamId: null,
+      eventInfo: null,
+      seededEventIds: null,
+      private: options?.private || false,
+      assigneeId: this.userId,
+      createdBy: this.userId,
+      integration: null,
+      deleted: false,
+      text,
+      notes: options?.notes || '',
+      notesMarkdown: null,
+      notesChecksum: null,
+      editorVersion: 3,
+      collabSnapshot,
+      completed: false,
+      completedBy: null,
+      completeDate: null,
+      completeOn: null,
+      archivedAt: null,
+      duration: null,
+      runDate: null,
+      snooze,
+      timeHorizon: null,
+      dueDate,
+      comments: [],
+      orderings: [],
+      backlogOrderings: [],
+      subtasks: [],
+      subtasksCollapsed: null,
+      sequence: null,
+      followers: [],
+      recommendedTimeEstimate: null,
+      timeEstimate: options?.timeEstimate || null,
+      actualTime: [],
+      scheduledTime: [],
+      createdAt: now,
+      lastModified: now,
+      objectiveId: null,
+      ritual: null
+    };
+
+    const variables: CreateTaskInput = {
+      task: taskInput,
+      groupId: this.groupId,
+      position: undefined
+    };
+
+    const request: GraphQLRequest<CreateTaskInput> = {
+      operationName: 'createTask',
+      variables,
+      query: CREATE_TASK_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<CreateTaskResponse, CreateTaskInput>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.createTaskV2;
+  }
+
+  /**
+   * Creates a new task with full control over all properties (advanced)
+   *
+   * @param taskInput - Complete task input object
+   * @returns The created task result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async createTaskAdvanced(taskInput: TaskInput): Promise<CreateTaskPayload> {
+    // Ensure we have group ID
+    if (!this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError('Unable to determine group ID');
+    }
+
+    const variables: CreateTaskInput = {
+      task: taskInput,
+      groupId: this.groupId,
+      position: undefined
+    };
+
+    const request: GraphQLRequest<CreateTaskInput> = {
+      operationName: 'createTask',
+      variables,
+      query: CREATE_TASK_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<CreateTaskResponse, CreateTaskInput>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.createTaskV2;
+  }
+
+  /**
+   * Generates a unique task ID in MongoDB ObjectId-like format
+   *
+   * @returns A 24-character hexadecimal string
+   * @internal
+   */
+  private generateTaskId(): string {
+    // Generate 12 random bytes and convert to hex (24 characters)
+    const randomBytes = new Uint8Array(12);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBytes);
+    } else {
+      // Fallback for Node.js environments
+      const cryptoModule = require('crypto');
+      const buffer = cryptoModule.randomBytes(12);
+      randomBytes.set(buffer);
+    }
+    
+    return Array.from(randomBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  /**
+   * Creates a collaborative editing snapshot for task notes
+   *
+   * @param taskId - The task ID
+   * @param notes - The notes content
+   * @returns CollabSnapshot object
+   * @internal
+   */
+  private createCollabSnapshot(taskId: string, notes: string): CollabSnapshot | null {
+    if (!notes) {
+      return null;
+    }
+
+    // This is a simplified version - the actual encoding might be more complex
+    const docName = `tasks/notes/${taskId}`;
+    
+    return {
+      state: {
+        version: 'v1_sv',
+        docName,
+        clock: 0,
+        value: 'AeC61NgLAQ==' // Base64 encoded empty state
+      },
+      updates: [{
+        version: 'v1',
+        action: 'update',
+        docName,
+        clock: 0,
+        value: 'AQHgutTYCwAHAQdkZWZhdWx0AwlwYXJhZ3JhcGgA' // Base64 encoded paragraph structure
+      }]
+    };
   }
 
   /**
