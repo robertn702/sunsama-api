@@ -964,3 +964,216 @@ export interface UpdateTaskPayload {
 
   __typename: 'UpdateTaskPayload';
 }
+
+/**
+ * Collaborative editing snapshot for task notes
+ */
+export interface CollabSnapshot {
+  state: {
+    version: string;
+    docName: string;
+    clock: number;
+    value: string;
+  };
+  updates: Array<{
+    version: string;
+    action: string;
+    docName: string;
+    clock: number;
+    value: string;
+  }>;
+}
+
+/**
+ * Input structure for creating a new task
+ */
+export interface TaskInput {
+  /** Client-generated unique ID for the task */
+  _id: string;
+  
+  /** Group ID the task belongs to */
+  groupId: string;
+  
+  /** Type of task (e.g., "outcomes") */
+  taskType: string;
+  
+  /** Array of stream IDs to associate with the task */
+  streamIds: string[];
+  
+  /** Recommended stream ID (optional) */
+  recommendedStreamId: string | null;
+  
+  /** Event information (optional) */
+  eventInfo: TaskEventInfo | null;
+  
+  /** Seeded event IDs (optional) */
+  seededEventIds: string[] | null;
+  
+  /** Whether the task is private */
+  private: boolean;
+  
+  /** ID of the user assigned to the task */
+  assigneeId: string;
+  
+  /** ID of the user creating the task */
+  createdBy: string;
+  
+  /** Integration information (optional) */
+  integration: TaskIntegration | null;
+  
+  /** Whether the task is deleted */
+  deleted: boolean;
+  
+  /** Main task text/title */
+  text: string;
+  
+  /** Task notes/description */
+  notes: string;
+  
+  /** Notes in markdown format (optional) */
+  notesMarkdown: string | null;
+  
+  /** Notes checksum (optional) */
+  notesChecksum: string | null;
+  
+  /** Editor version number */
+  editorVersion: number;
+  
+  /** Collaborative editing state */
+  collabSnapshot: CollabSnapshot | null;
+  
+  /** Whether the task is completed */
+  completed: boolean;
+  
+  /** ID of user who completed the task (optional) */
+  completedBy: string | null;
+  
+  /** Date when task was completed (optional) */
+  completeDate: string | null;
+  
+  /** Timestamp when task was marked complete (optional) */
+  completeOn: string | null;
+  
+  /** Timestamp when task was archived (optional) */
+  archivedAt: string | null;
+  
+  /** Task duration (optional) */
+  duration: number | null;
+  
+  /** Run date information (optional) */
+  runDate: TaskRunDate | null;
+  
+  /** Snooze configuration (optional) */
+  snooze: TaskSnooze | null;
+  
+  /** Time horizon configuration (optional) */
+  timeHorizon: TaskTimeHorizon | null;
+  
+  /** Due date (optional) */
+  dueDate: string | null;
+  
+  /** Task comments */
+  comments: TaskComment[];
+  
+  /** Task orderings */
+  orderings: TaskOrdering[];
+  
+  /** Backlog orderings */
+  backlogOrderings: TaskBacklogOrdering[];
+  
+  /** Subtasks */
+  subtasks: TaskSubtask[];
+  
+  /** Whether subtasks are collapsed (optional) */
+  subtasksCollapsed: boolean | null;
+  
+  /** Sequence information for recurring tasks (optional) */
+  sequence: TaskSequence | null;
+  
+  /** User IDs following this task */
+  followers: string[];
+  
+  /** Recommended time estimate in minutes (optional) */
+  recommendedTimeEstimate: number | null;
+  
+  /** Time estimate in minutes */
+  timeEstimate: number | null;
+  
+  /** Actual time tracking */
+  actualTime: TaskActualTime[];
+  
+  /** Scheduled time information */
+  scheduledTime: TaskScheduledTime[];
+  
+  /** ISO timestamp when task was created */
+  createdAt: string;
+  
+  /** ISO timestamp when task was last modified */
+  lastModified: string;
+  
+  /** Objective ID (optional) */
+  objectiveId: string | null;
+  
+  /** Ritual information (optional) */
+  ritual: TaskRitual | null;
+}
+
+/**
+ * Simplified options for creating a task
+ */
+export interface CreateTaskOptions {
+  /** Task description/notes */
+  notes?: string;
+  
+  /** Time estimate in minutes */
+  timeEstimate?: number;
+  
+  /** Array of stream IDs to assign the task to */
+  streamIds?: string[];
+  
+  /** Whether the task is private */
+  private?: boolean;
+  
+  /** Due date as Date or ISO string */
+  dueDate?: Date | string;
+  
+  /** Snooze until date as Date or ISO string */
+  snoozeUntil?: Date | string;
+}
+
+/**
+ * Input for createTask mutation
+ */
+export interface CreateTaskInput {
+  /** The task object to create */
+  task: TaskInput;
+  
+  /** Group ID (duplicated from task for API requirements) */
+  groupId: string;
+  
+  /** Optional position parameter */
+  position?: string;
+}
+
+/**
+ * Response payload for createTask mutation
+ */
+export interface CreateTaskPayload {
+  /** Whether the operation succeeded */
+  success: boolean;
+  
+  /** Error message if the operation failed */
+  error: string | null;
+  
+  /** Fields that were updated/computed by the server */
+  updatedFields: PartialTask | null;
+  
+  __typename: 'CreateTaskPayload';
+}
+
+/**
+ * Response structure for createTask mutation
+ */
+export interface CreateTaskResponse {
+  createTaskV2: CreateTaskPayload;
+}
