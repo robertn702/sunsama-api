@@ -1,17 +1,18 @@
 #!/usr/bin/env tsx
 
 /**
- * Test script for real Sunsama authentication
+ * Test script for real Sunsama authentication and API methods
  * 
- * This script tests the authentication and getUser method with real credentials
- * from environment variables.
+ * This script tests the authentication and various API methods with real credentials
+ * from environment variables. It creates tasks, marks them complete, and deletes them
+ * to test the full CRUD workflow.
  */
 
 import 'dotenv/config';
 import { SunsamaClient } from '../src/client';
 
 async function testRealAuth() {
-  console.log('🧪 Testing Sunsama Authentication with Real Credentials\n');
+  console.log('🧪 Testing Sunsama API with Real Credentials (Full CRUD Workflow)\n');
   
   // Get credentials from environment
   const email = process.env['SUNSAMA_EMAIL'];
@@ -250,6 +251,39 @@ async function testRealAuth() {
     if (completeResult.updatedFields) {
       console.log(`   Task ID: ${completeResult.updatedFields._id}`);
       console.log(`   Subtasks: ${completeResult.updatedFields.subtasks?.length || 0}`);
+    }
+    
+    // Test deleteTask method
+    console.log('\n🗑️ Testing deleteTask method...');
+    
+    // Collect task IDs from both created tasks
+    const simpleTaskId = createdTask.updatedFields?._id;
+    const advancedTaskId = createdAdvancedTask.updatedFields?._id;
+    
+    // Delete the simple task first
+    if (simpleTaskId) {
+      console.log(`   Deleting simple task: ${simpleTaskId}`);
+      const deleteSimpleResult = await client.deleteTask(simpleTaskId);
+      
+      console.log('✅ deleteTask (simple) successful!');
+      console.log('\n📊 Simple Task Deletion Information:');
+      console.log(`   Success: ${deleteSimpleResult.success}`);
+      console.log(`   Skipped: ${deleteSimpleResult.skipped || false}`);
+    } else {
+      console.log('⚠️ Simple task ID not found, skipping deletion');
+    }
+    
+    // Delete the advanced task (which was marked complete)
+    if (advancedTaskId) {
+      console.log(`\n   Deleting advanced task: ${advancedTaskId}`);
+      const deleteAdvancedResult = await client.deleteTask(advancedTaskId);
+      
+      console.log('✅ deleteTask (advanced) successful!');
+      console.log('\n📊 Advanced Task Deletion Information:');
+      console.log(`   Success: ${deleteAdvancedResult.success}`);
+      console.log(`   Skipped: ${deleteAdvancedResult.skipped || false}`);
+    } else {
+      console.log('⚠️ Advanced task ID not found, skipping deletion');
     }
     
     // Test logout
