@@ -118,6 +118,15 @@ const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York')
 
 // Get backlog tasks
 const backlog = await client.getTasksBacklog();
+
+// Mark a task as complete
+const result = await client.updateTaskComplete('taskId');
+
+// Mark complete with specific timestamp
+const result = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z');
+
+// Get full task details in response
+const result = await client.updateTaskComplete('taskId', new Date(), false);
 ```
 
 ### Streams (Channels)
