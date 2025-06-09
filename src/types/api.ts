@@ -938,10 +938,10 @@ export interface PartialTask {
 export interface UpdateTaskCompleteInput {
   /** The ID of the task to mark as complete */
   taskId: string;
-  
+
   /** ISO 8601 timestamp when the task was completed */
   completeOn: string;
-  
+
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
@@ -952,15 +952,15 @@ export interface UpdateTaskCompleteInput {
 export interface UpdateTaskPayload {
   /** The updated task (null when limitResponsePayload is true) */
   updatedTask: Task | null;
-  
+
   /** Partial task containing only updated fields (null when limitResponsePayload is true) */
   updatedFields: PartialTask | null;
-  
+
   /** Whether the operation succeeded */
   success: boolean;
-  
+
   /** Whether the operation was skipped */
   skipped: boolean | null;
-  
+
   __typename: 'UpdateTaskPayload';
 }

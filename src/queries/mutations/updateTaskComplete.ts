@@ -3,7 +3,12 @@
  */
 
 import { gql } from 'graphql-tag';
-import { TASK_ACTUAL_TIME_FRAGMENT, TASK_FRAGMENT, TASK_INTEGRATION_FRAGMENT, TASK_SCHEDULED_TIME_FRAGMENT } from '../fragments/task.js';
+import {
+  TASK_ACTUAL_TIME_FRAGMENT,
+  TASK_FRAGMENT,
+  TASK_INTEGRATION_FRAGMENT,
+  TASK_SCHEDULED_TIME_FRAGMENT,
+} from '../fragments/task.js';
 
 /**
  * Fragment for PartialTask structure
@@ -74,7 +79,7 @@ export const UPDATE_TASK_PAYLOAD_FRAGMENT = gql`
 
 /**
  * Mutation for marking a task as complete
- * 
+ *
  * Variables:
  * - input.taskId: The ID of the task to mark complete
  * - input.completeOn: ISO 8601 timestamp when the task was completed
