@@ -135,20 +135,15 @@ const scheduledTask = await client.createTask('Follow up with client', {
   snoozeUntil: new Date('2025-01-15T09:00:00')
 });
 
-// Create a task with full control (advanced)
+// Create a task with custom ID (useful for tracking/deletion)
 const taskId = SunsamaClient.generateTaskId(); // Generate MongoDB ObjectId-style ID
-const taskInput = {
-  _id: taskId,
-  groupId: 'group-id',
-  taskType: 'outcomes',
-  text: 'Custom task',
+const taskWithCustomId = await client.createTask('Custom task', {
+  taskId: taskId,
   notes: 'Detailed description',
   private: false,
   streamIds: ['stream-1', 'stream-2'],
-  timeEstimate: 60,
-  // ... other required fields
-};
-const advancedTask = await client.createTaskAdvanced(taskInput);
+  timeEstimate: 60
+});
 
 // Generate task IDs for external use
 const uniqueId = SunsamaClient.generateTaskId();
@@ -179,15 +174,12 @@ const deleteResultMerged = await client.deleteTask('taskId', true, true);
 const taskId = SunsamaClient.generateTaskId();
 console.log(taskId); // "675a1b2c3d4e5f6789abcdef"
 
-// Use with createTaskAdvanced for full control
-const customTask = {
-  _id: SunsamaClient.generateTaskId(),
-  groupId: user.primaryGroup.groupId,
-  taskType: 'outcomes',
-  text: 'My custom task',
-  // ... other required fields
-};
-await client.createTaskAdvanced(customTask);
+// Use with createTask for controlled task creation
+const customTask = await client.createTask('My custom task', {
+  taskId: SunsamaClient.generateTaskId(),
+  notes: 'Task with custom ID for tracking',
+  timeEstimate: 45
+});
 ```
 
 ### Streams (Channels)

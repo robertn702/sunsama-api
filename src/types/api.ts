@@ -1122,6 +1122,9 @@ export interface TaskInput {
  * Simplified options for creating a task
  */
 export interface CreateTaskOptions {
+  /** Custom task ID (if not provided, one will be generated automatically) */
+  taskId?: string;
+
   /** Task description/notes */
   notes?: string;
 

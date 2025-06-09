@@ -4,7 +4,7 @@
  * Test script for real Sunsama authentication and API methods
  * 
  * This script tests the authentication and various API methods with real credentials
- * from environment variables. It creates tasks, marks them complete, and deletes them
+ * from environment variables. It creates a single task, marks it complete, and deletes it
  * to test the full CRUD workflow.
  */
 
@@ -147,14 +147,18 @@ async function testRealAuth() {
       console.log('   No streams found for group');
     }
     
-    // Test createTask method
+    // Test createTask method with custom ID (for tracking through completion and deletion)
     console.log('\n✨ Testing createTask method...');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const simpleTaskText = `Test Task Created by API - ${timestamp}`;
+    const taskText = `Test Task Created by API - ${timestamp}`;
     
-    const createdTask = await client.createTask(simpleTaskText, {
-      notes: 'This task was created by the test-real-auth script to verify task creation functionality.',
-      timeEstimate: 15,
+    // Generate a unique task ID for tracking
+    const taskId = SunsamaClient.generateTaskId();
+    
+    const createdTask = await client.createTask(taskText, {
+      taskId: taskId,
+      notes: 'This task was created by the test-real-auth script to verify the full CRUD workflow (create, complete, delete).',
+      timeEstimate: 25,
       streamIds: streams.length > 0 ? [streams[0]!._id] : []
     });
     
@@ -162,87 +166,18 @@ async function testRealAuth() {
     console.log('\n📊 Created Task Information:');
     console.log(`   Success: ${createdTask.success}`);
     console.log(`   Error: ${createdTask.error || 'None'}`);
+    console.log(`   Task ID: ${taskId}`);
     if (createdTask.updatedFields) {
-      console.log(`   Task ID: ${createdTask.updatedFields._id}`);
       console.log(`   Recommended Stream: ${createdTask.updatedFields.recommendedStreamId || 'None'}`);
       console.log(`   Stream IDs: ${createdTask.updatedFields.streamIds?.join(', ') || 'None'}`);
       console.log(`   Time Estimate: ${createdTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`);
     }
     
-    // Test createTaskAdvanced method
-    console.log('\n✨ Testing createTaskAdvanced method...');
-    const advancedTaskText = `Advanced Test Task - ${timestamp}`;
-    
-    // Generate a unique task ID using the static method
-    const taskId = SunsamaClient.generateTaskId();
-    
-    const taskInput = {
-      _id: taskId,
-      groupId: user.primaryGroup!.groupId,
-      taskType: 'outcomes',
-      streamIds: streams.length > 1 ? [streams[1]!._id] : [],
-      recommendedStreamId: null,
-      eventInfo: null,
-      seededEventIds: null,
-      private: false,
-      assigneeId: user._id,
-      createdBy: user._id,
-      integration: null,
-      deleted: false,
-      text: advancedTaskText,
-      notes: 'This is an advanced task created with full control via createTaskAdvanced method.',
-      notesMarkdown: null,
-      notesChecksum: null,
-      editorVersion: 3,
-      collabSnapshot: null,
-      completed: false,
-      completedBy: null,
-      completeDate: null,
-      completeOn: null,
-      archivedAt: null,
-      duration: null,
-      runDate: null,
-      snooze: null,
-      timeHorizon: null,
-      dueDate: null,
-      comments: [],
-      orderings: [],
-      backlogOrderings: [],
-      subtasks: [],
-      subtasksCollapsed: null,
-      sequence: null,
-      followers: [],
-      recommendedTimeEstimate: null,
-      timeEstimate: 30,
-      actualTime: [],
-      scheduledTime: [],
-      createdAt: new Date().toISOString(),
-      lastModified: new Date().toISOString(),
-      objectiveId: null,
-      ritual: null
-    };
-    
-    const createdAdvancedTask = await client.createTaskAdvanced(taskInput);
-    
-    console.log('✅ createTaskAdvanced successful!');
-    console.log('\n📊 Advanced Task Information:');
-    console.log(`   Success: ${createdAdvancedTask.success}`);
-    console.log(`   Error: ${createdAdvancedTask.error || 'None'}`);
-    if (createdAdvancedTask.updatedFields) {
-      console.log(`   Task ID: ${createdAdvancedTask.updatedFields._id}`);
-      console.log(`   Recommended Stream: ${createdAdvancedTask.updatedFields.recommendedStreamId || 'None'}`);
-      console.log(`   Stream IDs: ${createdAdvancedTask.updatedFields.streamIds?.join(', ') || 'None'}`);
-      console.log(`   Time Estimate: ${createdAdvancedTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`);
-    }
-    
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
+    console.log(`   Marking task as complete: ${taskId}`);
     
-    // Use the task ID from the advanced task creation
-    const taskToComplete = taskId;
-    console.log(`   Marking task as complete: ${taskToComplete}`);
-    
-    const completeResult = await client.updateTaskComplete(taskToComplete);
+    const completeResult = await client.updateTaskComplete(taskId);
     
     console.log('✅ updateTaskComplete successful!');
     console.log('\n📊 Task Completion Information:');
@@ -255,36 +190,14 @@ async function testRealAuth() {
     
     // Test deleteTask method
     console.log('\n🗑️ Testing deleteTask method...');
+    console.log(`   Deleting task: ${taskId}`);
     
-    // Collect task IDs from both created tasks
-    const simpleTaskId = createdTask.updatedFields?._id;
-    const advancedTaskId = createdAdvancedTask.updatedFields?._id;
+    const deleteResult = await client.deleteTask(taskId);
     
-    // Delete the simple task first
-    if (simpleTaskId) {
-      console.log(`   Deleting simple task: ${simpleTaskId}`);
-      const deleteSimpleResult = await client.deleteTask(simpleTaskId);
-      
-      console.log('✅ deleteTask (simple) successful!');
-      console.log('\n📊 Simple Task Deletion Information:');
-      console.log(`   Success: ${deleteSimpleResult.success}`);
-      console.log(`   Skipped: ${deleteSimpleResult.skipped || false}`);
-    } else {
-      console.log('⚠️ Simple task ID not found, skipping deletion');
-    }
-    
-    // Delete the advanced task (which was marked complete)
-    if (advancedTaskId) {
-      console.log(`\n   Deleting advanced task: ${advancedTaskId}`);
-      const deleteAdvancedResult = await client.deleteTask(advancedTaskId);
-      
-      console.log('✅ deleteTask (advanced) successful!');
-      console.log('\n📊 Advanced Task Deletion Information:');
-      console.log(`   Success: ${deleteAdvancedResult.success}`);
-      console.log(`   Skipped: ${deleteAdvancedResult.skipped || false}`);
-    } else {
-      console.log('⚠️ Advanced task ID not found, skipping deletion');
-    }
+    console.log('✅ deleteTask successful!');
+    console.log('\n📊 Task Deletion Information:');
+    console.log(`   Success: ${deleteResult.success}`);
+    console.log(`   Skipped: ${deleteResult.skipped || false}`);
     
     // Test logout
     console.log('\n🚪 Testing logout...');

@@ -550,16 +550,16 @@ export class SunsamaClient {
   }
 
   /**
-   * Creates a new task with simplified options
+   * Creates a new task with flexible options
    *
    * @param text - The main text/title of the task
-   * @param options - Additional task properties
+   * @param options - Additional task properties (including optional custom taskId)
    * @returns The created task result with success status
    * @throws SunsamaAuthError if not authenticated or request fails
    *
    * @example
    * ```typescript
-   * // Create a simple task
+   * // Create a simple task (ID auto-generated)
    * const result = await client.createTask('Complete project documentation');
    *
    * // Create a task with options
@@ -569,8 +569,10 @@ export class SunsamaClient {
    *   streamIds: ['stream-id-1']
    * });
    *
-   * // Create a task with snooze
+   * // Create a task with custom ID (useful for tracking/deletion)
+   * const customId = SunsamaClient.generateTaskId();
    * const result = await client.createTask('Follow up with client', {
+   *   taskId: customId,
    *   snoozeUntil: new Date('2025-01-15T09:00:00')
    * });
    * ```
@@ -585,8 +587,8 @@ export class SunsamaClient {
       throw new SunsamaAuthError('Unable to determine user ID or group ID');
     }
 
-    // Generate a unique task ID (MongoDB ObjectId format)
-    const taskId = SunsamaClient.generateTaskId();
+    // Use provided task ID or generate a new one
+    const taskId = options?.taskId || SunsamaClient.generateTaskId();
 
     // Generate timestamps
     const now = new Date().toISOString();
@@ -660,44 +662,6 @@ export class SunsamaClient {
       objectiveId: null,
       ritual: null,
     };
-
-    const variables: CreateTaskInput = {
-      task: taskInput,
-      groupId: this.groupId,
-      position: undefined,
-    };
-
-    const request: GraphQLRequest<CreateTaskInput> = {
-      operationName: 'createTask',
-      variables,
-      query: CREATE_TASK_MUTATION,
-    };
-
-    const response = await this.graphqlRequest<CreateTaskResponse, CreateTaskInput>(request);
-
-    if (!response.data) {
-      throw new SunsamaAuthError('No response data received');
-    }
-
-    return response.data.createTaskV2;
-  }
-
-  /**
-   * Creates a new task with full control over all properties (advanced)
-   *
-   * @param taskInput - Complete task input object
-   * @returns The created task result with success status
-   * @throws SunsamaAuthError if not authenticated or request fails
-   */
-  async createTaskAdvanced(taskInput: TaskInput): Promise<CreateTaskPayload> {
-    // Ensure we have group ID
-    if (!this.groupId) {
-      await this.getUser();
-    }
-
-    if (!this.groupId) {
-      throw new SunsamaAuthError('Unable to determine group ID');
-    }
 
     const variables: CreateTaskInput = {
       task: taskInput,
