@@ -6,3 +6,4 @@ export * from './user.js';
 export * from './tasks.js';
 export * from './streams.js';
 export * from './fragments/index.js';
+export * from './mutations/index.js';
