@@ -146,6 +146,114 @@ async function testRealAuth() {
       console.log('   No streams found for group');
     }
     
+    // Test createTask method
+    console.log('\n✨ Testing createTask method...');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const simpleTaskText = `Test Task Created by API - ${timestamp}`;
+    
+    const createdTask = await client.createTask(simpleTaskText, {
+      notes: 'This task was created by the test-real-auth script to verify task creation functionality.',
+      timeEstimate: 15,
+      streamIds: streams.length > 0 ? [streams[0]!._id] : []
+    });
+    
+    console.log('✅ createTask successful!');
+    console.log('\n📊 Created Task Information:');
+    console.log(`   Success: ${createdTask.success}`);
+    console.log(`   Error: ${createdTask.error || 'None'}`);
+    if (createdTask.updatedFields) {
+      console.log(`   Task ID: ${createdTask.updatedFields._id}`);
+      console.log(`   Recommended Stream: ${createdTask.updatedFields.recommendedStreamId || 'None'}`);
+      console.log(`   Stream IDs: ${createdTask.updatedFields.streamIds?.join(', ') || 'None'}`);
+      console.log(`   Time Estimate: ${createdTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`);
+    }
+    
+    // Test createTaskAdvanced method
+    console.log('\n✨ Testing createTaskAdvanced method...');
+    const advancedTaskText = `Advanced Test Task - ${timestamp}`;
+    
+    // Generate a unique task ID
+    const taskId = Array.from(new Uint8Array(12))
+      .map(() => Math.floor(Math.random() * 256).toString(16).padStart(2, '0'))
+      .join('');
+    
+    const taskInput = {
+      _id: taskId,
+      groupId: user.primaryGroup!.groupId,
+      taskType: 'outcomes',
+      streamIds: streams.length > 1 ? [streams[1]!._id] : [],
+      recommendedStreamId: null,
+      eventInfo: null,
+      seededEventIds: null,
+      private: false,
+      assigneeId: user._id,
+      createdBy: user._id,
+      integration: null,
+      deleted: false,
+      text: advancedTaskText,
+      notes: 'This is an advanced task created with full control via createTaskAdvanced method.',
+      notesMarkdown: null,
+      notesChecksum: null,
+      editorVersion: 3,
+      collabSnapshot: null,
+      completed: false,
+      completedBy: null,
+      completeDate: null,
+      completeOn: null,
+      archivedAt: null,
+      duration: null,
+      runDate: null,
+      snooze: null,
+      timeHorizon: null,
+      dueDate: null,
+      comments: [],
+      orderings: [],
+      backlogOrderings: [],
+      subtasks: [],
+      subtasksCollapsed: null,
+      sequence: null,
+      followers: [],
+      recommendedTimeEstimate: null,
+      timeEstimate: 30,
+      actualTime: [],
+      scheduledTime: [],
+      createdAt: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+      objectiveId: null,
+      ritual: null
+    };
+    
+    const createdAdvancedTask = await client.createTaskAdvanced(taskInput);
+    
+    console.log('✅ createTaskAdvanced successful!');
+    console.log('\n📊 Advanced Task Information:');
+    console.log(`   Success: ${createdAdvancedTask.success}`);
+    console.log(`   Error: ${createdAdvancedTask.error || 'None'}`);
+    if (createdAdvancedTask.updatedFields) {
+      console.log(`   Task ID: ${createdAdvancedTask.updatedFields._id}`);
+      console.log(`   Recommended Stream: ${createdAdvancedTask.updatedFields.recommendedStreamId || 'None'}`);
+      console.log(`   Stream IDs: ${createdAdvancedTask.updatedFields.streamIds?.join(', ') || 'None'}`);
+      console.log(`   Time Estimate: ${createdAdvancedTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`);
+    }
+    
+    // Test updateTaskComplete method
+    console.log('\n✅ Testing updateTaskComplete method...');
+    
+    // Use the task ID from the advanced task creation
+    const taskToComplete = taskId;
+    console.log(`   Marking task as complete: ${taskToComplete}`);
+    
+    const completeResult = await client.updateTaskComplete(taskToComplete);
+    
+    console.log('✅ updateTaskComplete successful!');
+    console.log('\n📊 Task Completion Information:');
+    console.log(`   Success: ${completeResult.success}`);
+    console.log(`   Skipped: ${completeResult.skipped || false}`);
+    if (completeResult.updatedFields) {
+      console.log(`   Task ID: ${completeResult.updatedFields._id}`);
+      console.log(`   Subtasks: ${completeResult.updatedFields.subtasks?.length || 0}`);
+    }
+    
     // Test logout
     console.log('\n🚪 Testing logout...');
     client.logout();
