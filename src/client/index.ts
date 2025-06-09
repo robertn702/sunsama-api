@@ -12,6 +12,7 @@ import {
   GET_TASKS_BACKLOG_QUERY,
   GET_TASKS_BY_DAY_QUERY,
   GET_USER_QUERY,
+  UPDATE_TASK_COMPLETE_MUTATION,
 } from '../queries';
 import type {
   GetStreamsByGroupIdResponse,
@@ -26,6 +27,8 @@ import type {
   Stream,
   SunsamaClientConfig,
   Task,
+  UpdateTaskCompleteInput,
+  UpdateTaskPayload,
   User,
 } from '../types';
 
@@ -423,6 +426,67 @@ export class SunsamaClient {
     }
 
     return this.timezone;
+  }
+
+  /**
+   * Marks a task as complete
+   *
+   * @param taskId - The ID of the task to mark as complete
+   * @param completeOn - The date/time when the task was completed (defaults to current time)
+   * @param limitResponsePayload - Whether to limit the response payload size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Mark a task as complete with current timestamp
+   * const result = await client.updateTaskComplete('taskId');
+   *
+   * // Mark complete with specific timestamp
+   * const result = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z');
+   *
+   * // Get full task details in response
+   * const result = await client.updateTaskComplete('taskId', new Date(), false);
+   * ```
+   */
+  async updateTaskComplete(
+    taskId: string,
+    completeOn?: Date | string,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    // Convert Date to ISO string if needed
+    let completeOnString: string;
+    if (completeOn instanceof Date) {
+      completeOnString = completeOn.toISOString();
+    } else if (completeOn) {
+      completeOnString = completeOn;
+    } else {
+      // Default to current time
+      completeOnString = new Date().toISOString();
+    }
+
+    const variables: UpdateTaskCompleteInput = {
+      taskId,
+      completeOn: completeOnString,
+      limitResponsePayload,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskCompleteInput }> = {
+      operationName: 'updateTaskComplete',
+      variables: { input: variables },
+      query: UPDATE_TASK_COMPLETE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskComplete: UpdateTaskPayload },
+      { input: UpdateTaskCompleteInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.updateTaskComplete;
   }
 
   /**
