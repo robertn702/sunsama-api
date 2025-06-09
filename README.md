@@ -128,6 +128,15 @@ const result = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z')
 // Get full task details in response
 const result = await client.updateTaskComplete('taskId', new Date(), false);
 
+// Delete a task
+const deleteResult = await client.deleteTask('taskId');
+
+// Delete with full response payload
+const deleteResultFull = await client.deleteTask('taskId', false);
+
+// Delete a merged task
+const deleteResultMerged = await client.deleteTask('taskId', true, true);
+
 // Create a new task
 const newTask = await client.createTask('Complete project documentation');
 

@@ -129,6 +129,19 @@ describe('SunsamaClient', () => {
       await expect(client.updateTaskComplete('test-task-id')).rejects.toThrow();
     });
 
+    it('should have deleteTask method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.deleteTask).toBe('function');
+    });
+
+    it('should throw error when calling deleteTask without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.deleteTask('test-task-id')).rejects.toThrow();
+    });
+
     it('should have createTask method', () => {
       const client = new SunsamaClient();
 
