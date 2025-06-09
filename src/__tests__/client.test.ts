@@ -115,5 +115,18 @@ describe('SunsamaClient', () => {
       // Should fail because no authentication
       await expect(client.getStreamsByGroupId()).rejects.toThrow();
     });
+
+    it('should have updateTaskComplete method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskComplete).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskComplete without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTaskComplete('test-task-id')).rejects.toThrow();
+    });
   });
 });
