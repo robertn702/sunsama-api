@@ -119,24 +119,6 @@ const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York')
 // Get backlog tasks
 const backlog = await client.getTasksBacklog();
 
-// Mark a task as complete
-const result = await client.updateTaskComplete('taskId');
-
-// Mark complete with specific timestamp
-const result = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z');
-
-// Get full task details in response
-const result = await client.updateTaskComplete('taskId', new Date(), false);
-
-// Delete a task
-const deleteResult = await client.deleteTask('taskId');
-
-// Delete with full response payload
-const deleteResultFull = await client.deleteTask('taskId', false);
-
-// Delete a merged task
-const deleteResultMerged = await client.deleteTask('taskId', true, true);
-
 // Create a new task
 const newTask = await client.createTask('Complete project documentation');
 
@@ -171,6 +153,24 @@ const advancedTask = await client.createTaskAdvanced(taskInput);
 // Generate task IDs for external use
 const uniqueId = SunsamaClient.generateTaskId();
 console.log(uniqueId); // "675a1b2c3d4e5f6789abcdef"
+
+// Mark a task as complete
+const completeResult = await client.updateTaskComplete('taskId');
+
+// Mark complete with specific timestamp
+const completeResultTimed = await client.updateTaskComplete('taskId', '2025-01-15T10:30:00Z');
+
+// Get full task details in response
+const completeResultFull = await client.updateTaskComplete('taskId', new Date(), false);
+
+// Delete a task
+const deleteResult = await client.deleteTask('taskId');
+
+// Delete with full response payload
+const deleteResultFull = await client.deleteTask('taskId', false);
+
+// Delete a merged task
+const deleteResultMerged = await client.deleteTask('taskId', true, true);
 ```
 
 ### Task ID Generation
