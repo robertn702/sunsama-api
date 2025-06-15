@@ -190,115 +190,74 @@ describe('SunsamaClient', () => {
       await expect(client.createTask('Test task')).rejects.toThrow();
     });
 
-    it('should have moveTaskToDay method', () => {
+    it('should have updateTaskSnoozeDate method', () => {
       const client = new SunsamaClient();
 
-      expect(typeof client.moveTaskToDay).toBe('function');
+      expect(typeof client.updateTaskSnoozeDate).toBe('function');
     });
 
-    it('should throw error when calling moveTaskToDay without authentication', async () => {
+    it('should throw error when calling updateTaskSnoozeDate without authentication', async () => {
       const client = new SunsamaClient();
 
       // Should fail because no authentication
-      await expect(client.moveTaskToDay('test-task-id', '2025-06-16')).rejects.toThrow();
+      await expect(client.updateTaskSnoozeDate('test-task-id', '2025-06-16')).rejects.toThrow();
+      await expect(client.updateTaskSnoozeDate('test-task-id', null)).rejects.toThrow();
     });
 
-    it('should validate date format in moveTaskToDay', async () => {
+    it('should validate date format in updateTaskSnoozeDate', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
       // Should fail because of invalid date format
-      await expect(client.moveTaskToDay('test-task-id', 'invalid-date')).rejects.toThrow(
+      await expect(client.updateTaskSnoozeDate('test-task-id', 'invalid-date')).rejects.toThrow(
         'Invalid date format'
       );
-      await expect(client.moveTaskToDay('test-task-id', '2025/06/16')).rejects.toThrow(
+      await expect(client.updateTaskSnoozeDate('test-task-id', '2025/06/16')).rejects.toThrow(
         'Invalid date format'
       );
-      await expect(client.moveTaskToDay('test-task-id', '06-16-2025')).rejects.toThrow(
+      await expect(client.updateTaskSnoozeDate('test-task-id', '06-16-2025')).rejects.toThrow(
         'Invalid date format'
       );
     });
 
-    it('should validate date validity in moveTaskToDay', async () => {
+    it('should validate date validity in updateTaskSnoozeDate', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
       // Should fail because of invalid date
-      await expect(client.moveTaskToDay('test-task-id', '2025-13-01')).rejects.toThrow(
+      await expect(client.updateTaskSnoozeDate('test-task-id', '2025-13-01')).rejects.toThrow(
         'Invalid date provided'
       );
-      await expect(client.moveTaskToDay('test-task-id', '2025-02-30')).rejects.toThrow(
+      await expect(client.updateTaskSnoozeDate('test-task-id', '2025-02-30')).rejects.toThrow(
         'Invalid date provided'
       );
     });
 
-    it('should validate timezone in moveTaskToDay', async () => {
+    it('should validate timezone in updateTaskSnoozeDate', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
       // Should fail because of invalid timezone
       await expect(
-        client.moveTaskToDay('test-task-id', '2025-06-16', 'Invalid/Timezone')
+        client.updateTaskSnoozeDate('test-task-id', '2025-06-16', { timezone: 'Invalid/Timezone' })
       ).rejects.toThrow('Invalid timezone');
     });
 
-    it('should have moveTaskToBacklog method', () => {
-      const client = new SunsamaClient();
-
-      expect(typeof client.moveTaskToBacklog).toBe('function');
-    });
-
-    it('should throw error when calling moveTaskToBacklog without authentication', async () => {
-      const client = new SunsamaClient();
-
-      // Should fail because no authentication
-      await expect(client.moveTaskToBacklog('test-task-id')).rejects.toThrow();
-    });
-
-    it('should have scheduleBacklogTask method', () => {
-      const client = new SunsamaClient();
-
-      expect(typeof client.scheduleBacklogTask).toBe('function');
-    });
-
-    it('should throw error when calling scheduleBacklogTask without authentication', async () => {
-      const client = new SunsamaClient();
-
-      // Should fail because no authentication
-      await expect(client.scheduleBacklogTask('test-task-id', '2025-06-16')).rejects.toThrow();
-    });
-
-    it('should validate date format in scheduleBacklogTask', async () => {
+    it('should allow null newDay for backlog operation', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
-      // Should fail because of invalid date format
-      await expect(client.scheduleBacklogTask('test-task-id', 'invalid-date')).rejects.toThrow(
-        'Invalid date format'
-      );
-      await expect(client.scheduleBacklogTask('test-task-id', '2025/06/16')).rejects.toThrow(
-        'Invalid date format'
-      );
-      await expect(client.scheduleBacklogTask('test-task-id', '06-16-2025')).rejects.toThrow(
-        'Invalid date format'
+      // Should pass validation for null newDay (move to backlog)
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(client.updateTaskSnoozeDate('test-task-id', null)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
       );
     });
 
-    it('should validate date validity in scheduleBacklogTask', async () => {
+    it('should support limitResponsePayload option', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
-      // Should fail because of invalid date
-      await expect(client.scheduleBacklogTask('test-task-id', '2025-13-01')).rejects.toThrow(
-        'Invalid date provided'
-      );
-      await expect(client.scheduleBacklogTask('test-task-id', '2025-02-30')).rejects.toThrow(
-        'Invalid date provided'
-      );
-    });
-
-    it('should validate timezone in scheduleBacklogTask', async () => {
-      const client = new SunsamaClient({ sessionToken: 'test-token' });
-
-      // Should fail because of invalid timezone
+      // Should pass validation with limitResponsePayload option
+      // Will fail at GraphQL level due to unauthorized access
       await expect(
-        client.scheduleBacklogTask('test-task-id', '2025-06-16', 'Invalid/Timezone')
-      ).rejects.toThrow('Invalid timezone');
+        client.updateTaskSnoozeDate('test-task-id', '2025-06-16', { limitResponsePayload: false })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
     });
   });
 });

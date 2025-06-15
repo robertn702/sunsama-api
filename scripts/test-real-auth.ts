@@ -173,32 +173,32 @@ async function testRealAuth() {
       console.log(`   Time Estimate: ${createdTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`);
     }
     
-    // Test updateTaskSnoozeDate methods (moveTaskToDay, moveTaskToBacklog, scheduleBacklogTask)
-    console.log('\n📅 Testing updateTaskSnoozeDate methods...');
+    // Test updateTaskSnoozeDate method (unified scheduling operations)
+    console.log('\n📅 Testing updateTaskSnoozeDate method...');
     
-    // First, move the task to tomorrow
+    // First, schedule the task to tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0]!;
     
-    console.log(`   Moving task to tomorrow (${tomorrowStr}): ${taskId}`);
-    const moveResult = await client.moveTaskToDay(taskId, tomorrowStr);
+    console.log(`   Scheduling task to tomorrow (${tomorrowStr}): ${taskId}`);
+    const scheduleResult = await client.updateTaskSnoozeDate(taskId, tomorrowStr);
     
-    console.log('✅ moveTaskToDay successful!');
-    console.log('📊 Move Task Information:');
-    console.log(`   Success: ${moveResult.success}`);
-    if (moveResult.updatedFields) {
-      console.log(`   Task ID: ${moveResult.updatedFields._id}`);
-      console.log(`   New snooze date: ${moveResult.updatedFields.snooze?.until || 'None'}`);
+    console.log('✅ updateTaskSnoozeDate (schedule) successful!');
+    console.log('📊 Schedule Task Information:');
+    console.log(`   Success: ${scheduleResult.success}`);
+    if (scheduleResult.updatedFields) {
+      console.log(`   Task ID: ${scheduleResult.updatedFields._id}`);
+      console.log(`   New snooze date: ${scheduleResult.updatedFields.snooze?.until || 'None'}`);
     } else {
       console.log('   updatedFields: null (limitResponsePayload=true)');
     }
     
     // Then move to backlog
     console.log(`\n   Moving task to backlog: ${taskId}`);
-    const backlogResult = await client.moveTaskToBacklog(taskId);
+    const backlogResult = await client.updateTaskSnoozeDate(taskId, null);
     
-    console.log('✅ moveTaskToBacklog successful!');
+    console.log('✅ updateTaskSnoozeDate (backlog) successful!');
     console.log('📊 Move to Backlog Information:');
     console.log(`   Success: ${backlogResult.success}`);
     if (backlogResult.updatedFields) {
@@ -210,14 +210,14 @@ async function testRealAuth() {
     
     // Finally, schedule it back to today
     console.log(`\n   Scheduling backlog task to today (${today}): ${taskId}`);
-    const scheduleResult = await client.scheduleBacklogTask(taskId, today);
+    const rescheduleResult = await client.updateTaskSnoozeDate(taskId, today);
     
-    console.log('✅ scheduleBacklogTask successful!');
-    console.log('📊 Schedule Backlog Task Information:');
-    console.log(`   Success: ${scheduleResult.success}`);
-    if (scheduleResult.updatedFields) {
-      console.log(`   Task ID: ${scheduleResult.updatedFields._id}`);
-      console.log(`   New snooze date: ${scheduleResult.updatedFields.snooze?.until || 'None'}`);
+    console.log('✅ updateTaskSnoozeDate (reschedule) successful!');
+    console.log('📊 Reschedule Task Information:');
+    console.log(`   Success: ${rescheduleResult.success}`);
+    if (rescheduleResult.updatedFields) {
+      console.log(`   Task ID: ${rescheduleResult.updatedFields._id}`);
+      console.log(`   New snooze date: ${rescheduleResult.updatedFields.snooze?.until || 'None'}`);
     } else {
       console.log('   updatedFields: null (limitResponsePayload=true)');
     }
