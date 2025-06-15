@@ -787,182 +787,86 @@ export class SunsamaClient {
   }
 
   /**
-   * Moves a scheduled task to a different day
+   * Updates a task's snooze date for scheduling operations
    *
-   * @param taskId - The ID of the task to move
-   * @param targetDate - Target date in YYYY-MM-DD format
-   * @param timezone - Optional timezone for date calculation (defaults to user's timezone)
+   * This method provides a unified interface for all task scheduling operations:
+   * - Schedule a task to a specific date
+   * - Move a task to the backlog (unschedule)
+   * - Reschedule a task from one date to another
+   *
+   * @param taskId - The ID of the task to reschedule
+   * @param newDay - Target date in YYYY-MM-DD format, or null to move to backlog
+   * @param options - Additional options for the operation
    * @returns The update result with success status
    * @throws SunsamaAuthError if not authenticated or request fails
    *
    * @example
    * ```typescript
-   * // Move task to tomorrow
-   * const result = await client.moveTaskToDay('taskId123', '2025-06-16');
+   * // Schedule a task to tomorrow
+   * const result = await client.updateTaskSnoozeDate('taskId123', '2025-06-16');
    *
-   * // Move with specific timezone
-   * const result = await client.moveTaskToDay('taskId123', '2025-06-16', 'America/New_York');
-   * ```
-   */
-  async moveTaskToDay(
-    taskId: string,
-    targetDate: string,
-    timezone?: string
-  ): Promise<UpdateTaskPayload> {
-    // Validate date format
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
-      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
-    }
-
-    // Validate date is actually valid and not normalized
-    const dateParts = targetDate.split('-');
-    if (dateParts.length !== 3) {
-      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
-    }
-    const year = parseInt(dateParts[0]!, 10);
-    const month = parseInt(dateParts[1]!, 10);
-    const day = parseInt(dateParts[2]!, 10);
-
-    const date = new Date(year, month - 1, day);
-    if (
-      isNaN(date.getTime()) ||
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      throw new SunsamaAuthError('Invalid date provided.');
-    }
-
-    // If timezone is provided, validate it by trying to format with it
-    if (timezone) {
-      try {
-        new Intl.DateTimeFormat('en-US', { timeZone: timezone });
-      } catch (error) {
-        throw new SunsamaAuthError(`Invalid timezone: ${timezone}`);
-      }
-    }
-
-    const variables: { input: UpdateTaskSnoozeDateInput } = {
-      input: {
-        taskId,
-        newDay: targetDate,
-        limitResponsePayload: true,
-      },
-    };
-
-    const request: GraphQLRequest = {
-      operationName: 'updateTaskSnoozeDate',
-      variables,
-      query: UPDATE_TASK_SNOOZE_DATE_MUTATION,
-    };
-
-    const response = await this.graphqlRequest(request);
-
-    if (!response.data) {
-      throw new SunsamaAuthError('No response data received');
-    }
-
-    return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
-  }
-
-  /**
-   * Moves a scheduled task back to the backlog (unschedules it)
-   *
-   * @param taskId - The ID of the task to move to backlog
-   * @returns The update result with success status
-   * @throws SunsamaAuthError if not authenticated or request fails
-   *
-   * @example
-   * ```typescript
-   * // Move task to backlog
-   * const result = await client.moveTaskToBacklog('taskId123');
-   * ```
-   */
-  async moveTaskToBacklog(taskId: string): Promise<UpdateTaskPayload> {
-    const variables: { input: UpdateTaskSnoozeDateInput } = {
-      input: {
-        taskId,
-        newDay: null, // null means move to backlog
-        limitResponsePayload: true,
-      },
-    };
-
-    const request: GraphQLRequest = {
-      operationName: 'updateTaskSnoozeDate',
-      variables,
-      query: UPDATE_TASK_SNOOZE_DATE_MUTATION,
-    };
-
-    const response = await this.graphqlRequest(request);
-
-    if (!response.data) {
-      throw new SunsamaAuthError('No response data received');
-    }
-
-    return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
-  }
-
-  /**
-   * Schedules a backlog task to a specific date
-   *
-   * @param taskId - The ID of the backlog task to schedule
-   * @param targetDate - Target date in YYYY-MM-DD format
-   * @param timezone - Optional timezone for date calculation (defaults to user's timezone)
-   * @returns The update result with success status
-   * @throws SunsamaAuthError if not authenticated or request fails
-   *
-   * @example
-   * ```typescript
-   * // Schedule backlog task to tomorrow
-   * const result = await client.scheduleBacklogTask('taskId123', '2025-06-16');
+   * // Move a task to the backlog (unschedule)
+   * const result = await client.updateTaskSnoozeDate('taskId123', null);
    *
    * // Schedule with specific timezone
-   * const result = await client.scheduleBacklogTask('taskId123', '2025-06-16', 'America/New_York');
+   * const result = await client.updateTaskSnoozeDate('taskId123', '2025-06-16', {
+   *   timezone: 'America/New_York'
+   * });
+   *
+   * // Get full response payload instead of limited response
+   * const result = await client.updateTaskSnoozeDate('taskId123', '2025-06-16', {
+   *   limitResponsePayload: false
+   * });
    * ```
    */
-  async scheduleBacklogTask(
+  async updateTaskSnoozeDate(
     taskId: string,
-    targetDate: string,
-    timezone?: string
+    newDay: string | null,
+    options?: {
+      timezone?: string;
+      limitResponsePayload?: boolean;
+    }
   ): Promise<UpdateTaskPayload> {
-    // Validate date format
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
-      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
-    }
+    // Validate date format if a date is provided
+    if (newDay !== null) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(newDay)) {
+        throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+      }
 
-    // Validate date is actually valid and not normalized
-    const dateParts = targetDate.split('-');
-    if (dateParts.length !== 3) {
-      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
-    }
-    const year = parseInt(dateParts[0]!, 10);
-    const month = parseInt(dateParts[1]!, 10);
-    const day = parseInt(dateParts[2]!, 10);
+      // Validate date is actually valid and not normalized
+      const dateParts = newDay.split('-');
+      if (dateParts.length !== 3) {
+        throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+      }
+      const year = parseInt(dateParts[0]!, 10);
+      const month = parseInt(dateParts[1]!, 10);
+      const day = parseInt(dateParts[2]!, 10);
 
-    const date = new Date(year, month - 1, day);
-    if (
-      isNaN(date.getTime()) ||
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      throw new SunsamaAuthError('Invalid date provided.');
+      const date = new Date(year, month - 1, day);
+      if (
+        isNaN(date.getTime()) ||
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+      ) {
+        throw new SunsamaAuthError('Invalid date provided.');
+      }
     }
 
     // If timezone is provided, validate it by trying to format with it
-    if (timezone) {
+    if (options?.timezone) {
       try {
-        new Intl.DateTimeFormat('en-US', { timeZone: timezone });
+        new Intl.DateTimeFormat('en-US', { timeZone: options.timezone });
       } catch (error) {
-        throw new SunsamaAuthError(`Invalid timezone: ${timezone}`);
+        throw new SunsamaAuthError(`Invalid timezone: ${options.timezone}`);
       }
     }
 
     const variables: { input: UpdateTaskSnoozeDateInput } = {
       input: {
         taskId,
-        newDay: targetDate,
-        limitResponsePayload: true,
+        newDay,
+        limitResponsePayload: options?.limitResponsePayload ?? true,
       },
     };
 
