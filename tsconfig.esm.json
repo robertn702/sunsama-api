@@ -2,9 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "ESNext",
+    "moduleResolution": "node",
     "target": "ES2022",
     "declaration": false,
     "declarationMap": false,
+    "verbatimModuleSyntax": false,
     "outDir": "./dist/esm"
   },
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]

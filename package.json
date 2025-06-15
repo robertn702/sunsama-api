@@ -28,6 +28,31 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/esm/errors/index.js",
+      "require": "./dist/cjs/errors/index.js",
+      "types": "./dist/types/errors/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/esm/client/index.js",
+      "require": "./dist/cjs/client/index.js",
+      "types": "./dist/types/client/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/esm/types/index.js",
+      "require": "./dist/cjs/types/index.js",
+      "types": "./dist/types/types/index.d.ts"
+    },
+    "./queries": {
+      "import": "./dist/esm/queries/index.js",
+      "require": "./dist/cjs/queries/index.js",
+      "types": "./dist/types/queries/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/esm/utils/index.js",
+      "require": "./dist/cjs/utils/index.js",
+      "types": "./dist/types/utils/index.d.ts"
     }
   },
   "files": [

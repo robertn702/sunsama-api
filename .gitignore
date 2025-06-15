@@ -110,5 +110,5 @@ Thumbs.db
 # Documentation
 docs/
 
-# Changeset
-.changeset/
+# MCP configuration
+.mcp.json

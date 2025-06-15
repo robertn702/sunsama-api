@@ -6,7 +6,7 @@
 
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
-import { SunsamaAuthError } from '../errors';
+import { SunsamaAuthError } from '../errors/index.js';
 import {
   CREATE_TASK_MUTATION,
   GET_STREAMS_BY_GROUP_ID_QUERY,
@@ -15,7 +15,7 @@ import {
   GET_USER_QUERY,
   UPDATE_TASK_COMPLETE_MUTATION,
   UPDATE_TASK_DELETE_MUTATION,
-} from '../queries';
+} from '../queries/index.js';
 import type {
   CollabSnapshot,
   CreateTaskInput,
@@ -40,7 +40,7 @@ import type {
   UpdateTaskDeleteInput,
   UpdateTaskPayload,
   User,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Main Sunsama API client class
