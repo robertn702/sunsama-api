@@ -15,6 +15,7 @@ import {
   GET_USER_QUERY,
   UPDATE_TASK_COMPLETE_MUTATION,
   UPDATE_TASK_DELETE_MUTATION,
+  UPDATE_TASK_SNOOZE_DATE_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -39,8 +40,10 @@ import type {
   UpdateTaskCompleteInput,
   UpdateTaskDeleteInput,
   UpdateTaskPayload,
+  UpdateTaskSnoozeDateInput,
   User,
 } from '../types/index.js';
+import { validateUpdateTaskCompleteArgs, toISOString } from '../utils/index.js';
 
 /**
  * Main Sunsama API client class
@@ -464,21 +467,22 @@ export class SunsamaClient {
     completeOn?: Date | string,
     limitResponsePayload = true
   ): Promise<UpdateTaskPayload> {
+    // Validate arguments using Zod
+    const validatedArgs = validateUpdateTaskCompleteArgs({
+      taskId,
+      completeOn,
+      limitResponsePayload,
+    });
+
     // Convert Date to ISO string if needed
-    let completeOnString: string;
-    if (completeOn instanceof Date) {
-      completeOnString = completeOn.toISOString();
-    } else if (completeOn) {
-      completeOnString = completeOn;
-    } else {
-      // Default to current time
-      completeOnString = new Date().toISOString();
-    }
+    const completeOnString = validatedArgs.completeOn
+      ? toISOString(validatedArgs.completeOn)
+      : new Date().toISOString();
 
     const variables: UpdateTaskCompleteInput = {
-      taskId,
+      taskId: validatedArgs.taskId,
       completeOn: completeOnString,
-      limitResponsePayload,
+      limitResponsePayload: validatedArgs.limitResponsePayload,
     };
 
     const request: GraphQLRequest<{ input: UpdateTaskCompleteInput }> = {
@@ -780,6 +784,201 @@ export class SunsamaClient {
         },
       ],
     };
+  }
+
+  /**
+   * Moves a scheduled task to a different day
+   *
+   * @param taskId - The ID of the task to move
+   * @param targetDate - Target date in YYYY-MM-DD format
+   * @param timezone - Optional timezone for date calculation (defaults to user's timezone)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Move task to tomorrow
+   * const result = await client.moveTaskToDay('taskId123', '2025-06-16');
+   *
+   * // Move with specific timezone
+   * const result = await client.moveTaskToDay('taskId123', '2025-06-16', 'America/New_York');
+   * ```
+   */
+  async moveTaskToDay(
+    taskId: string,
+    targetDate: string,
+    timezone?: string
+  ): Promise<UpdateTaskPayload> {
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+    }
+
+    // Validate date is actually valid and not normalized
+    const dateParts = targetDate.split('-');
+    if (dateParts.length !== 3) {
+      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+    }
+    const year = parseInt(dateParts[0]!, 10);
+    const month = parseInt(dateParts[1]!, 10);
+    const day = parseInt(dateParts[2]!, 10);
+
+    const date = new Date(year, month - 1, day);
+    if (
+      isNaN(date.getTime()) ||
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      throw new SunsamaAuthError('Invalid date provided.');
+    }
+
+    // If timezone is provided, validate it by trying to format with it
+    if (timezone) {
+      try {
+        new Intl.DateTimeFormat('en-US', { timeZone: timezone });
+      } catch (error) {
+        throw new SunsamaAuthError(`Invalid timezone: ${timezone}`);
+      }
+    }
+
+    const variables: { input: UpdateTaskSnoozeDateInput } = {
+      input: {
+        taskId,
+        newDay: targetDate,
+        limitResponsePayload: true,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskSnoozeDate',
+      variables,
+      query: UPDATE_TASK_SNOOZE_DATE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
+  }
+
+  /**
+   * Moves a scheduled task back to the backlog (unschedules it)
+   *
+   * @param taskId - The ID of the task to move to backlog
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Move task to backlog
+   * const result = await client.moveTaskToBacklog('taskId123');
+   * ```
+   */
+  async moveTaskToBacklog(taskId: string): Promise<UpdateTaskPayload> {
+    const variables: { input: UpdateTaskSnoozeDateInput } = {
+      input: {
+        taskId,
+        newDay: null, // null means move to backlog
+        limitResponsePayload: true,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskSnoozeDate',
+      variables,
+      query: UPDATE_TASK_SNOOZE_DATE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
+  }
+
+  /**
+   * Schedules a backlog task to a specific date
+   *
+   * @param taskId - The ID of the backlog task to schedule
+   * @param targetDate - Target date in YYYY-MM-DD format
+   * @param timezone - Optional timezone for date calculation (defaults to user's timezone)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Schedule backlog task to tomorrow
+   * const result = await client.scheduleBacklogTask('taskId123', '2025-06-16');
+   *
+   * // Schedule with specific timezone
+   * const result = await client.scheduleBacklogTask('taskId123', '2025-06-16', 'America/New_York');
+   * ```
+   */
+  async scheduleBacklogTask(
+    taskId: string,
+    targetDate: string,
+    timezone?: string
+  ): Promise<UpdateTaskPayload> {
+    // Validate date format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+    }
+
+    // Validate date is actually valid and not normalized
+    const dateParts = targetDate.split('-');
+    if (dateParts.length !== 3) {
+      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+    }
+    const year = parseInt(dateParts[0]!, 10);
+    const month = parseInt(dateParts[1]!, 10);
+    const day = parseInt(dateParts[2]!, 10);
+
+    const date = new Date(year, month - 1, day);
+    if (
+      isNaN(date.getTime()) ||
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      throw new SunsamaAuthError('Invalid date provided.');
+    }
+
+    // If timezone is provided, validate it by trying to format with it
+    if (timezone) {
+      try {
+        new Intl.DateTimeFormat('en-US', { timeZone: timezone });
+      } catch (error) {
+        throw new SunsamaAuthError(`Invalid timezone: ${timezone}`);
+      }
+    }
+
+    const variables: { input: UpdateTaskSnoozeDateInput } = {
+      input: {
+        taskId,
+        newDay: targetDate,
+        limitResponsePayload: true,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskSnoozeDate',
+      variables,
+      query: UPDATE_TASK_SNOOZE_DATE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
   }
 
   /**

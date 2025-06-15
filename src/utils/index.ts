@@ -2,6 +2,8 @@
  * Utility functions for the Sunsama API wrapper
  */
 
+export * from './validation.js';
+
 /**
  * Validates that a string is not empty
  *

@@ -929,6 +929,7 @@ export interface PartialTask {
   streamIds?: string[];
   recommendedTimeEstimate?: number | null;
   subtasks?: TaskSubtask[];
+  snooze?: TaskSnooze | null;
   __typename: 'PartialTask';
 }
 
@@ -1193,4 +1194,21 @@ export interface UpdateTaskDeleteInput {
 
   /** Whether the task was merged before deletion */
   wasTaskMerged?: boolean;
+}
+
+/**
+ * Input for updateTaskSnoozeDate mutation
+ */
+export interface UpdateTaskSnoozeDateInput {
+  /** The ID of the task to reschedule */
+  taskId: string;
+
+  /**
+   * The new day to schedule the task to (YYYY-MM-DD format)
+   * Set to null to move the task to backlog (unschedule)
+   */
+  newDay: string | null;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
 }

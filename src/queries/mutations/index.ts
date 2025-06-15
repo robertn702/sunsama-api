@@ -5,3 +5,4 @@
 export * from './updateTaskComplete.js';
 export * from './updateTaskDelete.js';
 export * from './createTask.js';
+export * from './updateTaskSnoozeDate.js';
