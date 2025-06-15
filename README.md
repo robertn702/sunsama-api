@@ -18,6 +18,9 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 🔧 **Developer Friendly**: Intuitive API design with excellent IDE support
 - ✅ **Well Tested**: Comprehensive test coverage with Vitest
 - 📚 **Documented**: Complete API documentation and examples
+- 📅 **Task Scheduling**: Unified interface for scheduling, rescheduling, and managing task timing
+- 🆔 **ID Generation**: Built-in MongoDB ObjectId-style task ID generation
+- 🔍 **Input Validation**: Robust validation using Zod v4 for enhanced type safety
 
 ## Installation
 
@@ -84,7 +87,7 @@ const client = new SunsamaClient();
 await client.login('your-email@example.com', 'your-password');
 
 // Method 2: Session token (if you have one)
-const client = new SunsamaClient({
+const clientWithToken = new SunsamaClient({
   sessionToken: 'your-session-token'
 });
 
@@ -98,9 +101,9 @@ client.logout();
 
 ## API Methods
 
-The client provides the following methods:
+The client provides the following methods organized by resource:
 
-### User Information
+### Users
 ```typescript
 // Get current user details
 const user = await client.getUser();
@@ -111,6 +114,8 @@ const timezone = await client.getUserTimezone();
 ```
 
 ### Tasks
+
+#### Reading Tasks
 ```typescript
 // Get tasks for a specific day
 const tasks = await client.getTasksByDay('2025-01-15');
@@ -118,8 +123,11 @@ const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York')
 
 // Get backlog tasks
 const backlog = await client.getTasksBacklog();
+```
 
-// Create a new task
+#### Creating Tasks
+```typescript
+// Create a basic task
 const newTask = await client.createTask('Complete project documentation');
 
 // Create a task with options
@@ -136,7 +144,7 @@ const scheduledTask = await client.createTask('Follow up with client', {
 });
 
 // Create a task with custom ID (useful for tracking/deletion)
-const taskId = SunsamaClient.generateTaskId(); // Generate MongoDB ObjectId-style ID
+const taskId = SunsamaClient.generateTaskId();
 const taskWithCustomId = await client.createTask('Custom task', {
   taskId: taskId,
   notes: 'Detailed description',
@@ -144,10 +152,34 @@ const taskWithCustomId = await client.createTask('Custom task', {
   streamIds: ['stream-1', 'stream-2'],
   timeEstimate: 60
 });
+```
 
-// Generate task IDs for external use
-const uniqueId = SunsamaClient.generateTaskId();
-console.log(uniqueId); // "675a1b2c3d4e5f6789abcdef"
+#### Managing Tasks
+```typescript
+// Schedule a task to a specific date
+const scheduleResult = await client.updateTaskSnoozeDate('taskId', '2025-06-16');
+
+// Move a task to the backlog (unschedule)
+const backlogResult = await client.updateTaskSnoozeDate('taskId', null);
+
+// Reschedule a task from one date to another
+await client.updateTaskSnoozeDate('taskId', '2025-06-20');
+
+// Schedule with timezone consideration
+await client.updateTaskSnoozeDate('taskId', '2025-06-16', {
+  timezone: 'Europe/London'
+});
+
+// Get detailed response instead of limited payload
+await client.updateTaskSnoozeDate('taskId', '2025-06-16', {
+  limitResponsePayload: false
+});
+
+// Combine options
+await client.updateTaskSnoozeDate('taskId', '2025-06-16', {
+  timezone: 'Asia/Tokyo',
+  limitResponsePayload: false
+});
 
 // Mark a task as complete
 const completeResult = await client.updateTaskComplete('taskId');
@@ -168,7 +200,16 @@ const deleteResultFull = await client.deleteTask('taskId', false);
 const deleteResultMerged = await client.deleteTask('taskId', true, true);
 ```
 
-### Task ID Generation
+### Streams
+```typescript
+// Get all streams for the user's group
+const streams = await client.getStreamsByGroupId();
+streams.forEach(stream => {
+  console.log(stream.streamName, stream.color);
+});
+```
+
+### Utilities
 ```typescript
 // Generate MongoDB ObjectId-style task IDs
 const taskId = SunsamaClient.generateTaskId();
@@ -179,15 +220,6 @@ const customTask = await client.createTask('My custom task', {
   taskId: SunsamaClient.generateTaskId(),
   notes: 'Task with custom ID for tracking',
   timeEstimate: 45
-});
-```
-
-### Streams (Channels)
-```typescript
-// Get all streams for the user's group
-const streams = await client.getStreamsByGroupId();
-streams.forEach(stream => {
-  console.log(stream.streamName, stream.color);
 });
 ```
 
