@@ -544,6 +544,7 @@ export interface TaskSubtask {
   actualTime?: TaskActualTime | null;
   snooze?: TaskSnooze | null;
   scheduledTime?: TaskScheduledTime | null;
+  // TODO: Investigate if subtask integration objects are the same as full task integration objects
   integration?: TaskIntegration | null;
   mergedTaskId?: string | null;
   recommendedTimeEstimate?: number | null;
@@ -707,7 +708,7 @@ export interface TaskComment {
 /**
  * Base task integration interface
  */
-export interface TaskIntegration {
+export interface BaseTaskIntegration {
   service: string;
   __typename: string;
 }
@@ -715,7 +716,7 @@ export interface TaskIntegration {
 /**
  * Website integration for tasks
  */
-export interface TaskWebsiteIntegration extends TaskIntegration {
+export interface TaskWebsiteIntegration extends BaseTaskIntegration {
   service: 'website';
   identifier: {
     url: string;
@@ -734,7 +735,7 @@ export interface TaskWebsiteIntegration extends TaskIntegration {
 /**
  * Google Calendar integration for tasks
  */
-export interface TaskGoogleCalendarIntegration extends TaskIntegration {
+export interface TaskGoogleCalendarIntegration extends BaseTaskIntegration {
   service: 'googleCalendar';
   identifier: {
     sunsamaId: string;
@@ -742,6 +743,29 @@ export interface TaskGoogleCalendarIntegration extends TaskIntegration {
   };
   __typename: 'TaskGoogleCalendarIntegration';
 }
+
+/**
+ * Linear integration for tasks
+ */
+export interface TaskLinearIntegration extends BaseTaskIntegration {
+  service: 'linear';
+  identifier: {
+    id: string;
+    url: string;
+    identifier: string;
+    linearUserId: string;
+    linearOrganizationId: string;
+    number: number;
+    _version: string;
+    __typename: 'TaskLinearIntegrationIdentifier';
+  };
+  __typename: 'TaskLinearIntegration';
+}
+
+/**
+ * Union type for all task integrations
+ */
+export type TaskIntegration = TaskWebsiteIntegration | TaskGoogleCalendarIntegration | TaskLinearIntegration;
 
 /**
  * Main Task structure
