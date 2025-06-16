@@ -765,7 +765,10 @@ export interface TaskLinearIntegration extends BaseTaskIntegration {
 /**
  * Union type for all task integrations
  */
-export type TaskIntegration = TaskWebsiteIntegration | TaskGoogleCalendarIntegration | TaskLinearIntegration;
+export type TaskIntegration =
+  | TaskWebsiteIntegration
+  | TaskGoogleCalendarIntegration
+  | TaskLinearIntegration;
 
 /**
  * Main Task structure
