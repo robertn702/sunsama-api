@@ -1,5 +1,13 @@
 # sunsama-api
 
+## 0.3.1
+
+### Patch Changes
+
+- 9f4fc79: Add Linear integration type support
+
+  Adds TaskLinearIntegration interface and refactors TaskIntegration to be a union type of all integration types (Website, Google Calendar, Linear). Also renames base interface to BaseTaskIntegration for clarity.
+
 ## 0.3.0
 
 ### Minor Changes
