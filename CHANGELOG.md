@@ -1,5 +1,17 @@
 # sunsama-api
 
+## 0.5.0
+
+### Minor Changes
+
+- e6ac06a: Add getTaskById method for individual task retrieval
+
+  - Add `getTaskById(taskId: string)` method to SunsamaClient
+  - Supports retrieving any task by its unique ID
+  - Returns the complete Task object with all fields or null if not found
+  - Includes comprehensive tests and documentation
+  - Follows existing patterns for authentication and error handling
+
 ## 0.4.0
 
 ### Minor Changes
