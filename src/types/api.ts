@@ -1282,7 +1282,23 @@ export interface GetTaskByIdResponse {
 }
 
 /**
- * Input for updateTaskNotes mutation
+ * Content type for updateTaskNotes - either HTML or Markdown format
+ */
+export type TaskNotesContent = { html: string } | { markdown: string };
+
+/**
+ * Options for updateTaskNotes method
+ */
+export interface UpdateTaskNotesOptions {
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+
+  /** Collaborative editing snapshot for the notes (optional, will be fetched if not provided) */
+  collabSnapshot?: CollabSnapshot;
+}
+
+/**
+ * Input for updateTaskNotes mutation (internal GraphQL API)
  */
 export interface UpdateTaskNotesInput {
   /** The ID of the task to update */

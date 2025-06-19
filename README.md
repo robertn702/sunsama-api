@@ -23,7 +23,7 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 🔍 **Input Validation**: Robust validation using Zod v4 for enhanced type safety
 - 📦 **Archive Support**: Access to archived tasks with pagination support
 - 🤝 **Collaborative Editing**: Yjs-powered collaborative snapshot generation for proper real-time editing support
-- 📝 **Task Notes Management**: Full CRUD operations for task notes with collaborative editing state preservation
+- 📝 **Task Notes Management**: Full CRUD operations for task notes with automatic HTML/Markdown conversion and collaborative editing state preservation
 
 ## Installation
 
@@ -78,12 +78,15 @@ async function example() {
     const timezone = await client.getUserTimezone();
     console.log('Timezone:', timezone);
     
-    // Update task notes with collaborative editing
-    await client.updateTaskNotes(
-      'task-id',
-      '<p>Updated notes with <strong>formatting</strong></p>',
-      'Updated notes with **formatting**'
-    );
+    // Update task notes with collaborative editing (HTML input)
+    await client.updateTaskNotes('task-id', {
+      html: '<p>Updated notes with <strong>formatting</strong></p>'
+    });
+    
+    // Or update with Markdown input
+    await client.updateTaskNotes('task-id', {
+      markdown: 'Updated notes with **formatting**'
+    });
     
   } catch (error) {
     console.error('Error:', error);
@@ -248,40 +251,40 @@ const result = await client.updateTaskPlannedTime('taskId', 60);
 
 #### Updating Task Notes
 
-The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It requires that the task already exists and has a collaborative editing state.
+The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It accepts content in either HTML or Markdown format and automatically converts to the other format. The task must already exist and have a collaborative editing state.
 
 ```typescript
-// Basic notes update - automatically uses existing collaborative snapshot
-const notesResult = await client.updateTaskNotes(
-  'taskId',
-  '<p>Updated task notes with <strong>bold</strong> text</p>',
-  'Updated task notes with **bold** text'
-);
+// Update with HTML content (Markdown auto-generated)
+const htmlResult = await client.updateTaskNotes('taskId', {
+  html: '<p>Updated task notes with <strong>bold</strong> text</p>'
+});
 
-// Update with more complex HTML content
-const complexNotesResult = await client.updateTaskNotes(
-  'taskId',
-  '<p>First paragraph</p><p>Second paragraph with <em>italic</em> text</p>',
-  'First paragraph\n\nSecond paragraph with *italic* text'
-);
+// Update with Markdown content (HTML auto-generated)
+const markdownResult = await client.updateTaskNotes('taskId', {
+  markdown: 'Updated task notes with **bold** text'
+});
+
+// Update with complex HTML content
+const complexResult = await client.updateTaskNotes('taskId', {
+  html: '<p>First paragraph</p><p>Second paragraph with <em>italic</em> text</p>'
+});
+
+// Update with complex Markdown content
+const complexMarkdownResult = await client.updateTaskNotes('taskId', {
+  markdown: 'First paragraph\n\nSecond paragraph with *italic* text'
+});
 
 // Get full response payload instead of limited response
-const fullNotesResult = await client.updateTaskNotes(
-  'taskId',
-  '<p>New notes content</p>',
-  'New notes content',
-  { limitResponsePayload: false }
-);
+const fullResult = await client.updateTaskNotes('taskId', {
+  html: '<p>New notes content</p>'
+}, { limitResponsePayload: false });
 
 // Use a specific collaborative snapshot (advanced - useful for optimized workflows)
 const task = await client.getTaskById('taskId');
 if (task?.collabSnapshot) {
-  const customNotesResult = await client.updateTaskNotes(
-    'taskId',
-    '<p>Custom notes content</p>',
-    'Custom notes content',
-    { collabSnapshot: task.collabSnapshot }
-  );
+  const customResult = await client.updateTaskNotes('taskId', {
+    markdown: 'Custom notes content'
+  }, { collabSnapshot: task.collabSnapshot });
 }
 ```
 

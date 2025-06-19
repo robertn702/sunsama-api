@@ -346,12 +346,11 @@ async function testRealAuth() {
     console.log('\n📝 Testing updateTaskNotes method...');
     const notesTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const htmlNotes = `<p>These are updated notes for the test task - ${notesTimestamp}</p><p>This includes <strong>bold text</strong> and multiple paragraphs.</p>`;
-    const markdownNotes = `These are updated notes for the test task - ${notesTimestamp}\n\nThis includes **bold text** and multiple paragraphs.`;
 
     console.log(`   Updating notes for task: ${taskId}`);
     console.log(`   HTML notes preview: ${htmlNotes.substring(0, 50)}...`);
 
-    const notesResult = await client.updateTaskNotes(taskId, htmlNotes, markdownNotes);
+    const notesResult = await client.updateTaskNotes(taskId, { html: htmlNotes });
 
     console.log('✅ updateTaskNotes successful!');
     console.log('\n📊 Task Notes Update Information:');
@@ -370,13 +369,16 @@ async function testRealAuth() {
     // First get the task to extract its collaborative snapshot
     const taskForSnapshot = await client.getTaskById(taskId);
     if (taskForSnapshot?.collabSnapshot) {
-      const explicitNotes = `<p>Explicit snapshot notes update - ${notesTimestamp}</p>`;
       const explicitMarkdown = `Explicit snapshot notes update - ${notesTimestamp}`;
 
-      const explicitResult = await client.updateTaskNotes(taskId, explicitNotes, explicitMarkdown, {
-        collabSnapshot: taskForSnapshot.collabSnapshot,
-        limitResponsePayload: false,
-      });
+      const explicitResult = await client.updateTaskNotes(
+        taskId,
+        { markdown: explicitMarkdown },
+        {
+          collabSnapshot: taskForSnapshot.collabSnapshot,
+          limitResponsePayload: false,
+        }
+      );
 
       console.log('✅ updateTaskNotes with explicit collabSnapshot successful!');
       console.log(`   Success: ${explicitResult.success}`);

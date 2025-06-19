@@ -45,16 +45,23 @@ import type {
   SunsamaClientConfig,
   Task,
   TaskInput,
+  TaskNotesContent,
   TaskSnooze,
   UpdateTaskCompleteInput,
   UpdateTaskDeleteInput,
   UpdateTaskNotesInput,
+  UpdateTaskNotesOptions,
   UpdateTaskPayload,
   UpdateTaskPlannedTimeInput,
   UpdateTaskSnoozeDateInput,
   User,
 } from '../types/index.js';
-import { validateUpdateTaskCompleteArgs, toISOString } from '../utils/index.js';
+import {
+  validateUpdateTaskCompleteArgs,
+  toISOString,
+  htmlToMarkdown,
+  markdownToHtml,
+} from '../utils/index.js';
 
 /**
  * Main Sunsama API client class
@@ -1014,60 +1021,59 @@ export class SunsamaClient {
   /**
    * Updates the notes of a task
    *
-   * This method allows you to update both the HTML and markdown versions of task notes.
-   * It uses the existing collaborative editing snapshot from the task to ensure proper
-   * synchronization with the Sunsama editor and maintain collaborative editing history.
+   * This method allows you to update task notes by providing content in either HTML or Markdown format.
+   * The other format will be automatically generated using conversion utilities. It uses the existing
+   * collaborative editing snapshot from the task to ensure proper synchronization with the Sunsama editor.
    *
    * @param taskId - The ID of the task to update
-   * @param notes - The new notes content in HTML format
-   * @param notesMarkdown - The new notes content in markdown format
+   * @param content - The new notes content in either HTML or Markdown format
    * @param options - Additional options for the operation
    * @returns The update result with success status
    * @throws SunsamaAuthError if not authenticated, task not found, or no collaborative snapshot available
    *
    * @example
    * ```typescript
-   * // Update task notes with simple text
-   * const result = await client.updateTaskNotes(
-   *   'taskId123',
-   *   '<p>Updated task notes</p>',
-   *   'Updated task notes'
-   * );
+   * // Update task notes with HTML content
+   * const result = await client.updateTaskNotes('taskId123', {
+   *   html: '<p>Updated notes with <strong>bold</strong> text</p>'
+   * });
    *
-   * // Update with more complex HTML content
-   * const result = await client.updateTaskNotes(
-   *   'taskId123',
-   *   '<p>Updated notes with <strong>bold</strong> text</p><p>Second paragraph</p>',
-   *   'Updated notes with **bold** text\n\nSecond paragraph'
-   * );
+   * // Update task notes with Markdown content
+   * const result = await client.updateTaskNotes('taskId123', {
+   *   markdown: 'Updated notes with **bold** text'
+   * });
    *
    * // Get full response payload instead of limited response
-   * const result = await client.updateTaskNotes(
-   *   'taskId123',
-   *   '<p>New notes</p>',
-   *   'New notes',
-   *   { limitResponsePayload: false }
-   * );
+   * const result = await client.updateTaskNotes('taskId123', {
+   *   html: '<p>New notes</p>'
+   * }, { limitResponsePayload: false });
    *
    * // Provide a specific collaborative snapshot to use
    * const task = await client.getTaskById('taskId123');
-   * const result = await client.updateTaskNotes(
-   *   'taskId123',
-   *   '<p>New notes</p>',
-   *   'New notes',
-   *   { collabSnapshot: task.collabSnapshot }
-   * );
+   * const result = await client.updateTaskNotes('taskId123', {
+   *   markdown: 'New notes'
+   * }, { collabSnapshot: task.collabSnapshot });
    * ```
    */
   async updateTaskNotes(
     taskId: string,
-    notes: string,
-    notesMarkdown: string,
-    options?: {
-      limitResponsePayload?: boolean;
-      collabSnapshot?: CollabSnapshot;
-    }
+    content: TaskNotesContent,
+    options?: UpdateTaskNotesOptions
   ): Promise<UpdateTaskPayload> {
+    // Convert content to both HTML and Markdown formats
+    let notes: string;
+    let notesMarkdown: string;
+
+    if ('html' in content) {
+      // HTML provided, convert to Markdown
+      notes = content.html;
+      notesMarkdown = htmlToMarkdown(content.html);
+    } else {
+      // Markdown provided, convert to HTML
+      notesMarkdown = content.markdown;
+      notes = markdownToHtml(content.markdown);
+    }
+
     let collabSnapshot: CollabSnapshot;
 
     if (options?.collabSnapshot) {
@@ -1199,6 +1205,7 @@ export class SunsamaClient {
       }
     } catch (error) {
       // If we can't apply the existing state, start fresh
+      // Could not apply existing collaborative state, creating fresh document
       // eslint-disable-next-line no-console
       console.warn('Could not apply existing collaborative state, creating fresh document:', error);
     }

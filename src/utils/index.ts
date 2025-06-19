@@ -3,6 +3,7 @@
  */
 
 export * from './validation.js';
+export * from './conversion.js';
 
 /**
  * Validates that a string is not empty
