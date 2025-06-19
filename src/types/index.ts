@@ -12,3 +12,10 @@ export type * from './api.js';
 
 // Common utility types
 export type * from './common.js';
+
+// Re-export utility types from utils for convenience
+export type {
+  HtmlToMarkdownOptions,
+  MarkdownToHtmlOptions,
+  ConversionOptions,
+} from '../utils/conversion.js';
