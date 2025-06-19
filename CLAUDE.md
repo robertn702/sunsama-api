@@ -17,6 +17,8 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Include comprehensive documentation and examples
 - Follow NPM package best practices for distribution
 - Maintain clean, maintainable, and well-tested code
+- Support full CRUD operations: create, read, update, delete tasks
+- Provide access to archived tasks with pagination support
 - Action item checklist and MVP requirements are documented in MVP_AUTH.md
 
 ## Development Environment
@@ -32,7 +34,7 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - HTTP client implementation using native fetch API
 - Request/response type definitions
 - Error handling and custom error classes
-- Pagination support for list endpoints
+- Pagination support for list endpoints (implemented: getArchivedTasks)
 - Real-time updates (webhooks/websockets if supported)
 - Configuration management
 
@@ -66,3 +68,5 @@ This project involves creating a production-ready TypeScript package that other 
 **IMPORTANT**: Never commit the `dev/` directory or any of its files to git. This directory contains development data including sample API responses and testing data that should remain local only.
 
 **IMPORTANT**: Never include "Claude" in git commit messages. Keep commit messages professional and focused on the actual changes made.
+
+**Branch Naming Convention**: Use the format `{type}/{short-name}` where `{type}` follows conventional commit naming convention (feat, fix, chore, refactor, docs, style, test, ci, etc.).

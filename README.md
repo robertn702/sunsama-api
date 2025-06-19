@@ -21,6 +21,7 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 📅 **Task Scheduling**: Unified interface for scheduling, rescheduling, and managing task timing
 - 🆔 **ID Generation**: Built-in MongoDB ObjectId-style task ID generation
 - 🔍 **Input Validation**: Robust validation using Zod v4 for enhanced type safety
+- 📦 **Archive Support**: Access to archived tasks with pagination support
 
 ## Installation
 
@@ -62,6 +63,10 @@ async function example() {
     // Get backlog tasks
     const backlog = await client.getTasksBacklog();
     console.log('Backlog tasks:', backlog.length);
+    
+    // Get archived tasks
+    const archived = await client.getArchivedTasks();
+    console.log('Archived tasks:', archived.length);
     
     // Get streams/projects
     const streams = await client.getStreamsByGroupId();
@@ -123,6 +128,10 @@ const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York')
 
 // Get backlog tasks
 const backlog = await client.getTasksBacklog();
+
+// Get archived tasks with pagination
+const archivedTasks = await client.getArchivedTasks();
+const moreArchived = await client.getArchivedTasks(100, 50); // offset 100, limit 50
 ```
 
 #### Creating Tasks
