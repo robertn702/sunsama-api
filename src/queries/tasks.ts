@@ -43,3 +43,20 @@ export const GET_TASKS_BACKLOG_QUERY = gql`
 
   ${TASK_INTEGRATION_FRAGMENT}
 `;
+
+export const GET_ARCHIVED_TASKS_QUERY = gql`
+  query getArchivedTasks($input: GetArchivedTasksInput!) {
+    archivedTasks(input: $input) {
+      ...Task
+      __typename
+    }
+  }
+
+  ${TASK_FRAGMENT}
+
+  ${TASK_ACTUAL_TIME_FRAGMENT}
+
+  ${TASK_SCHEDULED_TIME_FRAGMENT}
+
+  ${TASK_INTEGRATION_FRAGMENT}
+`;

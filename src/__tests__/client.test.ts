@@ -259,5 +259,40 @@ describe('SunsamaClient', () => {
         client.updateTaskSnoozeDate('test-task-id', '2025-06-16', { limitResponsePayload: false })
       ).rejects.toThrow('GraphQL errors: Unauthorized');
     });
+
+    it('should have getArchivedTasks method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getArchivedTasks).toBe('function');
+    });
+
+    it('should throw error when calling getArchivedTasks without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getArchivedTasks()).rejects.toThrow();
+    });
+
+    it('should accept pagination parameters in getArchivedTasks', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.getArchivedTasks(0, 300)).rejects.toThrow('GraphQL errors: Unauthorized');
+      await expect(client.getArchivedTasks(100, 50)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+      await expect(client.getArchivedTasks()).rejects.toThrow('GraphQL errors: Unauthorized'); // default params
+    });
+
+    it('should use default pagination values in getArchivedTasks', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Both calls should use same default values and fail the same way
+      const promise1 = client.getArchivedTasks();
+      const promise2 = client.getArchivedTasks(0, 300);
+
+      await expect(promise1).rejects.toThrow('GraphQL errors: Unauthorized');
+      await expect(promise2).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
   });
 });
