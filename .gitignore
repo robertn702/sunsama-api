@@ -109,6 +109,7 @@ Thumbs.db
 
 # Documentation
 docs/
+dev/
 
 # MCP configuration
 .mcp.json
