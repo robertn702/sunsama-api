@@ -325,5 +325,97 @@ describe('SunsamaClient', () => {
         'GraphQL errors: Unauthorized'
       );
     });
+
+    it('should have updateTaskNotes method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskNotes).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskNotes without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(
+        client.updateTaskNotes('test-task-id', '<p>New notes</p>', 'New notes')
+      ).rejects.toThrow();
+    });
+
+    it('should accept valid parameters in updateTaskNotes', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should fail when trying to fetch task for collaborative snapshot (unauthorized)
+      await expect(
+        client.updateTaskNotes(validTaskId, '<p>Updated notes</p>', 'Updated notes')
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should accept limitResponsePayload option in updateTaskNotes', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should fail when trying to fetch task for collaborative snapshot (unauthorized)
+      await expect(
+        client.updateTaskNotes(validTaskId, '<p>Updated notes</p>', 'Updated notes', {
+          limitResponsePayload: false,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should accept collabSnapshot option in updateTaskNotes', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Mock collaborative snapshot
+      const mockCollabSnapshot = {
+        state: {
+          version: 'v1_sv',
+          docName: `tasks/notes/${validTaskId}`,
+          clock: 0,
+          value: 'mock-base64-value',
+        },
+        updates: [
+          {
+            version: 'v1',
+            action: 'update',
+            docName: `tasks/notes/${validTaskId}`,
+            clock: 0,
+            value: 'mock-base64-update',
+          },
+        ],
+      };
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      // When collabSnapshot is provided, it should skip getTaskById
+      await expect(
+        client.updateTaskNotes(validTaskId, '<p>Updated notes</p>', 'Updated notes', {
+          collabSnapshot: mockCollabSnapshot,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should handle empty notes in updateTaskNotes', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskNotes(validTaskId, '', '')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should handle complex HTML notes in updateTaskNotes', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const htmlNotes =
+        '<p>Updated notes with <strong>bold</strong> text</p><p>Second paragraph</p>';
+      const markdownNotes = 'Updated notes with **bold** text\n\nSecond paragraph';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskNotes(validTaskId, htmlNotes, markdownNotes)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
   });
 });

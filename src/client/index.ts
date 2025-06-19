@@ -6,6 +6,7 @@
 
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
+import * as Y from 'yjs';
 import { SunsamaAuthError } from '../errors/index.js';
 import {
   CREATE_TASK_MUTATION,
@@ -17,6 +18,7 @@ import {
   GET_USER_QUERY,
   UPDATE_TASK_COMPLETE_MUTATION,
   UPDATE_TASK_DELETE_MUTATION,
+  UPDATE_TASK_NOTES_MUTATION,
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
 } from '../queries/index.js';
 import type {
@@ -45,6 +47,7 @@ import type {
   TaskSnooze,
   UpdateTaskCompleteInput,
   UpdateTaskDeleteInput,
+  UpdateTaskNotesInput,
   UpdateTaskPayload,
   UpdateTaskSnoozeDateInput,
   User,
@@ -856,11 +859,15 @@ export class SunsamaClient {
   }
 
   /**
-   * Creates a collaborative editing snapshot for task notes
+   * Creates a collaborative editing snapshot for task notes using Yjs
+   *
+   * This method creates a proper Yjs document with the provided notes content
+   * and encodes it as a collaborative snapshot that can be used for real-time
+   * collaborative editing in Sunsama.
    *
    * @param taskId - The task ID
-   * @param notes - The notes content
-   * @returns CollabSnapshot object
+   * @param notes - The notes content to initialize the document with
+   * @returns CollabSnapshot object with Yjs-generated state, or null if no notes
    * @internal
    */
   private createCollabSnapshot(taskId: string, notes: string): CollabSnapshot | null {
@@ -868,15 +875,28 @@ export class SunsamaClient {
       return null;
     }
 
-    // This is a simplified version - the actual encoding might be more complex
     const docName = `tasks/notes/${taskId}`;
 
+    // Create a new Yjs document
+    const ydoc = new Y.Doc();
+
+    // Create a Y.Text instance for the notes content
+    const ytext = ydoc.getText('notes');
+
+    // Insert the initial notes content
+    ytext.insert(0, notes);
+
+    // Encode the document state as an update
+    const stateUpdate = Y.encodeStateAsUpdate(ydoc);
+    const base64State = Buffer.from(stateUpdate).toString('base64');
+
+    // Create the collaborative snapshot in the expected format
     return {
       state: {
         version: 'v1_sv',
         docName,
         clock: 0,
-        value: 'AeC61NgLAQ==', // Base64 encoded empty state
+        value: base64State,
       },
       updates: [
         {
@@ -884,7 +904,7 @@ export class SunsamaClient {
           action: 'update',
           docName,
           clock: 0,
-          value: 'AQHgutTYCwAHAQdkZWZhdWx0AwlwYXJhZ3JhcGgA', // Base64 encoded paragraph structure
+          value: base64State,
         },
       ],
     };
@@ -987,6 +1007,179 @@ export class SunsamaClient {
     }
 
     return (response.data as { updateTaskSnoozeDate: UpdateTaskPayload }).updateTaskSnoozeDate;
+  }
+
+  /**
+   * Updates the notes of a task
+   *
+   * This method allows you to update both the HTML and markdown versions of task notes.
+   * It uses the existing collaborative editing snapshot from the task to ensure proper
+   * synchronization with the Sunsama editor and maintain collaborative editing history.
+   *
+   * @param taskId - The ID of the task to update
+   * @param notes - The new notes content in HTML format
+   * @param notesMarkdown - The new notes content in markdown format
+   * @param options - Additional options for the operation
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated, task not found, or no collaborative snapshot available
+   *
+   * @example
+   * ```typescript
+   * // Update task notes with simple text
+   * const result = await client.updateTaskNotes(
+   *   'taskId123',
+   *   '<p>Updated task notes</p>',
+   *   'Updated task notes'
+   * );
+   *
+   * // Update with more complex HTML content
+   * const result = await client.updateTaskNotes(
+   *   'taskId123',
+   *   '<p>Updated notes with <strong>bold</strong> text</p><p>Second paragraph</p>',
+   *   'Updated notes with **bold** text\n\nSecond paragraph'
+   * );
+   *
+   * // Get full response payload instead of limited response
+   * const result = await client.updateTaskNotes(
+   *   'taskId123',
+   *   '<p>New notes</p>',
+   *   'New notes',
+   *   { limitResponsePayload: false }
+   * );
+   *
+   * // Provide a specific collaborative snapshot to use
+   * const task = await client.getTaskById('taskId123');
+   * const result = await client.updateTaskNotes(
+   *   'taskId123',
+   *   '<p>New notes</p>',
+   *   'New notes',
+   *   { collabSnapshot: task.collabSnapshot }
+   * );
+   * ```
+   */
+  async updateTaskNotes(
+    taskId: string,
+    notes: string,
+    notesMarkdown: string,
+    options?: {
+      limitResponsePayload?: boolean;
+      collabSnapshot?: CollabSnapshot;
+    }
+  ): Promise<UpdateTaskPayload> {
+    let collabSnapshot: CollabSnapshot;
+
+    if (options?.collabSnapshot) {
+      // Use the provided collaborative snapshot
+      collabSnapshot = this.createUpdatedCollabSnapshot(options.collabSnapshot, notesMarkdown);
+    } else {
+      // Fetch the task to get its collaborative snapshot
+      const existingTask = await this.getTaskById(taskId);
+
+      if (!existingTask) {
+        throw new SunsamaAuthError(`Task with ID ${taskId} not found`);
+      }
+
+      if (!existingTask.collabSnapshot) {
+        throw new SunsamaAuthError(
+          `Task ${taskId} does not have a collaborative snapshot. Cannot update notes for a task without existing collaborative editing state.`
+        );
+      }
+
+      // Use the existing collaborative snapshot from the task
+      collabSnapshot = this.createUpdatedCollabSnapshot(existingTask.collabSnapshot, notesMarkdown);
+    }
+
+    const variables: { input: UpdateTaskNotesInput } = {
+      input: {
+        taskId,
+        notes,
+        notesMarkdown,
+        editorVersion: 3,
+        collabSnapshot,
+        limitResponsePayload: options?.limitResponsePayload ?? true,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskNotes',
+      variables,
+      query: UPDATE_TASK_NOTES_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskNotes: UpdateTaskPayload }).updateTaskNotes;
+  }
+
+  /**
+   * Creates an updated collaborative editing snapshot based on existing state
+   *
+   * This method takes an existing collaborative snapshot and creates a new one
+   * with the updated content, properly handling the Yjs document state and
+   * incrementing version clocks.
+   *
+   * @param existingSnapshot - The existing collaborative snapshot
+   * @param newContent - The new content to apply
+   * @returns Updated CollabSnapshot object
+   * @internal
+   */
+  private createUpdatedCollabSnapshot(
+    existingSnapshot: CollabSnapshot,
+    newContent: string
+  ): CollabSnapshot {
+    // Create a new Yjs document
+    const ydoc = new Y.Doc();
+
+    try {
+      // Try to apply the existing state if possible
+      if (existingSnapshot.state.value) {
+        const existingState = Buffer.from(existingSnapshot.state.value, 'base64');
+        Y.applyUpdate(ydoc, existingState);
+      }
+    } catch (error) {
+      // If we can't apply the existing state, start fresh
+      console.warn('Could not apply existing collaborative state, creating fresh document:', error);
+    }
+
+    // Get the text instance and update it with new content
+    const ytext = ydoc.getText('notes');
+
+    // Clear existing content and insert new content
+    if (ytext.length > 0) {
+      ytext.delete(0, ytext.length);
+    }
+    if (newContent) {
+      ytext.insert(0, newContent);
+    }
+
+    // Encode the updated document state
+    const updatedState = Y.encodeStateAsUpdate(ydoc);
+    const base64State = Buffer.from(updatedState).toString('base64');
+
+    // Increment the clock for proper versioning
+    const newClock = existingSnapshot.state.clock + 1;
+
+    return {
+      state: {
+        ...existingSnapshot.state,
+        clock: newClock,
+        value: base64State,
+      },
+      updates: [
+        ...existingSnapshot.updates,
+        {
+          version: 'v1',
+          action: 'update',
+          docName: existingSnapshot.state.docName,
+          clock: newClock,
+          value: base64State,
+        },
+      ],
+    };
   }
 
   /**

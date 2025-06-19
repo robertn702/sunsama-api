@@ -342,6 +342,74 @@ async function testRealAuth() {
       console.log('   updatedFields: null (limitResponsePayload=true)');
     }
 
+    // Test updateTaskNotes method
+    console.log('\n📝 Testing updateTaskNotes method...');
+    const notesTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const htmlNotes = `<p>These are updated notes for the test task - ${notesTimestamp}</p><p>This includes <strong>bold text</strong> and multiple paragraphs.</p>`;
+    const markdownNotes = `These are updated notes for the test task - ${notesTimestamp}\n\nThis includes **bold text** and multiple paragraphs.`;
+
+    console.log(`   Updating notes for task: ${taskId}`);
+    console.log(`   HTML notes preview: ${htmlNotes.substring(0, 50)}...`);
+
+    const notesResult = await client.updateTaskNotes(taskId, htmlNotes, markdownNotes);
+
+    console.log('✅ updateTaskNotes successful!');
+    console.log('\n📊 Task Notes Update Information:');
+    console.log(`   Success: ${notesResult.success}`);
+    console.log(`   Skipped: ${notesResult.skipped || false}`);
+    if (notesResult.updatedFields) {
+      console.log(`   Task ID: ${notesResult.updatedFields._id}`);
+      console.log(`   Stream IDs: ${notesResult.updatedFields.streamIds?.join(', ') || 'None'}`);
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Test updateTaskNotes with explicit collabSnapshot option
+    console.log('\n📝 Testing updateTaskNotes with explicit collabSnapshot...');
+
+    // First get the task to extract its collaborative snapshot
+    const taskForSnapshot = await client.getTaskById(taskId);
+    if (taskForSnapshot?.collabSnapshot) {
+      const explicitNotes = `<p>Explicit snapshot notes update - ${notesTimestamp}</p>`;
+      const explicitMarkdown = `Explicit snapshot notes update - ${notesTimestamp}`;
+
+      const explicitResult = await client.updateTaskNotes(taskId, explicitNotes, explicitMarkdown, {
+        collabSnapshot: taskForSnapshot.collabSnapshot,
+        limitResponsePayload: false,
+      });
+
+      console.log('✅ updateTaskNotes with explicit collabSnapshot successful!');
+      console.log(`   Success: ${explicitResult.success}`);
+      console.log(`   Used explicit snapshot: true`);
+      if (explicitResult.updatedFields) {
+        console.log(`   Task ID: ${explicitResult.updatedFields._id}`);
+      }
+    } else {
+      console.log(
+        '⚠️ Task does not have a collaborative snapshot, skipping explicit snapshot test'
+      );
+    }
+
+    // Verify the notes were updated by retrieving the task
+    console.log('\n🔍 Verifying notes update by retrieving task...');
+    const updatedTask = await client.getTaskById(taskId);
+    if (updatedTask) {
+      console.log('✅ Task retrieved successfully after notes update');
+      console.log(`   Updated notes preview: ${updatedTask.notes?.substring(0, 100) || 'None'}...`);
+      console.log(
+        `   Notes markdown preview: ${updatedTask.notesMarkdown?.substring(0, 100) || 'None'}...`
+      );
+
+      // Check if notes were actually updated
+      if (updatedTask.notes && updatedTask.notes.includes(notesTimestamp)) {
+        console.log('✅ Notes were successfully updated with timestamp');
+      } else {
+        console.log('⚠️ Notes may not have been updated or timestamp not found');
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after notes update');
+    }
+
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
     console.log(`   Marking task as complete: ${taskId}`);

@@ -22,6 +22,8 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 🆔 **ID Generation**: Built-in MongoDB ObjectId-style task ID generation
 - 🔍 **Input Validation**: Robust validation using Zod v4 for enhanced type safety
 - 📦 **Archive Support**: Access to archived tasks with pagination support
+- 🤝 **Collaborative Editing**: Yjs-powered collaborative snapshot generation for proper real-time editing support
+- 📝 **Task Notes Management**: Full CRUD operations for task notes with collaborative editing state preservation
 
 ## Installation
 
@@ -75,6 +77,13 @@ async function example() {
     // Get user's timezone
     const timezone = await client.getUserTimezone();
     console.log('Timezone:', timezone);
+    
+    // Update task notes with collaborative editing
+    await client.updateTaskNotes(
+      'task-id',
+      '<p>Updated notes with <strong>formatting</strong></p>',
+      'Updated notes with **formatting**'
+    );
     
   } catch (error) {
     console.error('Error:', error);
@@ -217,6 +226,45 @@ const deleteResultFull = await client.deleteTask('taskId', false);
 
 // Delete a merged task
 const deleteResultMerged = await client.deleteTask('taskId', true, true);
+```
+
+#### Updating Task Notes
+
+The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It requires that the task already exists and has a collaborative editing state.
+
+```typescript
+// Basic notes update - automatically uses existing collaborative snapshot
+const notesResult = await client.updateTaskNotes(
+  'taskId',
+  '<p>Updated task notes with <strong>bold</strong> text</p>',
+  'Updated task notes with **bold** text'
+);
+
+// Update with more complex HTML content
+const complexNotesResult = await client.updateTaskNotes(
+  'taskId',
+  '<p>First paragraph</p><p>Second paragraph with <em>italic</em> text</p>',
+  'First paragraph\n\nSecond paragraph with *italic* text'
+);
+
+// Get full response payload instead of limited response
+const fullNotesResult = await client.updateTaskNotes(
+  'taskId',
+  '<p>New notes content</p>',
+  'New notes content',
+  { limitResponsePayload: false }
+);
+
+// Use a specific collaborative snapshot (advanced - useful for optimized workflows)
+const task = await client.getTaskById('taskId');
+if (task?.collabSnapshot) {
+  const customNotesResult = await client.updateTaskNotes(
+    'taskId',
+    '<p>Custom notes content</p>',
+    'Custom notes content',
+    { collabSnapshot: task.collabSnapshot }
+  );
+}
 ```
 
 ### Streams

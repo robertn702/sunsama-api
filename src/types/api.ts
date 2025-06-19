@@ -791,7 +791,7 @@ export interface Task {
   notesMarkdown?: string | null;
   notesChecksum?: string | null;
   editorVersion?: number | null;
-  collabSnapshot?: unknown | null; // Complex object for collaborative editing
+  collabSnapshot?: CollabSnapshot | null; // Collaborative editing snapshot for notes
   completed: boolean;
   completedBy?: string | null;
   completeDate?: string | null;
@@ -1279,4 +1279,27 @@ export interface GetTaskByIdInput {
  */
 export interface GetTaskByIdResponse {
   taskById: Task | null;
+}
+
+/**
+ * Input for updateTaskNotes mutation
+ */
+export interface UpdateTaskNotesInput {
+  /** The ID of the task to update */
+  taskId: string;
+
+  /** The new notes content (HTML format) */
+  notes: string;
+
+  /** The new notes content (Markdown format) */
+  notesMarkdown: string;
+
+  /** Editor version (typically 3) */
+  editorVersion: number;
+
+  /** Collaborative editing snapshot for the notes */
+  collabSnapshot: CollabSnapshot;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
 }
