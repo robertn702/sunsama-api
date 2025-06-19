@@ -20,6 +20,8 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Support full CRUD operations: create, read, update, delete tasks
 - Provide access to archived tasks with pagination support
 - Enable task retrieval by ID for individual task operations
+- Support task notes updating with Yjs-powered collaborative editing features
+- Maintain collaborative editing state consistency for real-time synchronization
 - Action item checklist and MVP requirements are documented in MVP_AUTH.md
 
 ## Development Environment
@@ -36,6 +38,7 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Request/response type definitions
 - Error handling and custom error classes
 - Pagination support for list endpoints (implemented: getArchivedTasks)
+- Collaborative editing support with Yjs integration for real-time document synchronization
 - Real-time updates (webhooks/websockets if supported)
 - Configuration management
 
@@ -60,6 +63,7 @@ When working on this project, prioritize:
 6. Comprehensive testing with Vitest
 7. Automated CI/CD with GitHub Actions
 8. Backward compatibility considerations
+9. Collaborative editing state management and Yjs integration consistency
 
 ## Context for LLM Assistance
 This project involves creating a production-ready TypeScript package that other developers will use to interact with Sunsama's API. Focus on best practices for API wrapper design, TypeScript package development, and NPM distribution. The code should be maintainable, well-documented, and follow modern JavaScript/TypeScript conventions.
@@ -67,7 +71,5 @@ This project involves creating a production-ready TypeScript package that other 
 ## Git Rules
 
 **IMPORTANT**: Never commit the `dev/` directory or any of its files to git. This directory contains development data including sample API responses and testing data that should remain local only.
-
-**IMPORTANT**: Never include "Claude" in git commit messages. Keep commit messages professional and focused on the actual changes made.
 
 **Branch Naming Convention**: Use the format `{type}/{short-name}` where `{type}` follows conventional commit naming convention (feat, fix, chore, refactor, docs, style, test, ci, etc.).
