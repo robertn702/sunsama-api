@@ -1263,3 +1263,20 @@ export interface GetArchivedTasksInput {
 export interface GetArchivedTasksResponse {
   archivedTasks: Task[];
 }
+
+/**
+ * Input for getTaskById query
+ */
+export interface GetTaskByIdInput {
+  /** The ID of the task to retrieve */
+  taskId: string;
+  /** Group ID that the task belongs to */
+  groupId: string;
+}
+
+/**
+ * Response for getTaskById query
+ */
+export interface GetTaskByIdResponse {
+  taskById: Task | null;
+}

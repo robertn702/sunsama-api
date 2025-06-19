@@ -19,6 +19,7 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Maintain clean, maintainable, and well-tested code
 - Support full CRUD operations: create, read, update, delete tasks
 - Provide access to archived tasks with pagination support
+- Enable task retrieval by ID for individual task operations
 - Action item checklist and MVP requirements are documented in MVP_AUTH.md
 
 ## Development Environment

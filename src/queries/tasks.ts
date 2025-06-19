@@ -60,3 +60,20 @@ export const GET_ARCHIVED_TASKS_QUERY = gql`
 
   ${TASK_INTEGRATION_FRAGMENT}
 `;
+
+export const GET_TASK_BY_ID_QUERY = gql`
+  query getTaskById($taskId: String!, $groupId: String!) {
+    taskById(taskId: $taskId, groupId: $groupId) {
+      ...Task
+      __typename
+    }
+  }
+
+  ${TASK_FRAGMENT}
+
+  ${TASK_ACTUAL_TIME_FRAGMENT}
+
+  ${TASK_SCHEDULED_TIME_FRAGMENT}
+
+  ${TASK_INTEGRATION_FRAGMENT}
+`;

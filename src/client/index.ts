@@ -11,6 +11,7 @@ import {
   CREATE_TASK_MUTATION,
   GET_ARCHIVED_TASKS_QUERY,
   GET_STREAMS_BY_GROUP_ID_QUERY,
+  GET_TASK_BY_ID_QUERY,
   GET_TASKS_BACKLOG_QUERY,
   GET_TASKS_BY_DAY_QUERY,
   GET_USER_QUERY,
@@ -27,6 +28,8 @@ import type {
   GetArchivedTasksInput,
   GetArchivedTasksResponse,
   GetStreamsByGroupIdResponse,
+  GetTaskByIdInput,
+  GetTaskByIdResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
   GetTasksByDayInput,
@@ -433,6 +436,57 @@ export class SunsamaClient {
     }
 
     return response.data.archivedTasks;
+  }
+
+  /**
+   * Gets a specific task by its ID
+   *
+   * @param taskId - The ID of the task to retrieve
+   * @returns The task if found, null if not found
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Get a task by ID
+   * const task = await client.getTaskById('685022edbdef77163d659d4a');
+   *
+   * if (task) {
+   *   console.log('Task found:', task.text);
+   * } else {
+   *   console.log('Task not found');
+   * }
+   * ```
+   */
+  async getTaskById(taskId: string): Promise<Task | null> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
+    }
+
+    const variables: GetTaskByIdInput = {
+      taskId,
+      groupId: this.groupId,
+    };
+
+    const request: GraphQLRequest<GetTaskByIdInput> = {
+      operationName: 'getTaskById',
+      variables,
+      query: GET_TASK_BY_ID_QUERY,
+    };
+
+    const response = await this.graphqlRequest<GetTaskByIdResponse, GetTaskByIdInput>(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.taskById;
   }
 
   /**
