@@ -1239,3 +1239,27 @@ export interface UpdateTaskSnoozeDateInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for getArchivedTasks query
+ */
+export interface GetArchivedTasksInput {
+  /** User ID */
+  userId: string;
+
+  /** Group ID */
+  groupId: string;
+
+  /** Offset for pagination (defaults to 0) */
+  offset?: number;
+
+  /** Maximum number of tasks to return (defaults to 300) */
+  limit?: number;
+}
+
+/**
+ * Response for getArchivedTasks query
+ */
+export interface GetArchivedTasksResponse {
+  archivedTasks: Task[];
+}

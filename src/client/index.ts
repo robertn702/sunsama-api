@@ -9,6 +9,7 @@ import { Cookie, CookieJar } from 'tough-cookie';
 import { SunsamaAuthError } from '../errors/index.js';
 import {
   CREATE_TASK_MUTATION,
+  GET_ARCHIVED_TASKS_QUERY,
   GET_STREAMS_BY_GROUP_ID_QUERY,
   GET_TASKS_BACKLOG_QUERY,
   GET_TASKS_BY_DAY_QUERY,
@@ -23,6 +24,8 @@ import type {
   CreateTaskOptions,
   CreateTaskPayload,
   CreateTaskResponse,
+  GetArchivedTasksInput,
+  GetArchivedTasksResponse,
   GetStreamsByGroupIdResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
@@ -383,6 +386,53 @@ export class SunsamaClient {
     }
 
     return response.data.tasksBacklog;
+  }
+
+  /**
+   * Gets archived tasks for the user
+   *
+   * @param offset - Pagination offset (defaults to 0)
+   * @param limit - Maximum number of tasks to return (defaults to 300)
+   * @returns Array of archived tasks
+   * @throws SunsamaAuthError if not authenticated or request fails
+   */
+  async getArchivedTasks(offset = 0, limit = 300): Promise<Task[]> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
+    }
+
+    const variables: { input: GetArchivedTasksInput } = {
+      input: {
+        userId: this.userId!,
+        groupId: this.groupId,
+        offset,
+        limit,
+      },
+    };
+
+    const request: GraphQLRequest<{ input: GetArchivedTasksInput }> = {
+      operationName: 'getArchivedTasks',
+      variables,
+      query: GET_ARCHIVED_TASKS_QUERY,
+    };
+
+    const response = await this.graphqlRequest<
+      GetArchivedTasksResponse,
+      { input: GetArchivedTasksInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No archived tasks data received');
+    }
+
+    return response.data.archivedTasks;
   }
 
   /**
