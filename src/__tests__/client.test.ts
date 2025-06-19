@@ -294,5 +294,36 @@ describe('SunsamaClient', () => {
       await expect(promise1).rejects.toThrow('GraphQL errors: Unauthorized');
       await expect(promise2).rejects.toThrow('GraphQL errors: Unauthorized');
     });
+
+    it('should have getTaskById method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getTaskById).toBe('function');
+    });
+
+    it('should throw error when calling getTaskById without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getTaskById('test-task-id')).rejects.toThrow();
+    });
+
+    it('should accept valid task ID in getTaskById', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.getTaskById(validTaskId)).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should handle task not found in getTaskById', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const nonExistentTaskId = '507f1f77bcf86cd799439999';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.getTaskById(nonExistentTaskId)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
   });
 });

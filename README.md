@@ -132,6 +132,16 @@ const backlog = await client.getTasksBacklog();
 // Get archived tasks with pagination
 const archivedTasks = await client.getArchivedTasks();
 const moreArchived = await client.getArchivedTasks(100, 50); // offset 100, limit 50
+
+// Get a specific task by ID
+const task = await client.getTaskById('685022edbdef77163d659d4a');
+if (task) {
+  console.log('Found task:', task.text);
+  console.log('Task completed:', task.completed);
+  console.log('Time estimate:', task.timeEstimate, 'minutes');
+} else {
+  console.log('Task not found');
+}
 ```
 
 #### Creating Tasks

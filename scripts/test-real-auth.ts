@@ -186,6 +186,54 @@ async function testRealAuth() {
       console.log('   No streams found for group');
     }
 
+    // Test getTaskById method with existing tasks
+    console.log('\n🔍 Testing getTaskById method...');
+
+    let testTaskId: string | undefined;
+
+    // Try to get an existing task ID from our task lists
+    if (allTasks.length > 0) {
+      testTaskId = allTasks[0]!._id;
+      console.log(`   Testing with existing task ID: ${testTaskId}`);
+
+      const existingTask = await client.getTaskById(testTaskId);
+
+      if (existingTask) {
+        console.log('✅ getTaskById successful!');
+        console.log('\n📊 Retrieved Task Information:');
+        console.log(`   Task ID: ${existingTask._id}`);
+        console.log(`   Text: ${existingTask.text}`);
+        console.log(`   Completed: ${existingTask.completed}`);
+        console.log(`   Created: ${existingTask.createdAt}`);
+        console.log(`   Last Modified: ${existingTask.lastModified}`);
+        console.log(`   Time Estimate: ${existingTask.timeEstimate || 'N/A'} minutes`);
+        console.log(`   Subtasks: ${existingTask.subtasks.length}`);
+        console.log(`   Comments: ${existingTask.comments.length}`);
+        if (existingTask.integration) {
+          console.log(`   Integration: ${existingTask.integration.service}`);
+        }
+        if (existingTask.snooze) {
+          console.log(`   Snooze until: ${existingTask.snooze.until}`);
+        }
+        console.log(`   Stream IDs: ${existingTask.streamIds.join(', ') || 'None'}`);
+      } else {
+        console.log('⚠️ Task not found (returned null)');
+      }
+    } else {
+      console.log('   No existing tasks found to test with');
+    }
+
+    // Test with a non-existent task ID
+    console.log('\n   Testing with non-existent task ID...');
+    const nonExistentTaskId = '507f1f77bcf86cd799439999';
+    const nonExistentTask = await client.getTaskById(nonExistentTaskId);
+
+    if (nonExistentTask === null) {
+      console.log('✅ getTaskById correctly returned null for non-existent task');
+    } else {
+      console.log('⚠️ Unexpected: getTaskById returned a task for non-existent ID');
+    }
+
     // Test createTask method with custom ID (for tracking through completion and deletion)
     console.log('\n✨ Testing createTask method...');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -215,6 +263,32 @@ async function testRealAuth() {
       console.log(
         `   Time Estimate: ${createdTask.updatedFields.recommendedTimeEstimate || 'None'} minutes`
       );
+    }
+
+    // Test getTaskById with the newly created task
+    console.log('\n🔍 Testing getTaskById with newly created task...');
+    console.log(`   Retrieving task: ${taskId}`);
+    const retrievedTask = await client.getTaskById(taskId);
+
+    if (retrievedTask) {
+      console.log('✅ getTaskById successful for created task!');
+      console.log('\n📊 Retrieved Created Task Information:');
+      console.log(`   Task ID: ${retrievedTask._id}`);
+      console.log(`   Text: ${retrievedTask.text}`);
+      console.log(`   Notes: ${retrievedTask.notes || 'None'}`);
+      console.log(`   Completed: ${retrievedTask.completed}`);
+      console.log(`   Time Estimate: ${retrievedTask.timeEstimate || 'N/A'} minutes`);
+      console.log(`   Stream IDs: ${retrievedTask.streamIds.join(', ') || 'None'}`);
+      console.log(`   Created: ${retrievedTask.createdAt}`);
+
+      // Verify the task matches what we created
+      if (retrievedTask.text === taskText) {
+        console.log('✅ Task text matches what we created');
+      } else {
+        console.log('⚠️ Task text does not match what we created');
+      }
+    } else {
+      console.log('❌ Failed to retrieve newly created task');
     }
 
     // Test updateTaskSnoozeDate method (unified scheduling operations)
