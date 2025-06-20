@@ -1,5 +1,13 @@
 # sunsama-api
 
+## 0.6.1
+
+### Patch Changes
+
+- b6b185f: Fix TypeScript configuration for proper type generation
+
+  Updates tsconfig.json to ensure correct type declaration file generation and build output structure.
+
 ## 0.6.0
 
 ### Minor Changes
