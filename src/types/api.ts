@@ -1303,3 +1303,17 @@ export interface UpdateTaskNotesInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for updateTaskPlannedTime mutation
+ */
+export interface UpdateTaskPlannedTimeInput {
+  /** The ID of the task to update */
+  taskId: string;
+
+  /** The planned time in seconds (timeEstimate in minutes * 60) */
+  timeInSeconds: number;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}

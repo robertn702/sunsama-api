@@ -19,6 +19,7 @@ import {
   UPDATE_TASK_COMPLETE_MUTATION,
   UPDATE_TASK_DELETE_MUTATION,
   UPDATE_TASK_NOTES_MUTATION,
+  UPDATE_TASK_PLANNED_TIME_MUTATION,
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
 } from '../queries/index.js';
 import type {
@@ -49,6 +50,7 @@ import type {
   UpdateTaskDeleteInput,
   UpdateTaskNotesInput,
   UpdateTaskPayload,
+  UpdateTaskPlannedTimeInput,
   UpdateTaskSnoozeDateInput,
   User,
 } from '../types/index.js';
@@ -1116,6 +1118,61 @@ export class SunsamaClient {
   }
 
   /**
+   * Updates the planned time (time estimate) for a task
+   *
+   * This method allows you to update the time estimate for a task in minutes.
+   * The time estimate represents how long you expect the task to take.
+   *
+   * @param taskId - The ID of the task to update
+   * @param timeEstimateMinutes - The planned time in minutes (will be converted to seconds for the API)
+   * @param limitResponsePayload - Whether to limit the response payload size (defaults to true)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Set task time estimate to 30 minutes
+   * const result = await client.updateTaskPlannedTime('taskId123', 30);
+   *
+   * // Set time estimate with full response payload
+   * const result = await client.updateTaskPlannedTime('taskId123', 45, false);
+   *
+   * // Clear time estimate (set to 0)
+   * const result = await client.updateTaskPlannedTime('taskId123', 0);
+   * ```
+   */
+  async updateTaskPlannedTime(
+    taskId: string,
+    timeEstimateMinutes: number,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    // Convert minutes to seconds for the API
+    const timeInSeconds = timeEstimateMinutes * 60;
+
+    const variables: { input: UpdateTaskPlannedTimeInput } = {
+      input: {
+        taskId,
+        timeInSeconds,
+        limitResponsePayload,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskPlannedTime',
+      variables,
+      query: UPDATE_TASK_PLANNED_TIME_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskPlannedTime: UpdateTaskPayload }).updateTaskPlannedTime;
+  }
+
+  /**
    * Creates an updated collaborative editing snapshot based on existing state
    *
    * This method takes an existing collaborative snapshot and creates a new one
@@ -1142,6 +1199,7 @@ export class SunsamaClient {
       }
     } catch (error) {
       // If we can't apply the existing state, start fresh
+      // eslint-disable-next-line no-console
       console.warn('Could not apply existing collaborative state, creating fresh document:', error);
     }
 

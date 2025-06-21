@@ -228,6 +228,24 @@ const deleteResultFull = await client.deleteTask('taskId', false);
 const deleteResultMerged = await client.deleteTask('taskId', true, true);
 ```
 
+#### Updating Task Planned Time
+
+You can update the time estimate (planned time) for a task using the `updateTaskPlannedTime` method. The time estimate represents how long you expect the task to take and is specified in minutes.
+
+```typescript
+// Set task time estimate to 30 minutes
+const result = await client.updateTaskPlannedTime('taskId', 30);
+
+// Set time estimate to 45 minutes with full response payload
+const result = await client.updateTaskPlannedTime('taskId', 45, false);
+
+// Clear time estimate (set to 0)
+const result = await client.updateTaskPlannedTime('taskId', 0);
+
+// Set time estimate to 1 hour (60 minutes)
+const result = await client.updateTaskPlannedTime('taskId', 60);
+```
+
 #### Updating Task Notes
 
 The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It requires that the task already exists and has a collaborative editing state.
