@@ -1,5 +1,13 @@
 # sunsama-api
 
+## 0.8.1
+
+### Patch Changes
+
+- a2934c3: Fix createTask GraphQL mutation by removing \_\_typename from snooze input field
+
+  The createTask function was incorrectly including a **typename field in the TaskSnooze object when creating tasks with snooze configuration. GraphQL input types don't accept **typename fields, causing mutations to fail. This fix introduces a separate TaskSnoozeInput type without \_\_typename and updates the createTask implementation to use it.
+
 ## 0.8.0
 
 ### Minor Changes
