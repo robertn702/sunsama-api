@@ -46,7 +46,7 @@ import type {
   Task,
   TaskInput,
   TaskNotesContent,
-  TaskSnooze,
+  TaskSnoozeInput,
   UpdateTaskCompleteInput,
   UpdateTaskDeleteInput,
   UpdateTaskNotesInput,
@@ -717,7 +717,7 @@ export class SunsamaClient {
     const collabSnapshot = this.createCollabSnapshot(taskId, options?.notes || '');
 
     // Handle snooze configuration
-    let snooze: TaskSnooze | null = null;
+    let snooze: TaskSnoozeInput | null = null;
     if (options?.snoozeUntil) {
       const snoozeDate =
         options.snoozeUntil instanceof Date ? options.snoozeUntil : new Date(options.snoozeUntil);
@@ -726,7 +726,6 @@ export class SunsamaClient {
         userId: this.userId,
         date: now,
         until: snoozeDate.toISOString(),
-        __typename: 'TaskSnooze',
       };
     }
 

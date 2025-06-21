@@ -552,6 +552,15 @@ export interface TaskSubtask {
 }
 
 /**
+ * Task snooze information for input (mutations)
+ */
+export interface TaskSnoozeInput {
+  userId: string;
+  date: string;
+  until: string;
+}
+
+/**
  * Task snooze information
  */
 export interface TaskSnooze {
@@ -1092,7 +1101,7 @@ export interface TaskInput {
   runDate: TaskRunDate | null;
 
   /** Snooze configuration (optional) */
-  snooze: TaskSnooze | null;
+  snooze: TaskSnoozeInput | null;
 
   /** Time horizon configuration (optional) */
   timeHorizon: TaskTimeHorizon | null;
