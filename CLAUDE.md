@@ -22,6 +22,7 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Enable task retrieval by ID for individual task operations
 - Support task notes updating with Yjs-powered collaborative editing features
 - Maintain collaborative editing state consistency for real-time synchronization
+- Support task planned time (time estimate) updating for task management
 - Action item checklist and MVP requirements are documented in MVP_AUTH.md
 
 ## Development Environment

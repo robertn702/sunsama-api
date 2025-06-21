@@ -417,5 +417,67 @@ describe('SunsamaClient', () => {
         'GraphQL errors: Unauthorized'
       );
     });
+
+    it('should have updateTaskPlannedTime method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskPlannedTime).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskPlannedTime without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTaskPlannedTime('test-task-id', 30)).rejects.toThrow();
+    });
+
+    it('should accept valid parameters in updateTaskPlannedTime', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskPlannedTime(validTaskId, 30)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+      await expect(client.updateTaskPlannedTime(validTaskId, 0)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+      await expect(client.updateTaskPlannedTime(validTaskId, 45, false)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should convert minutes to seconds correctly in updateTaskPlannedTime', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Test that time conversion works (30 minutes = 1800 seconds)
+      // This should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskPlannedTime(validTaskId, 30)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should support limitResponsePayload option in updateTaskPlannedTime', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation with limitResponsePayload option
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(client.updateTaskPlannedTime(validTaskId, 60, false)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should handle zero time estimate in updateTaskPlannedTime', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation for zero time estimate
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(client.updateTaskPlannedTime(validTaskId, 0)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
   });
 });

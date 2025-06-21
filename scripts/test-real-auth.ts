@@ -410,6 +410,75 @@ async function testRealAuth() {
       console.log('❌ Failed to retrieve task after notes update');
     }
 
+    // Test updateTaskPlannedTime method
+    console.log('\n⏱️ Testing updateTaskPlannedTime method...');
+    console.log(`   Setting planned time for task: ${taskId}`);
+
+    // Test setting time estimate to 45 minutes
+    console.log('   Setting time estimate to 45 minutes...');
+    const plannedTimeResult = await client.updateTaskPlannedTime(taskId, 45);
+
+    console.log('✅ updateTaskPlannedTime successful!');
+    console.log('\n📊 Task Planned Time Update Information:');
+    console.log(`   Success: ${plannedTimeResult.success}`);
+    console.log(`   Skipped: ${plannedTimeResult.skipped || false}`);
+    if (plannedTimeResult.updatedFields) {
+      console.log(`   Task ID: ${plannedTimeResult.updatedFields._id}`);
+      console.log(
+        `   Recommended Time Estimate: ${plannedTimeResult.updatedFields.recommendedTimeEstimate || 'None'} minutes`
+      );
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Test updating to a different time estimate
+    console.log('\n   Updating time estimate to 30 minutes...');
+    const plannedTimeResult2 = await client.updateTaskPlannedTime(taskId, 30, false);
+
+    console.log('✅ updateTaskPlannedTime (second update) successful!');
+    console.log('📊 Task Planned Time Update Information:');
+    console.log(`   Success: ${plannedTimeResult2.success}`);
+    console.log(`   Skipped: ${plannedTimeResult2.skipped || false}`);
+    if (plannedTimeResult2.updatedFields) {
+      console.log(`   Task ID: ${plannedTimeResult2.updatedFields._id}`);
+      console.log(
+        `   Recommended Time Estimate: ${plannedTimeResult2.updatedFields.recommendedTimeEstimate || 'None'} minutes`
+      );
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Verify the time estimate was updated by retrieving the task
+    console.log('\n🔍 Verifying time estimate update by retrieving task...');
+    const taskAfterTimeUpdate = await client.getTaskById(taskId);
+    if (taskAfterTimeUpdate) {
+      console.log('✅ Task retrieved successfully after time estimate update');
+      console.log(`   Time estimate: ${taskAfterTimeUpdate.timeEstimate || 'None'} minutes`);
+      console.log(
+        `   Recommended time estimate: ${taskAfterTimeUpdate.recommendedTimeEstimate || 'None'} minutes`
+      );
+
+      // Check if time estimate was actually updated
+      if (taskAfterTimeUpdate.timeEstimate === 30) {
+        console.log('✅ Time estimate was successfully updated to 30 minutes');
+      } else {
+        console.log(
+          `⚠️ Time estimate may not have been updated. Current value: ${taskAfterTimeUpdate.timeEstimate} minutes`
+        );
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after time estimate update');
+    }
+
+    // Test clearing time estimate (set to 0)
+    console.log('\n   Clearing time estimate (setting to 0)...');
+    const clearTimeResult = await client.updateTaskPlannedTime(taskId, 0);
+
+    console.log('✅ updateTaskPlannedTime (clear time) successful!');
+    console.log('📊 Clear Time Estimate Information:');
+    console.log(`   Success: ${clearTimeResult.success}`);
+    console.log(`   Skipped: ${clearTimeResult.skipped || false}`);
+
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
     console.log(`   Marking task as complete: ${taskId}`);
