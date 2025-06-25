@@ -113,3 +113,6 @@ dev/
 
 # MCP configuration
 .mcp.json
+
+# Claude commands
+.claude/commands
