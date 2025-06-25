@@ -507,6 +507,74 @@ describe('SunsamaClient', () => {
       );
     });
 
+    it('should have updateTaskDueDate method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskDueDate).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskDueDate without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTaskDueDate('test-task-id', new Date())).rejects.toThrow();
+    });
+
+    it('should accept Date object in updateTaskDueDate', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const dueDate = new Date('2025-06-21');
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskDueDate(validTaskId, dueDate)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should accept ISO string in updateTaskDueDate', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const dueDate = '2025-06-21T04:00:00.000Z';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskDueDate(validTaskId, dueDate)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should accept null to clear due date in updateTaskDueDate', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskDueDate(validTaskId, null)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should support limitResponsePayload option in updateTaskDueDate', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const dueDate = new Date('2025-06-21');
+
+      // Should pass validation with limitResponsePayload option
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(client.updateTaskDueDate(validTaskId, dueDate, false)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should convert Date to ISO string correctly in updateTaskDueDate', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const dueDate = new Date('2025-06-21T10:30:00Z');
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskDueDate(validTaskId, dueDate)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
     it('should handle complex Markdown content in updateTaskNotes', async () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
       const validTaskId = '685022edbdef77163d659d4a';

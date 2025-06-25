@@ -481,6 +481,92 @@ async function testRealAuth() {
     console.log(`   Success: ${clearTimeResult.success}`);
     console.log(`   Skipped: ${clearTimeResult.skipped || false}`);
 
+    // Test updateTaskDueDate method
+    console.log('\n📅 Testing updateTaskDueDate method...');
+    console.log(`   Setting due date for task: ${taskId}`);
+
+    // Test setting due date to a future date
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
+    const futureDateString = futureDate.toISOString();
+    console.log(`   Setting due date to: ${futureDateString}`);
+    
+    const dueDateResult = await client.updateTaskDueDate(taskId, futureDate);
+
+    console.log('✅ updateTaskDueDate successful!');
+    console.log('\n📊 Task Due Date Update Information:');
+    console.log(`   Success: ${dueDateResult.success}`);
+    console.log(`   Skipped: ${dueDateResult.skipped || false}`);
+    if (dueDateResult.updatedFields) {
+      console.log(`   Task ID: ${dueDateResult.updatedFields._id}`);
+      console.log(`   Stream IDs: ${dueDateResult.updatedFields.streamIds?.join(', ') || 'None'}`);
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Test updating with ISO string format
+    const specificDate = '2025-08-15T09:00:00.000Z';
+    console.log(`\n   Updating due date with ISO string: ${specificDate}`);
+    const dueDateResult2 = await client.updateTaskDueDate(taskId, specificDate, false);
+
+    console.log('✅ updateTaskDueDate (ISO string) successful!');
+    console.log('📊 Task Due Date Update Information:');
+    console.log(`   Success: ${dueDateResult2.success}`);
+    console.log(`   Skipped: ${dueDateResult2.skipped || false}`);
+    if (dueDateResult2.updatedFields) {
+      console.log(`   Task ID: ${dueDateResult2.updatedFields._id}`);
+      console.log(`   Stream IDs: ${dueDateResult2.updatedFields.streamIds?.join(', ') || 'None'}`);
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Verify the due date was updated by retrieving the task
+    console.log('\n🔍 Verifying due date update by retrieving task...');
+    const taskAfterDueDateUpdate = await client.getTaskById(taskId);
+    if (taskAfterDueDateUpdate) {
+      console.log('✅ Task retrieved successfully after due date update');
+      console.log(`   Due date: ${taskAfterDueDateUpdate.dueDate || 'None'}`);
+
+      // Check if due date was actually updated
+      if (taskAfterDueDateUpdate.dueDate === specificDate) {
+        console.log('✅ Due date was successfully updated');
+      } else {
+        console.log(
+          `⚠️ Due date may not have been updated. Current value: ${taskAfterDueDateUpdate.dueDate}`
+        );
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after due date update');
+    }
+
+    // Test clearing due date (set to null)
+    console.log('\n   Clearing due date (setting to null)...');
+    const clearDueDateResult = await client.updateTaskDueDate(taskId, null);
+
+    console.log('✅ updateTaskDueDate (clear due date) successful!');
+    console.log('📊 Clear Due Date Information:');
+    console.log(`   Success: ${clearDueDateResult.success}`);
+    console.log(`   Skipped: ${clearDueDateResult.skipped || false}`);
+
+    // Verify the due date was cleared
+    console.log('\n🔍 Verifying due date was cleared...');
+    const taskAfterClearDueDate = await client.getTaskById(taskId);
+    if (taskAfterClearDueDate) {
+      console.log('✅ Task retrieved successfully after clearing due date');
+      console.log(`   Due date: ${taskAfterClearDueDate.dueDate || 'None'}`);
+
+      // Check if due date was actually cleared
+      if (taskAfterClearDueDate.dueDate === null) {
+        console.log('✅ Due date was successfully cleared');
+      } else {
+        console.log(
+          `⚠️ Due date may not have been cleared. Current value: ${taskAfterClearDueDate.dueDate}`
+        );
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after clearing due date');
+    }
+
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
     console.log(`   Marking task as complete: ${taskId}`);

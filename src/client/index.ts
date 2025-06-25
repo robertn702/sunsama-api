@@ -21,6 +21,7 @@ import {
   UPDATE_TASK_NOTES_MUTATION,
   UPDATE_TASK_PLANNED_TIME_MUTATION,
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
+  UPDATE_TASK_DUE_DATE_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -54,6 +55,7 @@ import type {
   UpdateTaskPayload,
   UpdateTaskPlannedTimeInput,
   UpdateTaskSnoozeDateInput,
+  UpdateTaskDueDateInput,
   User,
 } from '../types/index.js';
 import {
@@ -1175,6 +1177,71 @@ export class SunsamaClient {
     }
 
     return (response.data as { updateTaskPlannedTime: UpdateTaskPayload }).updateTaskPlannedTime;
+  }
+
+  /**
+   * Updates the due date for a task
+   *
+   * This method allows you to set or clear a task's due date. The due date represents
+   * when the task should be completed and can be used for deadline tracking and planning.
+   *
+   * @param taskId - The ID of the task to update
+   * @param dueDate - The due date as Date, ISO string, or null to clear the due date
+   * @param limitResponsePayload - Whether to limit the response payload size (defaults to true)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Set task due date to a specific date
+   * const result = await client.updateTaskDueDate('taskId123', new Date('2025-06-21'));
+   *
+   * // Set due date with ISO string
+   * const result = await client.updateTaskDueDate('taskId123', '2025-06-21T04:00:00.000Z');
+   *
+   * // Clear the due date
+   * const result = await client.updateTaskDueDate('taskId123', null);
+   *
+   * // Get full response payload instead of limited response
+   * const result = await client.updateTaskDueDate('taskId123', new Date('2025-06-21'), false);
+   * ```
+   */
+  async updateTaskDueDate(
+    taskId: string,
+    dueDate: Date | string | null,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    // Convert Date to ISO string if needed
+    let dueDateString: string | null = null;
+    if (dueDate !== null) {
+      if (dueDate instanceof Date) {
+        dueDateString = dueDate.toISOString();
+      } else {
+        dueDateString = dueDate;
+      }
+    }
+
+    const variables: { input: UpdateTaskDueDateInput } = {
+      input: {
+        taskId,
+        dueDate: dueDateString,
+        limitResponsePayload,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskDueDate',
+      variables,
+      query: UPDATE_TASK_DUE_DATE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskDueDate: UpdateTaskPayload }).updateTaskDueDate;
   }
 
   /**
