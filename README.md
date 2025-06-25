@@ -249,6 +249,29 @@ const result = await client.updateTaskPlannedTime('taskId', 0);
 const result = await client.updateTaskPlannedTime('taskId', 60);
 ```
 
+#### Updating Task Due Date
+
+You can update the due date for a task using the `updateTaskDueDate` method. The due date represents when the task should be completed and can be used for deadline tracking and planning. You can set the due date using a Date object, ISO string, or null to clear it.
+
+```typescript
+// Set task due date to a specific date
+const result = await client.updateTaskDueDate('taskId', new Date('2025-06-21'));
+
+// Set due date with ISO string
+const result = await client.updateTaskDueDate('taskId', '2025-06-21T04:00:00.000Z');
+
+// Clear the due date
+const result = await client.updateTaskDueDate('taskId', null);
+
+// Set due date with full response payload
+const result = await client.updateTaskDueDate('taskId', new Date('2025-06-21'), false);
+
+// Set due date to tomorrow
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+const result = await client.updateTaskDueDate('taskId', tomorrow);
+```
+
 #### Updating Task Notes
 
 The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It accepts content in either HTML or Markdown format and automatically converts to the other format. The task must already exist and have a collaborative editing state.

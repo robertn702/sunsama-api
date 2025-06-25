@@ -1342,3 +1342,17 @@ export interface UpdateTaskPlannedTimeInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for updateTaskDueDate mutation
+ */
+export interface UpdateTaskDueDateInput {
+  /** The ID of the task to update */
+  taskId: string;
+
+  /** The due date as an ISO 8601 string (e.g., "2025-06-21T04:00:00.000Z"), or null to clear the due date */
+  dueDate: string | null;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}
