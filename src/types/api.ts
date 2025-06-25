@@ -1356,3 +1356,20 @@ export interface UpdateTaskDueDateInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for updateTaskText mutation
+ */
+export interface UpdateTaskTextInput {
+  /** The ID of the task to update */
+  taskId: string;
+
+  /** The new text/title for the task */
+  text: string;
+
+  /** Recommended stream ID (optional) */
+  recommendedStreamId?: string | null;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}

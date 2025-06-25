@@ -22,6 +22,7 @@ import {
   UPDATE_TASK_PLANNED_TIME_MUTATION,
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
   UPDATE_TASK_DUE_DATE_MUTATION,
+  UPDATE_TASK_TEXT_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -56,6 +57,7 @@ import type {
   UpdateTaskPlannedTimeInput,
   UpdateTaskSnoozeDateInput,
   UpdateTaskDueDateInput,
+  UpdateTaskTextInput,
   User,
 } from '../types/index.js';
 import {
@@ -1242,6 +1244,66 @@ export class SunsamaClient {
     }
 
     return (response.data as { updateTaskDueDate: UpdateTaskPayload }).updateTaskDueDate;
+  }
+
+  /**
+   * Updates the text/title of a task
+   *
+   * This method allows you to update the main text or title of a task. You can optionally
+   * specify a recommended stream ID for the task.
+   *
+   * @param taskId - The ID of the task to update
+   * @param text - The new text/title for the task
+   * @param options - Additional options for the operation
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Update task text to a new title
+   * const result = await client.updateTaskText('taskId123', 'Updated task title');
+   *
+   * // Update with recommended stream ID
+   * const result = await client.updateTaskText('taskId123', 'Task with stream', {
+   *   recommendedStreamId: 'stream-id-123'
+   * });
+   *
+   * // Get full response payload instead of limited response
+   * const result = await client.updateTaskText('taskId123', 'New title', {
+   *   limitResponsePayload: false
+   * });
+   * ```
+   */
+  async updateTaskText(
+    taskId: string,
+    text: string,
+    options?: {
+      recommendedStreamId?: string | null;
+      limitResponsePayload?: boolean;
+    }
+  ): Promise<UpdateTaskPayload> {
+    const variables: { input: UpdateTaskTextInput } = {
+      input: {
+        taskId,
+        text,
+        recommendedStreamId: options?.recommendedStreamId || null,
+        limitResponsePayload: options?.limitResponsePayload ?? true,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskText',
+      variables,
+      query: UPDATE_TASK_TEXT_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskText: UpdateTaskPayload }).updateTaskText;
   }
 
   /**
