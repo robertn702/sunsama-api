@@ -490,7 +490,7 @@ async function testRealAuth() {
     futureDate.setDate(futureDate.getDate() + 7); // 7 days from now
     const futureDateString = futureDate.toISOString();
     console.log(`   Setting due date to: ${futureDateString}`);
-    
+
     const dueDateResult = await client.updateTaskDueDate(taskId, futureDate);
 
     console.log('✅ updateTaskDueDate successful!');
@@ -565,6 +565,76 @@ async function testRealAuth() {
       }
     } else {
       console.log('❌ Failed to retrieve task after clearing due date');
+    }
+
+    // Test updateTaskText method
+    console.log('\\n📝 Testing updateTaskText method...');
+    const originalTaskText = retrievedTask?.text || taskText;
+    const textTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const newTaskText = `Updated task title - ${textTimestamp}`;
+
+    console.log(`   Original text: ${originalTaskText}`);
+    console.log(`   New text: ${newTaskText}`);
+    console.log(`   Updating text for task: ${taskId}`);
+
+    const textUpdateResult = await client.updateTaskText(taskId, newTaskText);
+
+    console.log('✅ updateTaskText successful!');
+    console.log('\\n📊 Task Text Update Information:');
+    console.log(`   Success: ${textUpdateResult.success}`);
+    console.log(`   Skipped: ${textUpdateResult.skipped || false}`);
+    if (textUpdateResult.updatedFields) {
+      console.log(`   Task ID: ${textUpdateResult.updatedFields._id}`);
+      console.log(
+        `   Stream IDs: ${textUpdateResult.updatedFields.streamIds?.join(', ') || 'None'}`
+      );
+    } else {
+      console.log('   updatedFields: null (limitResponsePayload=true)');
+    }
+
+    // Test updateTaskText with options
+    console.log('\\n   Testing updateTaskText with options...');
+    const textWithOptionsResult = await client.updateTaskText(
+      taskId,
+      `Task with options - ${textTimestamp}`,
+      {
+        recommendedStreamId: streams.length > 0 ? streams[0]!._id : null,
+        limitResponsePayload: false,
+      }
+    );
+
+    console.log('✅ updateTaskText with options successful!');
+    console.log('📊 Task Text Update with Options Information:');
+    console.log(`   Success: ${textWithOptionsResult.success}`);
+    console.log(`   Skipped: ${textWithOptionsResult.skipped || false}`);
+    if (textWithOptionsResult.updatedFields) {
+      console.log(`   Task ID: ${textWithOptionsResult.updatedFields._id}`);
+      console.log(
+        `   Recommended Stream: ${textWithOptionsResult.updatedFields.recommendedStreamId || 'None'}`
+      );
+      console.log(
+        `   Stream IDs: ${textWithOptionsResult.updatedFields.streamIds?.join(', ') || 'None'}`
+      );
+    } else {
+      console.log('   updatedFields: null');
+    }
+
+    // Verify the text was updated by retrieving the task
+    console.log('\\n🔍 Verifying text update by retrieving task...');
+    const taskAfterTextUpdate = await client.getTaskById(taskId);
+    if (taskAfterTextUpdate) {
+      console.log('✅ Task retrieved successfully after text update');
+      console.log(`   Current text: ${taskAfterTextUpdate.text}`);
+      console.log(`   Original text: ${originalTaskText}`);
+
+      // Check if text was actually updated
+      if (taskAfterTextUpdate.text.includes(textTimestamp)) {
+        console.log('✅ Text was successfully updated with timestamp');
+      } else {
+        console.log('⚠️ Text may not have been updated or timestamp not found');
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after text update');
     }
 
     // Test updateTaskComplete method

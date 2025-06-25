@@ -585,5 +585,111 @@ describe('SunsamaClient', () => {
         client.updateTaskNotes(validTaskId, { markdown: markdownNotes })
       ).rejects.toThrow('GraphQL errors: Unauthorized');
     });
+
+    it('should have updateTaskText method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskText).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskText without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTaskText('test-task-id', 'New task title')).rejects.toThrow();
+    });
+
+    it('should accept valid parameters in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskText(validTaskId, 'Updated task title')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should accept recommendedStreamId option in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.updateTaskText(validTaskId, 'Task with stream', {
+          recommendedStreamId: 'stream-id-123',
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should support limitResponsePayload option in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation with limitResponsePayload option
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(
+        client.updateTaskText(validTaskId, 'New title', {
+          limitResponsePayload: false,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should handle empty text in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation even with empty text but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskText(validTaskId, '')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should handle special characters in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const specialText = 'Task with émojis 🚀 and special chars: @#$%^&*()';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskText(validTaskId, specialText)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should handle long text in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+      const longText = 'A'.repeat(1000); // 1000 character text
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateTaskText(validTaskId, longText)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should handle null recommendedStreamId in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.updateTaskText(validTaskId, 'Task with null stream', {
+          recommendedStreamId: null,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should combine all options in updateTaskText', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation with all options combined
+      // Will fail at GraphQL level due to unauthorized access
+      await expect(
+        client.updateTaskText(validTaskId, 'Combined options task', {
+          recommendedStreamId: 'stream-123',
+          limitResponsePayload: false,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
   });
 });

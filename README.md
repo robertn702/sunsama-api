@@ -231,6 +231,36 @@ const deleteResultFull = await client.deleteTask('taskId', false);
 const deleteResultMerged = await client.deleteTask('taskId', true, true);
 ```
 
+#### Updating Task Text/Title
+
+You can update the text or title of a task using the `updateTaskText` method. This method allows you to change the main title/description of a task and optionally set a recommended stream ID.
+
+```typescript
+// Update task text to a new title
+const result = await client.updateTaskText('taskId123', 'Updated task title');
+
+// Update with recommended stream ID
+const result = await client.updateTaskText('taskId123', 'Task with stream', {
+  recommendedStreamId: 'stream-id-123'
+});
+
+// Get full response payload instead of limited response
+const result = await client.updateTaskText('taskId123', 'New title', {
+  limitResponsePayload: false
+});
+
+// Clear recommended stream ID
+const result = await client.updateTaskText('taskId123', 'Task without stream', {
+  recommendedStreamId: null
+});
+
+// Combine all options
+const result = await client.updateTaskText('taskId123', 'Full options task', {
+  recommendedStreamId: 'stream-456',
+  limitResponsePayload: false
+});
+```
+
 #### Updating Task Planned Time
 
 You can update the time estimate (planned time) for a task using the `updateTaskPlannedTime` method. The time estimate represents how long you expect the task to take and is specified in minutes.
