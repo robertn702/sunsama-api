@@ -637,6 +637,95 @@ async function testRealAuth() {
       console.log('❌ Failed to retrieve task after text update');
     }
 
+    // Test updateTaskStream method
+    console.log('\\n🌊 Testing updateTaskStream method...');
+
+    if (streams.length > 0) {
+      const originalStreamIds = taskAfterTextUpdate?.streamIds || [];
+      const targetStream = streams.find(s => !originalStreamIds.includes(s._id)) || streams[0]!;
+
+      console.log(`   Original stream IDs: ${originalStreamIds.join(', ') || 'None'}`);
+      console.log(`   Assigning task to stream: ${targetStream.streamName} (${targetStream._id})`);
+
+      const streamResult = await client.updateTaskStream(taskId, targetStream._id);
+
+      console.log('✅ updateTaskStream successful!');
+      console.log('\\n📊 Task Stream Update Information:');
+      console.log(`   Success: ${streamResult.success}`);
+      console.log(`   Skipped: ${streamResult.skipped || false}`);
+      if (streamResult.updatedFields) {
+        console.log(`   Task ID: ${streamResult.updatedFields._id}`);
+        console.log(`   Stream IDs: ${streamResult.updatedFields.streamIds?.join(', ') || 'None'}`);
+        console.log(
+          `   Recommended Stream: ${streamResult.updatedFields.recommendedStreamId || 'None'}`
+        );
+      } else {
+        console.log('   updatedFields: null (limitResponsePayload=true)');
+      }
+
+      // Test with full response payload
+      console.log('\\n   Testing updateTaskStream with full response payload...');
+      const streamResult2 = await client.updateTaskStream(taskId, targetStream._id, false);
+
+      console.log('✅ updateTaskStream (full response) successful!');
+      console.log('📊 Task Stream Update with Full Response Information:');
+      console.log(`   Success: ${streamResult2.success}`);
+      console.log(`   Skipped: ${streamResult2.skipped || false}`);
+      if (streamResult2.updatedFields) {
+        console.log(`   Task ID: ${streamResult2.updatedFields._id}`);
+        console.log(
+          `   Stream IDs: ${streamResult2.updatedFields.streamIds?.join(', ') || 'None'}`
+        );
+        console.log(
+          `   Recommended Stream: ${streamResult2.updatedFields.recommendedStreamId || 'None'}`
+        );
+      } else {
+        console.log('   updatedFields: null');
+      }
+
+      // Verify the stream assignment was updated by retrieving the task
+      console.log('\\n🔍 Verifying stream assignment by retrieving task...');
+      const taskAfterStreamUpdate = await client.getTaskById(taskId);
+      if (taskAfterStreamUpdate) {
+        console.log('✅ Task retrieved successfully after stream update');
+        console.log(
+          `   Current stream IDs: ${taskAfterStreamUpdate.streamIds.join(', ') || 'None'}`
+        );
+        console.log(
+          `   Recommended stream: ${taskAfterStreamUpdate.recommendedStreamId || 'None'}`
+        );
+
+        // Check if stream assignment was actually updated
+        if (taskAfterStreamUpdate.streamIds.includes(targetStream._id)) {
+          console.log('✅ Stream assignment was successfully updated');
+        } else {
+          console.log('⚠️ Stream assignment may not have been updated or not reflected yet');
+        }
+      } else {
+        console.log('❌ Failed to retrieve task after stream update');
+      }
+
+      // Test with a different stream if available
+      if (streams.length > 1) {
+        const secondStream = streams.find(s => s._id !== targetStream._id) || streams[1]!;
+        console.log(
+          `\\n   Testing with different stream: ${secondStream.streamName} (${secondStream._id})`
+        );
+
+        const streamResult3 = await client.updateTaskStream(taskId, secondStream._id);
+
+        console.log('✅ updateTaskStream (different stream) successful!');
+        console.log(`   Success: ${streamResult3.success}`);
+        if (streamResult3.updatedFields) {
+          console.log(
+            `   New stream IDs: ${streamResult3.updatedFields.streamIds?.join(', ') || 'None'}`
+          );
+        }
+      }
+    } else {
+      console.log('   ⚠️ No streams available to test stream assignment');
+    }
+
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
     console.log(`   Marking task as complete: ${taskId}`);

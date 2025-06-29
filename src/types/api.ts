@@ -1373,3 +1373,17 @@ export interface UpdateTaskTextInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for updateTaskStream mutation
+ */
+export interface UpdateTaskStreamInput {
+  /** The ID of the task to update */
+  taskId: string;
+
+  /** The stream ID to assign to the task */
+  streamId: string;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}

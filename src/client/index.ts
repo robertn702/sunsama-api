@@ -23,6 +23,7 @@ import {
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
   UPDATE_TASK_DUE_DATE_MUTATION,
   UPDATE_TASK_TEXT_MUTATION,
+  UPDATE_TASK_STREAM_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -58,6 +59,7 @@ import type {
   UpdateTaskSnoozeDateInput,
   UpdateTaskDueDateInput,
   UpdateTaskTextInput,
+  UpdateTaskStreamInput,
   User,
 } from '../types/index.js';
 import {
@@ -1304,6 +1306,55 @@ export class SunsamaClient {
     }
 
     return (response.data as { updateTaskText: UpdateTaskPayload }).updateTaskText;
+  }
+
+  /**
+   * Updates the stream assignment for a task
+   *
+   * This method allows you to assign a task to a specific stream (project/category).
+   * A stream represents a project, area of focus, or organizational category in Sunsama.
+   *
+   * @param taskId - The ID of the task to update
+   * @param streamId - The ID of the stream to assign the task to
+   * @param limitResponsePayload - Whether to limit the response payload size (defaults to true)
+   * @returns The update result with success status
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Assign task to a specific stream
+   * const result = await client.updateTaskStream('taskId123', 'streamId456');
+   *
+   * // Get full response payload instead of limited response
+   * const result = await client.updateTaskStream('taskId123', 'streamId456', false);
+   * ```
+   */
+  async updateTaskStream(
+    taskId: string,
+    streamId: string,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    const variables: { input: UpdateTaskStreamInput } = {
+      input: {
+        taskId,
+        streamId,
+        limitResponsePayload,
+      },
+    };
+
+    const request: GraphQLRequest = {
+      operationName: 'updateTaskStream',
+      variables,
+      query: UPDATE_TASK_STREAM_MUTATION,
+    };
+
+    const response = await this.graphqlRequest(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return (response.data as { updateTaskStream: UpdateTaskPayload }).updateTaskStream;
   }
 
   /**
