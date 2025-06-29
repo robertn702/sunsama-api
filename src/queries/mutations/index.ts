@@ -10,3 +10,4 @@ export * from './updateTaskNotes.js';
 export * from './updateTaskPlannedTime.js';
 export * from './updateTaskDueDate.js';
 export * from './updateTaskText.js';
+export * from './updateTaskStream.js';

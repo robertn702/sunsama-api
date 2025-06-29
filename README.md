@@ -261,6 +261,25 @@ const result = await client.updateTaskText('taskId123', 'Full options task', {
 });
 ```
 
+#### Updating Task Stream Assignment
+
+You can assign a task to a specific stream (project/category) using the `updateTaskStream` method. Streams represent projects, areas of focus, or organizational categories in Sunsama.
+
+```typescript
+// Assign task to a specific stream
+const result = await client.updateTaskStream('taskId123', 'streamId456');
+
+// Get full response payload instead of limited response
+const result = await client.updateTaskStream('taskId123', 'streamId456', false);
+
+// Example: Assign task to first available stream
+const streams = await client.getStreamsByGroupId();
+if (streams.length > 0) {
+  const result = await client.updateTaskStream('taskId123', streams[0]._id);
+  console.log('Task assigned to stream:', streams[0].streamName);
+}
+```
+
 #### Updating Task Planned Time
 
 You can update the time estimate (planned time) for a task using the `updateTaskPlannedTime` method. The time estimate represents how long you expect the task to take and is specified in minutes.
