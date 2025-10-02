@@ -1,5 +1,11 @@
 # sunsama-api
 
+## 0.11.1
+
+### Patch Changes
+
+- a34ebf5: Reorganize queries directory with domain-based structure for improved maintainability and scalability. All GraphQL operations are now grouped by resource domain (tasks, streams, user) with consolidated mutations reducing code duplication by ~1,600 lines. No breaking changes to public API.
+
 ## 0.11.0
 
 ### Minor Changes
