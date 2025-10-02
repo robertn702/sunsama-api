@@ -34,6 +34,19 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Testing framework: Vitest (fast, TypeScript-first testing)
 - Code formatting and linting tools (Prettier, ESLint)
 
+## Development Commands
+- `pnpm dev` - Start development with watch mode
+- `pnpm build` - Build for distribution (CJS, ESM, and types)
+- `pnpm test` - Run test suite with Vitest
+- `pnpm test:auth` - Run real API authentication tests
+- `pnpm test:watch` - Run tests in watch mode
+- `pnpm test:coverage` - Generate test coverage report
+- `pnpm lint` - Check code with ESLint
+- `pnpm format` - Format code with Prettier
+- `pnpm typecheck` - Type-check without building
+- `npx changeset` - Create a changeset for version bump
+- `pnpm release` - Publish to npm registry
+
 ## API Wrapper Considerations
 - Authentication handling (API keys, tokens)
 - HTTP client implementation using native fetch API
@@ -66,6 +79,20 @@ When working on this project, prioritize:
 7. Automated CI/CD with GitHub Actions
 8. Backward compatibility considerations
 9. Collaborative editing state management and Yjs integration consistency
+
+## Project Structure
+The codebase is organized with a domain-based architecture:
+- `src/client/` - Main SunsamaClient implementation
+- `src/queries/` - GraphQL operations organized by domain
+  - `tasks/` - Task-related queries and mutations
+  - `streams/` - Stream-related queries
+  - `user/` - User-related queries
+  - `fragments/` - Shared GraphQL fragments
+- `src/types/` - TypeScript type definitions
+- `src/utils/` - Utility functions (conversion, validation)
+- `src/errors/` - Custom error classes
+- `src/__tests__/` - Test files using Vitest
+- `scripts/` - Development and testing scripts
 
 ## Context for LLM Assistance
 This project involves creating a production-ready TypeScript package that other developers will use to interact with Sunsama's API. Focus on best practices for API wrapper design, TypeScript package development, and NPM distribution. The code should be maintainable, well-documented, and follow modern JavaScript/TypeScript conventions.
