@@ -1,14 +1,14 @@
 /**
- * GraphQL mutation for marking a task as complete
+ * GraphQL fragments for mutation responses
  */
 
 import { gql } from 'graphql-tag';
 import {
-  TASK_ACTUAL_TIME_FRAGMENT,
   TASK_FRAGMENT,
-  TASK_INTEGRATION_FRAGMENT,
+  TASK_ACTUAL_TIME_FRAGMENT,
   TASK_SCHEDULED_TIME_FRAGMENT,
-} from '../fragments/task.js';
+  TASK_INTEGRATION_FRAGMENT,
+} from './task.js';
 
 /**
  * Fragment for PartialTask structure
@@ -75,22 +75,4 @@ export const UPDATE_TASK_PAYLOAD_FRAGMENT = gql`
   }
   ${TASK_FRAGMENT}
   ${PARTIAL_TASK_FRAGMENT}
-`;
-
-/**
- * Mutation for marking a task as complete
- *
- * Variables:
- * - input.taskId: The ID of the task to mark complete
- * - input.completeOn: ISO 8601 timestamp when the task was completed
- * - input.limitResponsePayload: Flag to limit response size (optional)
- */
-export const UPDATE_TASK_COMPLETE_MUTATION = gql`
-  mutation updateTaskComplete($input: UpdateTaskCompleteInput!) {
-    updateTaskComplete(input: $input) {
-      ...UpdateTaskPayload
-      __typename
-    }
-  }
-  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
 `;
