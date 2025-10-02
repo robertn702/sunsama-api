@@ -406,6 +406,29 @@ try {
 }
 ```
 
+## Project Structure
+
+```
+sunsama-api/
+├── src/
+│   ├── client/          # Main SunsamaClient implementation
+│   ├── queries/         # GraphQL operations (domain-based)
+│   │   ├── tasks/       # Task queries and mutations
+│   │   ├── streams/     # Stream queries
+│   │   ├── user/        # User queries
+│   │   └── fragments/   # Shared GraphQL fragments
+│   ├── types/           # TypeScript type definitions
+│   ├── utils/           # Utility functions
+│   ├── errors/          # Custom error classes
+│   └── __tests__/       # Test suite
+├── scripts/             # Development and testing scripts
+├── dist/                # Build output (git ignored)
+│   ├── cjs/            # CommonJS build
+│   ├── esm/            # ES Modules build
+│   └── types/          # TypeScript declarations
+└── package.json
+```
+
 ## Development
 
 This project uses modern development tools:
@@ -438,12 +461,16 @@ pnpm lint
 
 ### Scripts
 
-- `pnpm build` - Build the package for distribution
+- `pnpm build` - Build the package for distribution (CJS, ESM, types)
 - `pnpm dev` - Start development mode with watch
-- `pnpm test` - Run the test suite
+- `pnpm test` - Run the test suite with Vitest
+- `pnpm test:auth` - Test with real API credentials
 - `pnpm test:coverage` - Run tests with coverage report
-- `pnpm lint` - Lint the codebase
+- `pnpm test:watch` - Run tests in watch mode
+- `pnpm lint` - Lint the codebase with ESLint
 - `pnpm format` - Format code with Prettier
+- `pnpm typecheck` - Type-check without building
+- `npx changeset` - Create changeset for version bump
 
 ## Contributing
 
