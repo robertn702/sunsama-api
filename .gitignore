@@ -108,8 +108,8 @@ Thumbs.db
 .vitest
 
 # Documentation
-docs/
-dev/
+/docs/
+/dev/
 
 # MCP configuration
 .mcp.json
