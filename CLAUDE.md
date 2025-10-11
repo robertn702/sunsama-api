@@ -20,11 +20,12 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - Support full CRUD operations: create, read, update, delete tasks
 - Provide access to archived tasks with pagination support
 - Enable task retrieval by ID for individual task operations
-- Support task notes updating with Yjs-powered collaborative editing features and automatic HTML/Markdown conversion
+- Support task notes updating with Yjs-powered collaborative editing using XmlFragment structure for proper Sunsama UI synchronization
 - Maintain collaborative editing state consistency for real-time synchronization
 - Provide simplified API with explicit format selection using discriminated unions
 - Support task planned time (time estimate) updating for task management
-- Action item checklist and MVP requirements are documented in MVP_AUTH.md
+- Support task stream assignment and task text/title updates
+- Support task due date management
 
 ## Development Environment
 - Primary development is done in WebStorm IDE
@@ -39,6 +40,7 @@ This is a TypeScript package that serves as a wrapper around Sunsama's API. Suns
 - `pnpm build` - Build for distribution (CJS, ESM, and types)
 - `pnpm test` - Run test suite with Vitest
 - `pnpm test:auth` - Run real API authentication tests
+- `pnpm test:integration` - Run integration tests (requires credentials in .env)
 - `pnpm test:watch` - Run tests in watch mode
 - `pnpm test:coverage` - Generate test coverage report
 - `pnpm lint` - Check code with ESLint
@@ -94,8 +96,35 @@ The codebase is organized with a domain-based architecture:
 - `src/__tests__/` - Test files using Vitest
 - `scripts/` - Development and testing scripts
 
+## Recent Improvements (v0.11.1)
+- **Fixed Issue #14**: Task notes now properly sync with Sunsama UI using Y.XmlFragment structure instead of Y.Text
+- **Collaborative Editing Fix**: Updated `createCollabSnapshot()` and `createUpdatedCollabSnapshot()` methods to use XmlFragment('default') → XmlElement('paragraph') → XmlText structure
+- **Domain-based Query Organization**: Refactored GraphQL queries into domain-specific directories (tasks/, streams/, user/, fragments/)
+- **Enhanced Task Management**: Added methods for updateTaskText, updateTaskStream, updateTaskDueDate
+- **Improved Integration Testing**: Comprehensive test suite for task notes with various content types (HTML, markdown, special characters)
+
+## Technical Implementation Details
+### Yjs Collaborative Editing Structure
+The package uses Yjs for collaborative editing synchronization with Sunsama's UI:
+```
+Y.XmlFragment('default')
+  └─ Y.XmlElement('paragraph')
+      └─ Y.XmlText
+          └─ actual content
+```
+This structure ensures proper synchronization with Sunsama's rich text editor.
+
+### Development Data
+The `dev/` directory contains:
+- Investigation notes for debugging (e.g., `NOTES-issue-14-investigation.md`)
+- Yjs decoding scripts for analyzing collaborative snapshots
+- Test scripts for verifying XmlFragment implementation
+- This directory is gitignored and should never be committed
+
 ## Context for LLM Assistance
 This project involves creating a production-ready TypeScript package that other developers will use to interact with Sunsama's API. Focus on best practices for API wrapper design, TypeScript package development, and NPM distribution. The code should be maintainable, well-documented, and follow modern JavaScript/TypeScript conventions.
+
+When working with collaborative editing features, ensure proper Yjs structure (XmlFragment, not Text) is maintained for Sunsama UI compatibility.
 
 ## Git Rules
 

@@ -20,10 +20,10 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 📚 **Documented**: Complete API documentation and examples
 - 📅 **Task Scheduling**: Unified interface for scheduling, rescheduling, and managing task timing
 - 🆔 **ID Generation**: Built-in MongoDB ObjectId-style task ID generation
-- 🔍 **Input Validation**: Robust validation using Zod v4 for enhanced type safety
+- 🔍 **Input Validation**: Robust validation using Zod for enhanced type safety
 - 📦 **Archive Support**: Access to archived tasks with pagination support
-- 🤝 **Collaborative Editing**: Yjs-powered collaborative snapshot generation for proper real-time editing support
-- 📝 **Task Notes Management**: Full CRUD operations for task notes with automatic HTML/Markdown conversion and collaborative editing state preservation
+- 🤝 **Collaborative Editing**: Yjs-powered collaborative snapshot generation with XmlFragment support for proper real-time editing synchronization
+- 📝 **Task Notes Management**: Full CRUD operations for task notes with automatic HTML/Markdown conversion and proper Sunsama UI integration
 
 ## Installation
 
@@ -465,12 +465,14 @@ pnpm lint
 - `pnpm dev` - Start development mode with watch
 - `pnpm test` - Run the test suite with Vitest
 - `pnpm test:auth` - Test with real API credentials
+- `pnpm test:integration` - Run integration tests (requires credentials in .env)
 - `pnpm test:coverage` - Run tests with coverage report
 - `pnpm test:watch` - Run tests in watch mode
 - `pnpm lint` - Lint the codebase with ESLint
 - `pnpm format` - Format code with Prettier
 - `pnpm typecheck` - Type-check without building
 - `npx changeset` - Create changeset for version bump
+- `pnpm release` - Publish to npm registry
 
 ## Contributing
 
