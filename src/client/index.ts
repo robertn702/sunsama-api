@@ -719,8 +719,12 @@ export class SunsamaClient {
     // Generate timestamps
     const now = new Date().toISOString();
 
-    // Build collaborative editing snapshot for notes
-    const collabSnapshot = this.createCollabSnapshot(taskId, options?.notes || '');
+    // Handle notes conversion - convert HTML to Markdown
+    const notesHtml = options?.notes || '';
+    const notesMarkdown = notesHtml ? htmlToMarkdown(notesHtml) : '';
+
+    // Build collaborative editing snapshot for notes (using markdown)
+    const collabSnapshot = this.createCollabSnapshot(taskId, notesMarkdown);
 
     // Handle snooze configuration
     let snooze: TaskSnoozeInput | null = null;
@@ -756,8 +760,8 @@ export class SunsamaClient {
       integration: null,
       deleted: false,
       text,
-      notes: options?.notes || '',
-      notesMarkdown: null,
+      notes: notesHtml,
+      notesMarkdown: notesMarkdown || null,
       notesChecksum: null,
       editorVersion: 3,
       collabSnapshot,
@@ -877,32 +881,42 @@ export class SunsamaClient {
    *
    * This method creates a proper Yjs document with the provided notes content
    * and encodes it as a collaborative snapshot that can be used for real-time
-   * collaborative editing in Sunsama.
+   * collaborative editing in Sunsama. Always creates a collabSnapshot even for
+   * empty notes to match UI behavior and enable future note updates.
    *
    * @param taskId - The task ID
-   * @param notes - The notes content to initialize the document with
-   * @returns CollabSnapshot object with Yjs-generated state, or null if no notes
+   * @param notes - The notes content to initialize the document with (can be empty)
+   * @returns CollabSnapshot object with Yjs-generated state
    * @internal
    */
-  private createCollabSnapshot(taskId: string, notes: string): CollabSnapshot | null {
-    if (!notes) {
-      return null;
-    }
-
+  private createCollabSnapshot(taskId: string, notes: string): CollabSnapshot {
     const docName = `tasks/notes/${taskId}`;
 
     // Create a new Yjs document
     const ydoc = new Y.Doc();
 
-    // Create a Y.Text instance for the notes content
-    const ytext = ydoc.getText('notes');
+    // Create the XML structure: XmlFragment('default') > XmlElement('paragraph') > XmlText
+    // This matches the UI's structure for rich text editing
+    const fragment = ydoc.getXmlFragment('default');
+    const paragraph = new Y.XmlElement('paragraph');
+    const textNode = new Y.XmlText();
 
-    // Insert the initial notes content
-    ytext.insert(0, notes);
+    // Insert the initial notes content (if provided)
+    if (notes) {
+      textNode.insert(0, notes);
+    }
 
-    // Encode the document state as an update
+    // Build the structure: fragment contains paragraph, paragraph contains text
+    paragraph.insert(0, [textNode]);
+    fragment.insert(0, [paragraph]);
+
+    // Encode the state vector (compact representation of document state)
+    const stateVector = Y.encodeStateVector(ydoc);
+    const base64StateVector = Buffer.from(stateVector).toString('base64');
+
+    // Encode the full document state as an update
     const stateUpdate = Y.encodeStateAsUpdate(ydoc);
-    const base64State = Buffer.from(stateUpdate).toString('base64');
+    const base64Update = Buffer.from(stateUpdate).toString('base64');
 
     // Create the collaborative snapshot in the expected format
     return {
@@ -910,7 +924,7 @@ export class SunsamaClient {
         version: 'v1_sv',
         docName,
         clock: 0,
-        value: base64State,
+        value: base64StateVector, // Use state vector for state
       },
       updates: [
         {
@@ -918,7 +932,7 @@ export class SunsamaClient {
           action: 'update',
           docName,
           clock: 0,
-          value: base64State,
+          value: base64Update, // Use full update for updates array
         },
       ],
     };
@@ -1376,51 +1390,62 @@ export class SunsamaClient {
     // Create a new Yjs document
     const ydoc = new Y.Doc();
 
+    // Try to apply existing updates to preserve collaborative state
     try {
-      // Try to apply the existing state if possible
-      if (existingSnapshot.state.value) {
-        const existingState = Buffer.from(existingSnapshot.state.value, 'base64');
-        Y.applyUpdate(ydoc, existingState);
+      for (const update of existingSnapshot.updates) {
+        if (update.value) {
+          const updateBuffer = Buffer.from(update.value, 'base64');
+          Y.applyUpdate(ydoc, updateBuffer);
+        }
       }
     } catch (error) {
-      // If we can't apply the existing state, start fresh
-      // Could not apply existing collaborative state, creating fresh document
       // eslint-disable-next-line no-console
       console.warn('Could not apply existing collaborative state, creating fresh document:', error);
     }
 
-    // Get the text instance and update it with new content
-    const ytext = ydoc.getText('notes');
+    // Get the XML structure and update it with new content
+    const fragment = ydoc.getXmlFragment('default');
 
-    // Clear existing content and insert new content
-    if (ytext.length > 0) {
-      ytext.delete(0, ytext.length);
+    // Clear existing content
+    if (fragment.length > 0) {
+      fragment.delete(0, fragment.length);
     }
+
+    // Create new paragraph structure with text content
+    const paragraph = new Y.XmlElement('paragraph');
+    const textNode = new Y.XmlText();
+
     if (newContent) {
-      ytext.insert(0, newContent);
+      textNode.insert(0, newContent);
     }
 
-    // Encode the updated document state
+    // Build the structure: fragment contains paragraph, paragraph contains text
+    paragraph.insert(0, [textNode]);
+    fragment.insert(0, [paragraph]);
+
+    // Encode the state vector (compact representation)
+    const stateVector = Y.encodeStateVector(ydoc);
+    const base64StateVector = Buffer.from(stateVector).toString('base64');
+
+    // Encode the updated document state as an update
     const updatedState = Y.encodeStateAsUpdate(ydoc);
-    const base64State = Buffer.from(updatedState).toString('base64');
+    const base64Update = Buffer.from(updatedState).toString('base64');
 
-    // Increment the clock for proper versioning
-    const newClock = existingSnapshot.state.clock + 1;
-
+    // UI keeps clock at 0 and replaces updates array with single new update
     return {
       state: {
         ...existingSnapshot.state,
-        clock: newClock,
-        value: base64State,
+        clock: 0, // Keep clock at 0 (matching UI behavior)
+        value: base64StateVector, // Use state vector for state
       },
       updates: [
-        ...existingSnapshot.updates,
+        // Replace with single new update (not accumulating)
         {
           version: 'v1',
           action: 'update',
           docName: existingSnapshot.state.docName,
-          clock: newClock,
-          value: base64State,
+          clock: 0, // Keep clock at 0
+          value: base64Update, // Use full update for updates array
         },
       ],
     };
