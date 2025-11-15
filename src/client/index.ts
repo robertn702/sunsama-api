@@ -702,6 +702,24 @@ export class SunsamaClient {
    *   snoozeUntil: new Date('2025-01-15T09:00:00')
    * });
    *
+   * // Create a task from a GitHub issue
+   * const result = await client.createTask('Fix API documentation bug', {
+   *   integration: {
+   *     service: 'github',
+   *     identifier: {
+   *       id: 'I_kwDOO4SCuM7VTB4n',
+   *       repositoryOwnerLogin: 'robertn702',
+   *       repositoryName: 'sunsama-api',
+   *       number: 17,
+   *       type: 'Issue',
+   *       url: 'https://github.com/robertn702/sunsama-api/issues/17',
+   *       __typename: 'TaskGithubIntegrationIdentifier'
+   *     },
+   *     __typename: 'TaskGithubIntegration'
+   *   },
+   *   timeEstimate: 45
+   * });
+   *
    * // Create a task from a Gmail email
    * const result = await client.createTask('Project Update Email', {
    *   integration: {
