@@ -187,26 +187,6 @@ export const TASK_INTEGRATION_FRAGMENT = gql`
       }
       __typename
     }
-    ... on TaskEmailIntegration {
-      service
-      identifier {
-        id
-        __typename
-      }
-      content {
-        subject
-        text
-        html
-        from {
-          name
-          email
-          __typename
-        }
-        date
-        __typename
-      }
-      __typename
-    }
     ... on TaskLinearIntegration {
       service
       identifier {
@@ -243,23 +223,6 @@ export const TASK_INTEGRATION_FRAGMENT = gql`
         imageUrl
         siteName
         title
-        __typename
-      }
-      __typename
-    }
-    ... on TaskLoomVideoIntegration {
-      service
-      identifier {
-        url
-        videoId
-        title
-        description
-        thumbnail {
-          width
-          height
-          url
-          __typename
-        }
         __typename
       }
       __typename

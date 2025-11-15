@@ -701,6 +701,22 @@ export class SunsamaClient {
    *   taskId: customId,
    *   snoozeUntil: new Date('2025-01-15T09:00:00')
    * });
+   *
+   * // Create a task from a Gmail email
+   * const result = await client.createTask('Project Update Email', {
+   *   integration: {
+   *     service: 'gmail',
+   *     identifier: {
+   *       id: '19a830b40fd7ab7d',
+   *       messageId: '19a830b40fd7ab7d',
+   *       accountId: 'user@example.com',
+   *       url: 'https://mail.google.com/mail/u/user@example.com/#inbox/19a830b40fd7ab7d',
+   *       __typename: 'TaskGmailIntegrationIdentifier'
+   *     },
+   *     __typename: 'TaskGmailIntegration'
+   *   },
+   *   timeEstimate: 15
+   * });
    * ```
    */
   async createTask(text: string, options?: CreateTaskOptions): Promise<CreateTaskPayload> {
@@ -757,7 +773,7 @@ export class SunsamaClient {
       private: options?.private || false,
       assigneeId: this.userId,
       createdBy: this.userId,
-      integration: null,
+      integration: options?.integration || null,
       deleted: false,
       text,
       notes: notesHtml,
