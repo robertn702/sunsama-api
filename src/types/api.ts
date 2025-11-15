@@ -772,12 +772,28 @@ export interface TaskLinearIntegration extends BaseTaskIntegration {
 }
 
 /**
+ * Gmail integration for tasks
+ */
+export interface TaskGmailIntegration extends BaseTaskIntegration {
+  service: 'gmail';
+  identifier: {
+    id: string;
+    messageId: string;
+    accountId: string;
+    url: string;
+    __typename: 'TaskGmailIntegrationIdentifier';
+  };
+  __typename: 'TaskGmailIntegration';
+}
+
+/**
  * Union type for all task integrations
  */
 export type TaskIntegration =
   | TaskWebsiteIntegration
   | TaskGoogleCalendarIntegration
-  | TaskLinearIntegration;
+  | TaskLinearIntegration
+  | TaskGmailIntegration;
 
 /**
  * Main Task structure
@@ -1179,6 +1195,9 @@ export interface CreateTaskOptions {
 
   /** Snooze until date as Date or ISO string */
   snoozeUntil?: Date | string;
+
+  /** Integration information for linking task to external services (e.g., Gmail) */
+  integration?: TaskIntegration;
 }
 
 /**

@@ -183,6 +183,22 @@ const taskWithCustomId = await client.createTask('Custom task', {
   streamIds: ['stream-1', 'stream-2'],
   timeEstimate: 60
 });
+
+// Create a task from a Gmail email
+const gmailTask = await client.createTask('Project Update Email', {
+  integration: {
+    service: 'gmail',
+    identifier: {
+      id: '19a830b40fd7ab7d',
+      messageId: '19a830b40fd7ab7d',
+      accountId: 'user@example.com',
+      url: 'https://mail.google.com/mail/u/user@example.com/#inbox/19a830b40fd7ab7d',
+      __typename: 'TaskGmailIntegrationIdentifier'
+    },
+    __typename: 'TaskGmailIntegration'
+  },
+  timeEstimate: 15
+});
 ```
 
 #### Managing Tasks
