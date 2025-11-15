@@ -772,6 +772,23 @@ export interface TaskLinearIntegration extends BaseTaskIntegration {
 }
 
 /**
+ * GitHub integration for tasks
+ */
+export interface TaskGithubIntegration extends BaseTaskIntegration {
+  service: 'github';
+  identifier: {
+    id: string;
+    repositoryOwnerLogin: string;
+    repositoryName: string;
+    number: number;
+    type: string;
+    url: string;
+    __typename: 'TaskGithubIntegrationIdentifier';
+  };
+  __typename: 'TaskGithubIntegration';
+}
+
+/**
  * Gmail integration for tasks
  */
 export interface TaskGmailIntegration extends BaseTaskIntegration {
@@ -793,6 +810,7 @@ export type TaskIntegration =
   | TaskWebsiteIntegration
   | TaskGoogleCalendarIntegration
   | TaskLinearIntegration
+  | TaskGithubIntegration
   | TaskGmailIntegration;
 
 /**

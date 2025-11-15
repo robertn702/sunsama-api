@@ -184,6 +184,24 @@ const taskWithCustomId = await client.createTask('Custom task', {
   timeEstimate: 60
 });
 
+// Create a task from a GitHub issue
+const githubTask = await client.createTask('Fix API documentation bug', {
+  integration: {
+    service: 'github',
+    identifier: {
+      id: 'I_kwDOO4SCuM7VTB4n',
+      repositoryOwnerLogin: 'robertn702',
+      repositoryName: 'sunsama-api',
+      number: 17,
+      type: 'Issue',
+      url: 'https://github.com/robertn702/sunsama-api/issues/17',
+      __typename: 'TaskGithubIntegrationIdentifier'
+    },
+    __typename: 'TaskGithubIntegration'
+  },
+  timeEstimate: 45
+});
+
 // Create a task from a Gmail email
 const gmailTask = await client.createTask('Project Update Email', {
   integration: {
