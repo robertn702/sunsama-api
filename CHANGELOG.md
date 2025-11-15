@@ -1,5 +1,66 @@
 # sunsama-api
 
+## 0.12.0
+
+### Minor Changes
+
+- 6257871: Add GitHub integration support to createTask method
+
+  This minor release adds support for creating Sunsama tasks with GitHub integration, enabling users to convert GitHub issues and pull requests into tasks with proper linking and metadata.
+
+  **New Features:**
+
+  - Added `TaskGithubIntegration` TypeScript interface with all required fields (id, repositoryOwnerLogin, repositoryName, number, type, url)
+  - Updated `TaskIntegration` union type to include GitHub integration
+  - `createTask` method now supports GitHub integration through the `integration` option
+  - Added comprehensive JSDoc and README examples demonstrating GitHub integration usage for both issues and pull requests
+
+  **Improvements:**
+
+  - Added integration tests verifying GitHub integration type definitions
+  - Tests cover both Issue and PullRequest types
+
+  **Migration:**
+  No breaking changes. This is a purely additive feature that extends existing functionality.
+
+- d0afdad: Add Gmail integration support to createTask method
+
+  This minor release adds support for creating Sunsama tasks with Gmail integration, enabling users to convert Gmail emails into tasks with proper linking and metadata.
+
+  **New Features:**
+
+  - Added `TaskGmailIntegration` TypeScript interface with all required fields (id, messageId, accountId, url)
+  - Extended `CreateTaskOptions` to accept `integration` field for linking tasks to external services
+  - Updated `createTask` method to pass integration data to the Sunsama API
+  - Added comprehensive JSDoc and README examples demonstrating Gmail integration usage
+
+  **Improvements:**
+
+  - Removed `TaskLoomVideoIntegration` from GraphQL fragment (not a real integration)
+  - Added integration tests verifying type definitions
+
+  **Example Usage:**
+
+  ```typescript
+  const gmailTask = await client.createTask('Project Update Email', {
+    integration: {
+      service: 'gmail',
+      identifier: {
+        id: '19a830b40fd7ab7d',
+        messageId: '19a830b40fd7ab7d',
+        accountId: 'user@example.com',
+        url: 'https://mail.google.com/mail/u/user@example.com/#inbox/19a830b40fd7ab7d',
+        __typename: 'TaskGmailIntegrationIdentifier',
+      },
+      __typename: 'TaskGmailIntegration',
+    },
+    timeEstimate: 15,
+  });
+  ```
+
+  **Migration:**
+  No breaking changes. This is a purely additive feature that extends existing functionality.
+
 ## 0.11.2
 
 ### Patch Changes

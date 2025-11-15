@@ -1,6 +1,6 @@
 {
   "name": "sunsama-api",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "description": "TypeScript wrapper for the Sunsama API - Daily planning and task management",
   "keywords": [
     "sunsama",
