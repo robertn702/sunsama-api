@@ -409,7 +409,7 @@ function parseInlineTokens(
       case 'strong': {
         const strongToken = token as Tokens.Strong;
         const newAttrs = { ...inheritedAttributes, bold: true as const };
-        if ('tokens' in strongToken && strongToken.tokens) {
+        if ('tokens' in strongToken && strongToken.tokens && strongToken.tokens.length > 0) {
           segments.push(...parseInlineTokens(strongToken.tokens, newAttrs));
         } else {
           segments.push({ text: decodeHtmlEntities(strongToken.text), attributes: newAttrs });
@@ -420,7 +420,7 @@ function parseInlineTokens(
       case 'em': {
         const emToken = token as Tokens.Em;
         const newAttrs = { ...inheritedAttributes, italic: true as const };
-        if ('tokens' in emToken && emToken.tokens) {
+        if ('tokens' in emToken && emToken.tokens && emToken.tokens.length > 0) {
           segments.push(...parseInlineTokens(emToken.tokens, newAttrs));
         } else {
           segments.push({ text: decodeHtmlEntities(emToken.text), attributes: newAttrs });
@@ -432,7 +432,7 @@ function parseInlineTokens(
         const linkToken = token as Tokens.Link;
         // Sunsama expects link as a nested object with href property
         const newAttrs = { ...inheritedAttributes, link: { href: linkToken.href } };
-        if ('tokens' in linkToken && linkToken.tokens) {
+        if ('tokens' in linkToken && linkToken.tokens && linkToken.tokens.length > 0) {
           segments.push(...parseInlineTokens(linkToken.tokens, newAttrs));
         } else {
           segments.push({ text: decodeHtmlEntities(linkToken.text), attributes: newAttrs });
@@ -451,7 +451,7 @@ function parseInlineTokens(
         // Note: Sunsama's editor doesn't support strikethrough marks
         // So we render it as plain text with ~~ delimiters preserved
         const delToken = token as Tokens.Del;
-        if ('tokens' in delToken && delToken.tokens) {
+        if ('tokens' in delToken && delToken.tokens && delToken.tokens.length > 0) {
           segments.push({ text: '~~' });
           segments.push(...parseInlineTokens(delToken.tokens, inheritedAttributes));
           segments.push({ text: '~~' });
