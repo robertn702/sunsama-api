@@ -69,6 +69,7 @@ import {
   markdownToHtml,
   parseMarkdownToBlocks,
   type DocumentBlock,
+  type FormattedSegment,
 } from '../utils/index.js';
 
 /**
@@ -1510,7 +1511,7 @@ export class SunsamaClient {
           fragment.push([orderedList]);
           // Set the start attribute if provided (defaults to 1)
           if (block.start !== undefined && block.start !== 1) {
-            orderedList.setAttribute('start', block.start);
+            orderedList.setAttribute('start', String(block.start));
           }
 
           if (block.items) {
