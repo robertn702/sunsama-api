@@ -8,6 +8,8 @@ import {
   markdownToHtml,
   convertContent,
   sanitizeHtml,
+  parseMarkdownToSegments,
+  parseMarkdownToBlocks,
 } from '../utils/conversion.js';
 import { SunsamaAuthError } from '../errors/index.js';
 
@@ -341,5 +343,246 @@ describe('Performance and Edge Cases', () => {
     expect(html).toContain('🚀');
     expect(backToMarkdown).toContain('👋');
     expect(backToMarkdown).toContain('🚀');
+  });
+});
+
+describe('Markdown to Segments Parsing (Rich Text for Yjs)', () => {
+  describe('Basic text parsing', () => {
+    it('should parse plain text without formatting', () => {
+      const segments = parseMarkdownToSegments('Hello world');
+      expect(segments).toHaveLength(1);
+      expect(segments[0]).toEqual({ text: 'Hello world' });
+    });
+
+    it('should return empty array for empty input', () => {
+      expect(parseMarkdownToSegments('')).toEqual([]);
+      expect(parseMarkdownToSegments('   ')).toEqual([]);
+    });
+  });
+
+  describe('Bold text parsing', () => {
+    it('should parse bold text with ** syntax', () => {
+      const segments = parseMarkdownToSegments('This is **bold** text');
+      expect(segments.some(s => s.text === 'bold' && s.attributes?.bold === true)).toBe(true);
+    });
+
+    it('should parse bold text with __ syntax', () => {
+      const segments = parseMarkdownToSegments('This is __bold__ text');
+      expect(segments.some(s => s.text === 'bold' && s.attributes?.bold === true)).toBe(true);
+    });
+
+    it('should handle multiple bold segments', () => {
+      const segments = parseMarkdownToSegments('**First** and **second** bold');
+      const boldSegments = segments.filter(s => s.attributes?.bold === true);
+      expect(boldSegments).toHaveLength(2);
+      expect(boldSegments[0]?.text).toBe('First');
+      expect(boldSegments[1]?.text).toBe('second');
+    });
+  });
+
+  describe('Italic text parsing', () => {
+    it('should parse italic text with * syntax', () => {
+      const segments = parseMarkdownToSegments('This is *italic* text');
+      expect(segments.some(s => s.text === 'italic' && s.attributes?.italic === true)).toBe(true);
+    });
+
+    it('should parse italic text with _ syntax', () => {
+      const segments = parseMarkdownToSegments('This is _italic_ text');
+      expect(segments.some(s => s.text === 'italic' && s.attributes?.italic === true)).toBe(true);
+    });
+  });
+
+  describe('Link parsing', () => {
+    it('should parse links with proper attributes', () => {
+      const segments = parseMarkdownToSegments('Visit [Google](https://google.com)');
+      const linkSegment = segments.find(s => s.attributes?.link);
+      expect(linkSegment).toBeDefined();
+      expect(linkSegment?.text).toBe('Google');
+      expect(linkSegment?.attributes?.link?.href).toBe('https://google.com');
+    });
+
+    it('should handle multiple links', () => {
+      const segments = parseMarkdownToSegments(
+        'Visit [Google](https://google.com) and [GitHub](https://github.com)'
+      );
+      const linkSegments = segments.filter(s => s.attributes?.link);
+      expect(linkSegments).toHaveLength(2);
+    });
+
+    it('should handle links with special characters in URL', () => {
+      const segments = parseMarkdownToSegments(
+        'Check [this](https://example.com/path?q=test&foo=bar)'
+      );
+      const linkSegment = segments.find(s => s.attributes?.link);
+      expect(linkSegment?.attributes?.link?.href).toBe('https://example.com/path?q=test&foo=bar');
+    });
+  });
+
+  describe('Combined formatting', () => {
+    it('should handle bold and italic combined', () => {
+      const segments = parseMarkdownToSegments('This is **bold** and *italic* text');
+      const boldSegment = segments.find(s => s.attributes?.bold === true);
+      const italicSegment = segments.find(s => s.attributes?.italic === true);
+      expect(boldSegment?.text).toBe('bold');
+      expect(italicSegment?.text).toBe('italic');
+    });
+
+    it('should handle nested bold within italic', () => {
+      const segments = parseMarkdownToSegments('This is ***bold and italic*** text');
+      // Should have both bold and italic attributes on the same segment
+      const formattedSegment = segments.find(
+        s => s.attributes?.bold === true && s.attributes?.italic === true
+      );
+      expect(formattedSegment).toBeDefined();
+    });
+
+    it('should handle links with bold text inside', () => {
+      const segments = parseMarkdownToSegments('[**Bold Link**](https://example.com)');
+      const linkSegment = segments.find(s => s.attributes?.link);
+      expect(linkSegment?.attributes?.bold).toBe(true);
+      expect(linkSegment?.attributes?.link?.href).toBe('https://example.com');
+    });
+  });
+
+  describe('Code formatting', () => {
+    it('should parse inline code', () => {
+      const segments = parseMarkdownToSegments('Use `console.log()` for debugging');
+      const codeSegment = segments.find(s => s.attributes?.code === true);
+      expect(codeSegment).toBeDefined();
+      expect(codeSegment?.text).toBe('console.log()');
+    });
+  });
+
+  describe('Strikethrough formatting', () => {
+    it('should preserve strikethrough as plain text with delimiters', () => {
+      // Note: Sunsama doesn't support strikethrough marks, so we preserve the ~~ syntax
+      const segments = parseMarkdownToSegments('This is ~~deleted~~ text');
+      const fullText = segments.map(s => s.text).join('');
+      expect(fullText).toContain('~~deleted~~');
+    });
+  });
+
+  describe('Multi-paragraph content', () => {
+    it('should handle multiple paragraphs', () => {
+      const segments = parseMarkdownToSegments('First paragraph\n\nSecond paragraph');
+      const fullText = segments.map(s => s.text).join('');
+      expect(fullText).toContain('First paragraph');
+      expect(fullText).toContain('Second paragraph');
+    });
+
+    it('should preserve newlines between paragraphs', () => {
+      const segments = parseMarkdownToSegments('Line 1\n\nLine 2');
+      const hasNewline = segments.some(s => s.text.includes('\n'));
+      expect(hasNewline).toBe(true);
+    });
+  });
+
+  describe('Lists', () => {
+    it('should parse unordered lists', () => {
+      const blocks = parseMarkdownToBlocks('- Item 1\n- Item 2');
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]?.type).toBe('bulletList');
+      expect(blocks[0]?.items).toHaveLength(2);
+      expect(blocks[0]?.items?.[0]?.segments?.[0]?.text).toBe('Item 1');
+      expect(blocks[0]?.items?.[1]?.segments?.[0]?.text).toBe('Item 2');
+    });
+
+    it('should parse ordered lists', () => {
+      const blocks = parseMarkdownToBlocks('1. First\n2. Second');
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]?.type).toBe('orderedList');
+      expect(blocks[0]?.items).toHaveLength(2);
+      expect(blocks[0]?.items?.[0]?.segments?.[0]?.text).toBe('First');
+      expect(blocks[0]?.items?.[1]?.segments?.[0]?.text).toBe('Second');
+    });
+
+    it('should parse list items with formatting', () => {
+      const blocks = parseMarkdownToBlocks('- **Bold item**\n- *Italic item*');
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]?.type).toBe('bulletList');
+      expect(blocks[0]?.items?.[0]?.segments?.[0]?.text).toBe('Bold item');
+      expect(blocks[0]?.items?.[0]?.segments?.[0]?.attributes?.bold).toBe(true);
+      expect(blocks[0]?.items?.[1]?.segments?.[0]?.text).toBe('Italic item');
+      expect(blocks[0]?.items?.[1]?.segments?.[0]?.attributes?.italic).toBe(true);
+    });
+  });
+
+  describe('Complex real-world examples', () => {
+    it('should handle a complex task note', () => {
+      const markdown = `This task requires **attention**!
+
+Please review the [documentation](https://docs.example.com) and update the *configuration*.
+
+Steps:
+- Run \`npm install\`
+- Update the ~~old~~ config file`;
+
+      const segments = parseMarkdownToSegments(markdown);
+
+      // Should have bold "attention"
+      expect(segments.some(s => s.text === 'attention' && s.attributes?.bold === true)).toBe(true);
+
+      // Should have link to documentation
+      const linkSegment = segments.find(s => s.attributes?.link);
+      expect(linkSegment?.attributes?.link?.href).toBe('https://docs.example.com');
+
+      // Should have italic "configuration"
+      expect(segments.some(s => s.text === 'configuration' && s.attributes?.italic === true)).toBe(
+        true
+      );
+
+      // Should have code segment
+      expect(segments.some(s => s.text === 'npm install' && s.attributes?.code === true)).toBe(
+        true
+      );
+
+      // Strikethrough is preserved as plain text with ~~ delimiters (Sunsama doesn't support it)
+      const fullText = segments.map(s => s.text).join('');
+      expect(fullText).toContain('~~old~~');
+    });
+
+    it('should handle issue #17 example: HTML links', () => {
+      // Test the specific case from the issue
+      const markdown = 'Visit: [Google](https://google.com)';
+      const segments = parseMarkdownToSegments(markdown);
+
+      const linkSegment = segments.find(s => s.attributes?.link);
+      expect(linkSegment).toBeDefined();
+      expect(linkSegment?.text).toBe('Google');
+      expect(linkSegment?.attributes?.link?.href).toBe('https://google.com');
+    });
+
+    it('should handle issue #17 example: bold and italic formatting', () => {
+      const markdown = 'This is **bold** and this is *italic*';
+      const segments = parseMarkdownToSegments(markdown);
+
+      expect(segments.some(s => s.text === 'bold' && s.attributes?.bold === true)).toBe(true);
+      expect(segments.some(s => s.text === 'italic' && s.attributes?.italic === true)).toBe(true);
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle unicode and emoji', () => {
+      const segments = parseMarkdownToSegments('Hello 👋 **world** 🌍');
+      const fullText = segments.map(s => s.text).join('');
+      expect(fullText).toContain('👋');
+      expect(fullText).toContain('🌍');
+      expect(segments.some(s => s.text === 'world' && s.attributes?.bold === true)).toBe(true);
+    });
+
+    it('should handle special characters', () => {
+      const segments = parseMarkdownToSegments('Special chars: @#$%^&*() are preserved');
+      const fullText = segments.map(s => s.text).join('');
+      // HTML entities may be encoded, but the content should be parseable
+      expect(fullText).toContain('Special chars');
+      expect(fullText).toContain('are preserved');
+    });
+
+    it('should handle escaped markdown syntax', () => {
+      const segments = parseMarkdownToSegments('Not \\*italic\\*');
+      // The asterisks should appear as literal text, not formatting
+      const fullText = segments.map(s => s.text).join('');
+      expect(fullText).toContain('*italic*');
+    });
   });
 });

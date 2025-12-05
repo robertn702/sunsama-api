@@ -67,6 +67,8 @@ import {
   toISOString,
   htmlToMarkdown,
   markdownToHtml,
+  parseMarkdownToBlocks,
+  type DocumentBlock,
 } from '../utils/index.js';
 
 /**
@@ -929,20 +931,23 @@ export class SunsamaClient {
     // Create a new Yjs document
     const ydoc = new Y.Doc();
 
-    // Create the XML structure: XmlFragment('default') > XmlElement('paragraph') > XmlText
-    // This matches the UI's structure for rich text editing
+    // Get the root fragment
     const fragment = ydoc.getXmlFragment('default');
-    const paragraph = new Y.XmlElement('paragraph');
-    const textNode = new Y.XmlText();
 
-    // Insert the initial notes content (if provided)
-    if (notes) {
-      textNode.insert(0, notes);
-    }
-
-    // Build the structure: fragment contains paragraph, paragraph contains text
-    paragraph.insert(0, [textNode]);
-    fragment.insert(0, [paragraph]);
+    // Parse markdown into block-level structure
+    // Wrap in transaction to batch operations and avoid Yjs warnings
+    ydoc.transact(() => {
+      if (notes) {
+        const blocks = parseMarkdownToBlocks(notes);
+        this.insertBlocksIntoFragment(fragment, blocks);
+      } else {
+        // Create empty paragraph for empty notes
+        const paragraph = new Y.XmlElement('paragraph');
+        fragment.push([paragraph]);
+        const textNode = new Y.XmlText();
+        paragraph.insert(0, [textNode]);
+      }
+    });
 
     // Encode the state vector (compact representation of document state)
     const stateVector = Y.encodeStateVector(ydoc);
@@ -1406,6 +1411,134 @@ export class SunsamaClient {
   }
 
   /**
+   * Inserts document blocks into a Yjs XmlFragment
+   *
+   * This method creates the proper XML element hierarchy for Sunsama's rich text editor,
+   * including paragraphs, blockquotes, horizontal rules, and text with formatting marks.
+   *
+   * @param fragment - The Yjs XmlFragment to insert blocks into
+   * @param blocks - Array of document blocks to insert
+   * @internal
+   */
+  /**
+   * Helper to insert text segments into a text node that's already in the document
+   */
+  private insertSegmentsIntoTextNode(
+    textNode: Y.XmlText,
+    segments: FormattedSegment[],
+    codeBlock = false
+  ): void {
+    let offset = 0;
+    for (const segment of segments) {
+      const attrs = codeBlock ? { code: true } : (segment.attributes as Record<string, unknown>);
+      textNode.insert(offset, segment.text, attrs || undefined);
+      offset += segment.text.length;
+    }
+  }
+
+  private insertBlocksIntoFragment(fragment: Y.XmlFragment, blocks: DocumentBlock[]): void {
+    for (const block of blocks) {
+      switch (block.type) {
+        case 'paragraph': {
+          const paragraph = new Y.XmlElement('paragraph');
+          // Add to document first, then populate
+          fragment.push([paragraph]);
+          const textNode = new Y.XmlText();
+          paragraph.insert(0, [textNode]);
+          if (block.segments) {
+            this.insertSegmentsIntoTextNode(textNode, block.segments);
+          }
+          break;
+        }
+
+        case 'blockquote': {
+          const blockquote = new Y.XmlElement('blockquote');
+          // Add to document first
+          fragment.push([blockquote]);
+
+          if (block.children) {
+            for (const child of block.children) {
+              if (child.type === 'paragraph' && child.segments) {
+                const paragraph = new Y.XmlElement('paragraph');
+                blockquote.push([paragraph]);
+                const textNode = new Y.XmlText();
+                paragraph.insert(0, [textNode]);
+                this.insertSegmentsIntoTextNode(textNode, child.segments);
+              }
+            }
+          }
+          break;
+        }
+
+        case 'horizontalRule': {
+          const hr = new Y.XmlElement('horizontalRule');
+          fragment.push([hr]);
+          break;
+        }
+
+        case 'codeBlock': {
+          const paragraph = new Y.XmlElement('paragraph');
+          fragment.push([paragraph]);
+          const textNode = new Y.XmlText();
+          paragraph.insert(0, [textNode]);
+          if (block.segments) {
+            this.insertSegmentsIntoTextNode(textNode, block.segments, true);
+          }
+          break;
+        }
+
+        case 'bulletList': {
+          const bulletList = new Y.XmlElement('bulletList');
+          fragment.push([bulletList]);
+
+          if (block.items) {
+            for (const item of block.items) {
+              const listItem = new Y.XmlElement('listItem');
+              bulletList.push([listItem]);
+              const paragraph = new Y.XmlElement('paragraph');
+              listItem.push([paragraph]);
+              const textNode = new Y.XmlText();
+              paragraph.insert(0, [textNode]);
+              this.insertSegmentsIntoTextNode(textNode, item.segments);
+            }
+          }
+          break;
+        }
+
+        case 'orderedList': {
+          const orderedList = new Y.XmlElement('orderedList');
+          fragment.push([orderedList]);
+          // Set the start attribute if provided (defaults to 1)
+          if (block.start !== undefined && block.start !== 1) {
+            orderedList.setAttribute('start', block.start);
+          }
+
+          if (block.items) {
+            for (const item of block.items) {
+              const listItem = new Y.XmlElement('listItem');
+              orderedList.push([listItem]);
+              const paragraph = new Y.XmlElement('paragraph');
+              listItem.push([paragraph]);
+              const textNode = new Y.XmlText();
+              paragraph.insert(0, [textNode]);
+              this.insertSegmentsIntoTextNode(textNode, item.segments);
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // If no blocks were added, create an empty paragraph
+    if (fragment.length === 0) {
+      const paragraph = new Y.XmlElement('paragraph');
+      fragment.push([paragraph]);
+      const textNode = new Y.XmlText();
+      paragraph.insert(0, [textNode]);
+    }
+  }
+
+  /**
    * Creates an updated collaborative editing snapshot based on existing state
    *
    * This method takes an existing collaborative snapshot and creates a new one
@@ -1440,22 +1573,25 @@ export class SunsamaClient {
     // Get the XML structure and update it with new content
     const fragment = ydoc.getXmlFragment('default');
 
-    // Clear existing content
-    if (fragment.length > 0) {
-      fragment.delete(0, fragment.length);
-    }
+    // Wrap in transaction to batch operations and avoid Yjs warnings
+    ydoc.transact(() => {
+      // Clear existing content
+      if (fragment.length > 0) {
+        fragment.delete(0, fragment.length);
+      }
 
-    // Create new paragraph structure with text content
-    const paragraph = new Y.XmlElement('paragraph');
-    const textNode = new Y.XmlText();
-
-    if (newContent) {
-      textNode.insert(0, newContent);
-    }
-
-    // Build the structure: fragment contains paragraph, paragraph contains text
-    paragraph.insert(0, [textNode]);
-    fragment.insert(0, [paragraph]);
+      // Parse markdown into block-level structure and insert
+      if (newContent) {
+        const blocks = parseMarkdownToBlocks(newContent);
+        this.insertBlocksIntoFragment(fragment, blocks);
+      } else {
+        // Create empty paragraph for empty content
+        const paragraph = new Y.XmlElement('paragraph');
+        fragment.push([paragraph]);
+        const textNode = new Y.XmlText();
+        paragraph.insert(0, [textNode]);
+      }
+    });
 
     // Encode the state vector (compact representation)
     const stateVector = Y.encodeStateVector(ydoc);
