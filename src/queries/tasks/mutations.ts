@@ -175,3 +175,63 @@ export const UPDATE_TASK_TEXT_MUTATION = gql`
   }
   ${UPDATE_TASK_PAYLOAD_FRAGMENT}
 `;
+
+/**
+ * Mutation for creating subtasks on a task
+ *
+ * This registers new subtask IDs with the parent task. After calling this,
+ * use updateTaskSubtaskTitle to set the title for each subtask.
+ *
+ * Variables:
+ * - input.taskId: The parent task ID
+ * - input.addedSubtaskIds: Array of new subtask IDs to register (24-char hex)
+ * - input.limitResponsePayload: Flag to limit response size (optional)
+ */
+export const CREATE_TASK_SUBTASKS_MUTATION = gql`
+  mutation createTaskSubtasks($input: CreateTaskSubtasksInput!) {
+    createTaskSubtasks(input: $input) {
+      ...UpdateTaskPayload
+      __typename
+    }
+  }
+  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
+`;
+
+/**
+ * Mutation for updating a subtask's title
+ *
+ * Variables:
+ * - input.taskId: The parent task ID
+ * - input.subtaskId: The subtask ID to update
+ * - input.title: The new subtask title
+ * - input.addedSubtaskIds: Additional subtask IDs to add (optional, can be empty array)
+ */
+export const UPDATE_TASK_SUBTASK_TITLE_MUTATION = gql`
+  mutation updateTaskSubtaskTitle($input: UpdateTaskSubtaskTitleInput!) {
+    updateTaskSubtaskTitle(input: $input) {
+      ...UpdateTaskPayload
+      __typename
+    }
+  }
+  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
+`;
+
+/**
+ * Mutation for toggling a subtask's completion status
+ *
+ * Variables:
+ * - input.taskId: The parent task ID
+ * - input.subtaskId: The subtask ID to update
+ * - input.completed: Whether the subtask is completed
+ * - input.completedAt: ISO 8601 timestamp when completed (optional)
+ * - input.limitResponsePayload: Flag to limit response size (optional)
+ */
+export const UPDATE_TASK_SUBTASK_COMPLETE_MUTATION = gql`
+  mutation updateTaskSubtaskComplete($input: UpdateTaskSubtaskCompleteInput!) {
+    updateTaskSubtaskComplete(input: $input) {
+      ...UpdateTaskPayload
+      __typename
+    }
+  }
+  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
+`;
