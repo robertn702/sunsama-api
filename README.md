@@ -355,7 +355,31 @@ tomorrow.setDate(tomorrow.getDate() + 1);
 const result = await client.updateTaskDueDate('taskId', tomorrow);
 ```
 
+#### Managing Subtasks
+
+You can manage subtasks on a task using the subtask methods. Subtasks appear as checkable items within a task in the Sunsama UI.
+
+```typescript
+// Create a subtask with title in one call (recommended)
+const { subtaskId, result } = await client.addSubtask('taskId', 'Buy milk');
+console.log('Created subtask:', subtaskId);
+
+// Or use the low-level API for bulk operations
+const subtaskId1 = SunsamaClient.generateTaskId();
+const subtaskId2 = SunsamaClient.generateTaskId();
+await client.createSubtasks('taskId', [subtaskId1, subtaskId2]);
+await client.updateSubtaskTitle('taskId', subtaskId1, 'First item');
+await client.updateSubtaskTitle('taskId', subtaskId2, 'Second item');
+
+// Mark a subtask as complete
+await client.updateSubtaskComplete('taskId', subtaskId, true);
+
+// Mark a subtask as incomplete
+await client.updateSubtaskComplete('taskId', subtaskId, false);
+```
+
 #### Updating Task Notes
+
 
 The `updateTaskNotes` method uses Yjs-powered collaborative editing to maintain proper synchronization with Sunsama's real-time editor. It accepts content in either HTML or Markdown format and automatically converts to the other format. The task must already exist and have a collaborative editing state.
 
