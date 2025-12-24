@@ -1424,3 +1424,61 @@ export interface UpdateTaskStreamInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for createTaskSubtasks mutation
+ *
+ * Creates new subtasks by registering subtask IDs with the parent task.
+ * After calling this mutation, use updateTaskSubtaskTitle to set titles.
+ */
+export interface CreateTaskSubtasksInput {
+  /** The parent task ID */
+  taskId: string;
+
+  /** Array of new subtask IDs to register (24-char hex, MongoDB ObjectId format) */
+  addedSubtaskIds: string[];
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Input for updateTaskSubtaskTitle mutation
+ *
+ * Updates the title of an existing subtask.
+ */
+export interface UpdateTaskSubtaskTitleInput {
+  /** The parent task ID */
+  taskId: string;
+
+  /** The subtask ID to update */
+  subtaskId: string;
+
+  /** The new subtask title */
+  title: string;
+
+  /** Additional subtask IDs to add (optional, can be empty array) */
+  addedSubtaskIds?: string[];
+}
+
+/**
+ * Input for updateTaskSubtaskComplete mutation
+ *
+ * Toggles the completion status of a subtask.
+ */
+export interface UpdateTaskSubtaskCompleteInput {
+  /** The parent task ID */
+  taskId: string;
+
+  /** The subtask ID to update */
+  subtaskId: string;
+
+  /** Whether the subtask is completed */
+  completed: boolean;
+
+  /** ISO 8601 timestamp when the subtask was completed (optional) */
+  completedAt?: string;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}

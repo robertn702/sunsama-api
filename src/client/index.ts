@@ -10,6 +10,7 @@ import * as Y from 'yjs';
 import { SunsamaAuthError } from '../errors/index.js';
 import {
   CREATE_TASK_MUTATION,
+  CREATE_TASK_SUBTASKS_MUTATION,
   GET_ARCHIVED_TASKS_QUERY,
   GET_STREAMS_BY_GROUP_ID_QUERY,
   GET_TASK_BY_ID_QUERY,
@@ -24,6 +25,8 @@ import {
   UPDATE_TASK_DUE_DATE_MUTATION,
   UPDATE_TASK_TEXT_MUTATION,
   UPDATE_TASK_STREAM_MUTATION,
+  UPDATE_TASK_SUBTASK_TITLE_MUTATION,
+  UPDATE_TASK_SUBTASK_COMPLETE_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -31,6 +34,7 @@ import type {
   CreateTaskOptions,
   CreateTaskPayload,
   CreateTaskResponse,
+  CreateTaskSubtasksInput,
   GetArchivedTasksInput,
   GetArchivedTasksResponse,
   GetStreamsByGroupIdResponse,
@@ -60,6 +64,8 @@ import type {
   UpdateTaskDueDateInput,
   UpdateTaskTextInput,
   UpdateTaskStreamInput,
+  UpdateTaskSubtaskTitleInput,
+  UpdateTaskSubtaskCompleteInput,
   User,
 } from '../types/index.js';
 import {
@@ -1620,6 +1626,193 @@ export class SunsamaClient {
         },
       ],
     };
+  }
+
+  /**
+   * Creates subtasks for a task
+   *
+   * This registers new subtask IDs with the parent task. After calling this,
+   * use updateSubtaskTitle to set the title for each subtask.
+   *
+   * @param taskId - The parent task ID
+   * @param subtaskIds - Array of subtask IDs to register (24-char hex MongoDB ObjectId format)
+   * @param limitResponsePayload - Whether to limit response size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Create subtasks with auto-generated IDs
+   * const subtaskId1 = SunsamaClient.generateTaskId();
+   * const subtaskId2 = SunsamaClient.generateTaskId();
+   * await client.createSubtasks('parentTaskId', [subtaskId1, subtaskId2]);
+   *
+   * // Then set their titles
+   * await client.updateSubtaskTitle('parentTaskId', subtaskId1, 'First subtask');
+   * await client.updateSubtaskTitle('parentTaskId', subtaskId2, 'Second subtask');
+   * ```
+   */
+  async createSubtasks(
+    taskId: string,
+    subtaskIds: string[],
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    const variables: CreateTaskSubtasksInput = {
+      taskId,
+      addedSubtaskIds: subtaskIds,
+      limitResponsePayload,
+    };
+
+    const request: GraphQLRequest<{ input: CreateTaskSubtasksInput }> = {
+      operationName: 'createTaskSubtasks',
+      variables: { input: variables },
+      query: CREATE_TASK_SUBTASKS_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { createTaskSubtasks: UpdateTaskPayload },
+      { input: CreateTaskSubtasksInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.createTaskSubtasks;
+  }
+
+  /**
+   * Updates a subtask's title
+   *
+   * @param taskId - The parent task ID
+   * @param subtaskId - The subtask ID to update
+   * @param title - The new subtask title
+   * @param limitResponsePayload - Whether to limit response size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Update subtask title
+   * await client.updateSubtaskTitle('parentTaskId', 'subtaskId', 'Buy milk');
+   * ```
+   */
+  async updateSubtaskTitle(
+    taskId: string,
+    subtaskId: string,
+    title: string
+  ): Promise<UpdateTaskPayload> {
+    const variables: UpdateTaskSubtaskTitleInput = {
+      taskId,
+      subtaskId,
+      title,
+      addedSubtaskIds: [],
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskSubtaskTitleInput }> = {
+      operationName: 'updateTaskSubtaskTitle',
+      variables: { input: variables },
+      query: UPDATE_TASK_SUBTASK_TITLE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskSubtaskTitle: UpdateTaskPayload },
+      { input: UpdateTaskSubtaskTitleInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.updateTaskSubtaskTitle;
+  }
+
+  /**
+   * Toggles a subtask's completion status
+   *
+   * @param taskId - The parent task ID
+   * @param subtaskId - The subtask ID to update
+   * @param completed - Whether the subtask is completed
+   * @param completedAt - ISO 8601 timestamp when completed (optional, defaults to now if completed is true)
+   * @param limitResponsePayload - Whether to limit response size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Mark subtask as complete
+   * await client.updateSubtaskComplete('parentTaskId', 'subtaskId', true);
+   *
+   * // Mark subtask as incomplete
+   * await client.updateSubtaskComplete('parentTaskId', 'subtaskId', false);
+   * ```
+   */
+  async updateSubtaskComplete(
+    taskId: string,
+    subtaskId: string,
+    completed: boolean,
+    completedAt?: string,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    const variables: UpdateTaskSubtaskCompleteInput = {
+      taskId,
+      subtaskId,
+      completed,
+      completedAt: completed ? (completedAt ?? new Date().toISOString()) : undefined,
+      limitResponsePayload,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskSubtaskCompleteInput }> = {
+      operationName: 'updateTaskSubtaskComplete',
+      variables: { input: variables },
+      query: UPDATE_TASK_SUBTASK_COMPLETE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskSubtaskComplete: UpdateTaskPayload },
+      { input: UpdateTaskSubtaskCompleteInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.updateTaskSubtaskComplete;
+  }
+
+  /**
+   * Convenience method to create a subtask with a title in one call
+   *
+   * This is a convenience wrapper around createSubtasks and updateSubtaskTitle.
+   *
+   * @param taskId - The parent task ID
+   * @param title - The subtask title
+   * @returns The subtask ID and the update result
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Create a subtask with title in one call
+   * const { subtaskId, result } = await client.addSubtask('parentTaskId', 'Buy milk');
+   * console.log('Created subtask:', subtaskId);
+   *
+   * // Later, mark it complete
+   * await client.updateSubtaskComplete('parentTaskId', subtaskId, true);
+   * ```
+   */
+  async addSubtask(
+    taskId: string,
+    title: string
+  ): Promise<{ subtaskId: string; result: UpdateTaskPayload }> {
+    const subtaskId = SunsamaClient.generateTaskId();
+
+    // Step 1: Register the subtask ID
+    await this.createSubtasks(taskId, [subtaskId]);
+
+    // Step 2: Set the title
+    const result = await this.updateSubtaskTitle(taskId, subtaskId, title);
+
+    return { subtaskId, result };
   }
 
   /**
