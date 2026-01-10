@@ -20,51 +20,21 @@
  */
 
 import 'dotenv/config';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { SunsamaClient } from '../../client/index.js';
+import { getAuthenticatedClient, hasCredentials, trackTaskForCleanup } from './setup.js';
 
-// Skip these tests if credentials are not available
-const hasCredentials = process.env['SUNSAMA_EMAIL'] && process.env['SUNSAMA_PASSWORD'];
-
-describe.skipIf(!hasCredentials)('Task Notes Operations (Integration Tests)', () => {
+describe.skipIf(!hasCredentials())('Task Notes Operations (Integration)', () => {
   let client: SunsamaClient;
-  const createdTaskIds: string[] = [];
 
   beforeAll(async () => {
-    if (!hasCredentials) {
-      console.log('Skipping integration tests - credentials not found in .env file');
-      return;
-    }
-
-    // Create client and login
-    client = new SunsamaClient();
-    const email = process.env['SUNSAMA_EMAIL']!;
-    const password = process.env['SUNSAMA_PASSWORD']!;
-
-    await client.login(email, password);
-  });
-
-  afterAll(async () => {
-    if (!hasCredentials || !client) return;
-
-    // Clean up all created tasks
-    // Uncomment to enable cleanup:
-    for (const taskId of createdTaskIds) {
-      try {
-        await client.deleteTask(taskId);
-      } catch (error) {
-        console.error(`Failed to delete task ${taskId}:`, error);
-      }
-    }
-
-    // Logout
-    client.logout();
+    client = await getAuthenticatedClient();
   });
 
   describe('Creating tasks with initial notes', () => {
     it('should create a task with plain text notes', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const notesContent = 'Initial notes added during task creation';
@@ -88,7 +58,7 @@ describe.skipIf(!hasCredentials)('Task Notes Operations (Integration Tests)', ()
 
     it('should create a task with HTML notes', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const htmlNotes = '<p>Task notes with <strong>HTML</strong> formatting</p>';
@@ -110,7 +80,7 @@ describe.skipIf(!hasCredentials)('Task Notes Operations (Integration Tests)', ()
 
     it('should create a task with multiline notes', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const multilineNotes = `Line 1: Project overview
@@ -136,7 +106,7 @@ Line 3: Deadline information`;
   describe('Adding notes to existing tasks', () => {
     it('should add plain text notes to a task created without notes', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const notesContent = 'Check all open PRs in the main repository';
@@ -165,7 +135,7 @@ Line 3: Deadline information`;
 
     it('should add HTML notes to an existing task', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const htmlNotes = '<p>This is a <strong>formatted</strong> note with HTML</p>';
@@ -200,7 +170,7 @@ Line 3: Deadline information`;
 
     it('should add notes using markdown format', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const markdownNotes = 'This is **bold** and this is *italic* text';
@@ -230,7 +200,7 @@ Line 3: Deadline information`;
   describe('Updating existing notes', () => {
     it('should update existing notes with new content', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const initialNotes = 'Original notes content';
@@ -258,7 +228,7 @@ Line 3: Deadline information`;
 
     it('should update notes multiple times consecutively', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
@@ -289,7 +259,7 @@ Line 3: Deadline information`;
 
     it('should replace notes with minimal content', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
@@ -322,7 +292,7 @@ Line 3: Deadline information`;
   describe('Edge cases and special scenarios', () => {
     it('should handle notes with special characters and emojis', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const specialNotes = 'Notes with émojis 🚀 and special chars: @#$%^&*() <tag>';
@@ -354,7 +324,7 @@ Line 3: Deadline information`;
 
     it('should handle long notes content', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       // Create a long note (500+ characters)
@@ -380,7 +350,7 @@ Line 3: Deadline information`;
 
     it('should handle tasks created without notes (null/empty)', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
@@ -402,7 +372,7 @@ Line 3: Deadline information`;
 
     it('should preserve notes when updating other task properties', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const notesContent = 'These notes should remain unchanged';
@@ -431,7 +401,7 @@ Line 3: Deadline information`;
   describe('Notes format interoperability', () => {
     it('should correctly convert between HTML and Markdown formats', async () => {
       const taskId = SunsamaClient.generateTaskId();
-      createdTaskIds.push(taskId);
+      trackTaskForCleanup(taskId);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
