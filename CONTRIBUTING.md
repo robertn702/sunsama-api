@@ -38,17 +38,22 @@ We maintain high code quality standards:
    pnpm test
    ```
 
-2. **Check linting**
+2. **Run integration tests** (if you modified API endpoints)
+   ```bash
+   pnpm test:integration
+   ```
+
+3. **Check linting**
    ```bash
    pnpm lint
    ```
 
-3. **Format code**
+4. **Format code**
    ```bash
    pnpm format
    ```
 
-4. **Build the package**
+5. **Build the package**
    ```bash
    pnpm build
    ```
@@ -94,10 +99,93 @@ src/
 
 ### Testing
 
+The project uses two types of tests:
+
+#### Unit Tests
+- Fast, mocked tests for individual functions
+- Located in `src/__tests__/**/*.test.ts` (excluding `integration/`)
+- Run with `pnpm test`
+- No credentials required
+- Must pass before merging
+
+Guidelines:
 - Write tests for all public APIs
 - Use descriptive test names
 - Group related tests with `describe` blocks
 - Mock external dependencies
+
+#### Integration Tests (Required for API Changes)
+
+**IMPORTANT**: Any changes to existing API endpoints or new endpoint implementations **MUST** include integration tests.
+
+Integration tests:
+- Validate real API behavior with live credentials
+- Located in `src/__tests__/integration/*.test.ts`
+- Use shared authentication to avoid rate limiting
+- Automatically clean up test data
+
+**Running Integration Tests:**
+
+1. **Setup credentials** (first time only):
+   ```bash
+   # Create .env file in project root
+   echo "SUNSAMA_EMAIL=your-email@example.com" >> .env
+   echo "SUNSAMA_PASSWORD=your-password" >> .env
+   ```
+
+2. **Run all integration tests**:
+   ```bash
+   pnpm test:integration
+   ```
+
+3. **Run specific test file**:
+   ```bash
+   # Run only subtask tests
+   pnpm vitest run --config vitest.integration.config.ts src/__tests__/integration/subtasks.test.ts
+
+   # Run only user tests
+   pnpm vitest run --config vitest.integration.config.ts src/__tests__/integration/user.test.ts
+   ```
+
+4. **Run tests matching a pattern**:
+   ```bash
+   # Run only tests with "complete" in the name
+   pnpm vitest run --config vitest.integration.config.ts --grep "complete"
+   ```
+
+**Writing Integration Tests:**
+
+When adding a new API method, follow this pattern:
+
+```typescript
+import { getAuthenticatedClient, hasCredentials, trackTaskForCleanup } from './setup.js';
+
+describe.skipIf(!hasCredentials())('Your Feature (Integration)', () => {
+  let client: SunsamaClient;
+
+  beforeAll(async () => {
+    client = await getAuthenticatedClient(); // Reuses shared session
+  });
+
+  it('should test your feature', async () => {
+    const taskId = SunsamaClient.generateTaskId();
+    trackTaskForCleanup(taskId); // Auto-cleanup after tests
+
+    await client.createTask('Test task', { taskId });
+    // ... your test assertions
+  });
+});
+```
+
+**Integration Test Organization:**
+- `user.test.ts` - User operations
+- `streams.test.ts` - Stream operations
+- `tasks-crud.test.ts` - Task CRUD operations
+- `tasks-scheduling.test.ts` - Task scheduling
+- `tasks-updates.test.ts` - Task property updates
+- `task-notes.test.ts` - Task notes operations
+- `subtasks.test.ts` - Subtask management
+- `archived-tasks.test.ts` - Archived task retrieval
 
 ### Documentation
 
@@ -122,14 +210,16 @@ src/
 
 2. **Make your changes**
    - Follow the coding standards
-   - Add tests for new functionality
+   - Add unit tests for new functionality
+   - Add integration tests for API endpoint changes
    - Update documentation as needed
 
 3. **Test your changes**
    ```bash
-   pnpm test
-   pnpm lint
-   pnpm build
+   pnpm test                    # Unit tests
+   pnpm test:integration        # Integration tests (if API changes)
+   pnpm lint                    # Linting
+   pnpm build                   # Build check
    ```
 
 4. **Commit your changes**
@@ -166,7 +256,7 @@ When reviewing code, consider:
 
 - **Functionality**: Does the code work as intended?
 - **Type Safety**: Are all types properly defined?
-- **Testing**: Are there adequate tests?
+- **Testing**: Are there adequate unit tests? Are integration tests included for API changes?
 - **Performance**: Are there any performance concerns?
 - **Security**: Are there any security implications?
 - **Documentation**: Is the code well-documented?

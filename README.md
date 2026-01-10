@@ -482,7 +482,6 @@ sunsama-api/
 │   ├── utils/           # Utility functions
 │   ├── errors/          # Custom error classes
 │   └── __tests__/       # Test suite
-├── scripts/             # Development and testing scripts
 ├── dist/                # Build output (git ignored)
 │   ├── cjs/            # CommonJS build
 │   ├── esm/            # ES Modules build
@@ -534,6 +533,40 @@ pnpm lint
 - `pnpm typecheck` - Type-check without building
 - `npx changeset` - Create changeset for version bump
 - `pnpm release` - Publish to npm registry
+
+### Testing
+
+The project uses a comprehensive testing strategy with clear separation between unit tests and integration tests:
+
+#### Unit Tests
+- Fast, mocked tests for individual functions and modules
+- Run with `pnpm test`
+- No credentials required
+- Included in CI/CD pipeline
+- Located in `src/__tests__/**/*.test.ts` (excluding `integration/` directory)
+
+#### Integration Tests
+- Real API calls to validate end-to-end functionality
+- Run with `pnpm test:integration` or `pnpm test:auth`
+- Located in `src/__tests__/integration/*.test.ts`
+- Requires credentials in `.env` file:
+  ```bash
+  SUNSAMA_EMAIL=your-email@example.com
+  SUNSAMA_PASSWORD=your-password
+  ```
+- All integration tests share a single authenticated session to avoid rate limiting
+- Tasks created during tests are automatically cleaned up after all tests complete
+- Organized by domain (user, streams, tasks, subtasks, etc.)
+
+Integration tests cover:
+- User operations (getUser, getUserTimezone)
+- Stream operations (getStreamsByGroupId)
+- Task CRUD operations (create, read, update, delete)
+- Task scheduling (updateTaskSnoozeDate)
+- Task updates (text, stream, planned time, due date)
+- Task notes with collaborative editing
+- Subtask management
+- Archived task retrieval
 
 ## Contributing
 
