@@ -9,5 +9,5 @@
     "verbatimModuleSyntax": false,
     "outDir": "./dist/esm"
   },
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/__tests__/**", "**/*.test.ts", "**/*.spec.ts"]
 }

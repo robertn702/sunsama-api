@@ -96,6 +96,12 @@ async function verifyPackage() {
   allChecksPass = checkDirectoryNotExists('dist/cjs/src', 'dist/cjs/src') && allChecksPass;
   allChecksPass = checkDirectoryNotExists('dist/esm/src', 'dist/esm/src') && allChecksPass;
 
+  // Check that test files aren't included in dist/
+  log('\nChecking for unwanted test files:', colors.yellow);
+  allChecksPass = checkDirectoryNotExists('dist/types/__tests__', 'dist/types/__tests__') && allChecksPass;
+  allChecksPass = checkDirectoryNotExists('dist/cjs/__tests__', 'dist/cjs/__tests__') && allChecksPass;
+  allChecksPass = checkDirectoryNotExists('dist/esm/__tests__', 'dist/esm/__tests__') && allChecksPass;
+
   // Final result
   console.log();
   if (allChecksPass) {
