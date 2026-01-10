@@ -217,18 +217,35 @@ export const UPDATE_TASK_SUBTASK_TITLE_MUTATION = gql`
 `;
 
 /**
- * Mutation for toggling a subtask's completion status
+ * Mutation for marking a subtask as complete
  *
  * Variables:
  * - input.taskId: The parent task ID
- * - input.subtaskId: The subtask ID to update
- * - input.completed: Whether the subtask is completed
- * - input.completedAt: ISO 8601 timestamp when completed (optional)
+ * - input.subtaskId: The subtask ID to mark as complete
+ * - input.completedDate: ISO 8601 timestamp when completed (required)
  * - input.limitResponsePayload: Flag to limit response size (optional)
  */
 export const UPDATE_TASK_SUBTASK_COMPLETE_MUTATION = gql`
   mutation updateTaskSubtaskComplete($input: UpdateTaskSubtaskCompleteInput!) {
     updateTaskSubtaskComplete(input: $input) {
+      ...UpdateTaskPayload
+      __typename
+    }
+  }
+  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
+`;
+
+/**
+ * GraphQL mutation for marking a subtask as incomplete
+ *
+ * Input variables:
+ * - input.taskId: The parent task ID
+ * - input.subtaskId: The subtask ID to mark as incomplete
+ * - input.limitResponsePayload: Flag to limit response size (optional)
+ */
+export const UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION = gql`
+  mutation updateTaskSubtaskUncomplete($input: UpdateTaskSubtaskUncompleteInput!) {
+    updateTaskSubtaskUncomplete(input: $input) {
       ...UpdateTaskPayload
       __typename
     }

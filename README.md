@@ -372,10 +372,13 @@ await client.updateSubtaskTitle('taskId', subtaskId1, 'First item');
 await client.updateSubtaskTitle('taskId', subtaskId2, 'Second item');
 
 // Mark a subtask as complete
-await client.updateSubtaskComplete('taskId', subtaskId, true);
+await client.completeSubtask('taskId', subtaskId);
 
 // Mark a subtask as incomplete
-await client.updateSubtaskComplete('taskId', subtaskId, false);
+await client.uncompleteSubtask('taskId', subtaskId);
+
+// Mark complete with specific timestamp
+await client.completeSubtask('taskId', subtaskId, '2025-01-15T10:00:00Z');
 ```
 
 #### Updating Task Notes
