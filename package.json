@@ -82,6 +82,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build && pnpm test && pnpm lint",
+    "postpublish": "git push --follow-tags",
     "release": "changeset publish",
     "docs:dev": "typedoc --watch",
     "docs:build": "typedoc",
