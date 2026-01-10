@@ -84,8 +84,7 @@
     "typecheck": "tsc --noEmit",
     "verify-package": "node scripts/verify-package.js",
     "prepublishOnly": "pnpm build && pnpm test && pnpm lint",
-    "postpublish": "git push --follow-tags",
-    "release": "changeset publish",
+    "release": "changeset publish && git push --follow-tags",
     "docs:dev": "typedoc --watch",
     "docs:build": "typedoc",
     "prepare": "husky"
