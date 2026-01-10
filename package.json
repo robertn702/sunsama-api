@@ -65,6 +65,7 @@
   },
   "scripts": {
     "build": "pnpm clean && pnpm build:types && pnpm build:cjs && pnpm build:esm",
+    "postbuild": "node scripts/verify-package.js",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:esm": "tsc --project tsconfig.esm.json",
@@ -81,6 +82,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
     "typecheck": "tsc --noEmit",
+    "verify-package": "node scripts/verify-package.js",
     "prepublishOnly": "pnpm build && pnpm test && pnpm lint",
     "postpublish": "git push --follow-tags",
     "release": "changeset publish",
