@@ -1,133 +1,199 @@
-# Sunsama API TypeScript Wrapper - Project Context
+# Sunsama API TypeScript Wrapper - LLM Context
 
 ## Project Overview
-This is a TypeScript package that serves as a wrapper around Sunsama's API. Sunsama is a daily planning application that helps users organize tasks, calendar events, and focus time. This wrapper provides a type-safe, developer-friendly interface for interacting with Sunsama's REST API endpoints.
+TypeScript wrapper for Sunsama's GraphQL API. Provides type-safe access to daily planning and task management functionality. Published as NPM package with dual CJS/ESM builds.
 
 ## Technical Stack
-- **Language**: TypeScript
-- **Runtime**: Node.js
-- **IDE**: WebStorm (JetBrains)
-- **Distribution**: NPM package
-- **Target Environment**: Both Node.js and browser environments (if applicable)
-
-## Project Goals
-- Provide a complete TypeScript wrapper for all Sunsama API endpoints
-- Ensure type safety with comprehensive TypeScript definitions
-- Implement proper error handling and response validation
-- Include comprehensive documentation and examples
-- Follow NPM package best practices for distribution
-- Maintain clean, maintainable, and well-tested code
-- Support full CRUD operations: create, read, update, delete tasks
-- Provide access to archived tasks with pagination support
-- Enable task retrieval by ID for individual task operations
-- Support task notes updating with Yjs-powered collaborative editing using XmlFragment structure for proper Sunsama UI synchronization
-- Maintain collaborative editing state consistency for real-time synchronization
-- Provide simplified API with explicit format selection using discriminated unions
-- Support task planned time (time estimate) updating for task management
-- Support task stream assignment and task text/title updates
-- Support task due date management
-
-## Development Environment
-- Primary development is done in WebStorm IDE
-- Standard TypeScript toolchain (tsc, tsconfig.json)
-- Package management via pnpm for development (faster installs, disk space efficiency)
-- Distribution via npm registry for end users
-- Testing framework: Vitest (fast, TypeScript-first testing)
-- Code formatting and linting tools (Prettier, ESLint)
+- **Language**: TypeScript (strict mode)
+- **Runtime**: Node.js >= 16
+- **Build**: Multiple targets (CJS, ESM, TypeScript declarations)
+- **Testing**: Vitest with unit and integration tests
+- **Package Manager**: pnpm (development), npm (distribution)
+- **GraphQL**: gql-tag for query definitions
+- **Special Dependencies**: Yjs (collaborative editing), zod (validation)
 
 ## Development Commands
-- `pnpm dev` - Start development with watch mode
-- `pnpm build` - Build for distribution (CJS, ESM, and types)
-- `pnpm test` - Run test suite with Vitest
-- `pnpm test:auth` - Run real API authentication tests
-- `pnpm test:integration` - Run integration tests (requires credentials in .env)
-- `pnpm test:watch` - Run tests in watch mode
-- `pnpm test:coverage` - Generate test coverage report
-- `pnpm lint` - Check code with ESLint
-- `pnpm format` - Format code with Prettier
-- `pnpm typecheck` - Type-check without building
-- `npx changeset` - Create a changeset for version bump
-- `pnpm release` - Publish to npm registry
-
-## API Wrapper Considerations
-- Authentication handling (API keys, tokens)
-- HTTP client implementation using native fetch API
-- Request/response type definitions
-- Error handling and custom error classes
-- Pagination support for list endpoints (implemented: getArchivedTasks)
-- Collaborative editing support with Yjs integration for real-time document synchronization
-- Real-time updates (webhooks/websockets if supported)
-- Configuration management
-
-## NPM Package Structure
-- Proper package.json configuration
-- pnpm-lock.yaml for development dependency locking
-- TypeScript declaration files (.d.ts)
-- Multiple build targets (CommonJS, ESM)
-- README with usage examples
-- Semantic versioning strategy
-- GitHub Actions CI/CD pipeline for automated testing, building, and publishing to npm registry
-- .npmignore to exclude development files from published package
-- Vitest configuration for comprehensive test coverage
-
-## Key Areas of Focus
-When working on this project, prioritize:
-1. Type safety and developer experience
-2. Comprehensive API coverage
-3. Clear documentation and examples
-4. Robust error handling
-5. Performance optimization
-6. Comprehensive testing with Vitest
-7. Automated CI/CD with GitHub Actions
-8. Backward compatibility considerations
-9. Collaborative editing state management and Yjs integration consistency
+```bash
+pnpm build          # Build all targets (CJS, ESM, types)
+pnpm test           # Unit tests only (fast, mocked)
+pnpm test:integration  # Integration tests (real API, requires .env)
+pnpm typecheck      # Type checking without build
+pnpm lint           # ESLint
+pnpm format         # Prettier
+npx changeset       # Create version bump changeset
+pnpm release        # Publish to npm (runs build + test + lint first)
+```
 
 ## Project Structure
-The codebase is organized with a domain-based architecture:
-- `src/client/` - Main SunsamaClient implementation
-- `src/queries/` - GraphQL operations organized by domain
-  - `tasks/` - Task-related queries and mutations
-  - `streams/` - Stream-related queries
-  - `user/` - User-related queries
-  - `fragments/` - Shared GraphQL fragments
-- `src/types/` - TypeScript type definitions
-- `src/utils/` - Utility functions (conversion, validation)
-- `src/errors/` - Custom error classes
-- `src/__tests__/` - Test files using Vitest
-- `scripts/` - Development and testing scripts
-
-## Recent Improvements (v0.11.1)
-- **Fixed Issue #14**: Task notes now properly sync with Sunsama UI using Y.XmlFragment structure instead of Y.Text
-- **Collaborative Editing Fix**: Updated `createCollabSnapshot()` and `createUpdatedCollabSnapshot()` methods to use XmlFragment('default') → XmlElement('paragraph') → XmlText structure
-- **Domain-based Query Organization**: Refactored GraphQL queries into domain-specific directories (tasks/, streams/, user/, fragments/)
-- **Enhanced Task Management**: Added methods for updateTaskText, updateTaskStream, updateTaskDueDate
-- **Improved Integration Testing**: Comprehensive test suite for task notes with various content types (HTML, markdown, special characters)
-
-## Technical Implementation Details
-### Yjs Collaborative Editing Structure
-The package uses Yjs for collaborative editing synchronization with Sunsama's UI:
 ```
+src/
+├── client/           # Main SunsamaClient class
+├── queries/          # GraphQL queries/mutations by domain
+│   ├── tasks/        # Task operations
+│   ├── streams/      # Stream operations
+│   ├── user/         # User operations
+│   └── fragments/    # Shared GraphQL fragments
+├── types/            # TypeScript type definitions
+├── utils/            # Utility functions (conversion, validation)
+├── errors/           # Custom error classes
+└── __tests__/
+    ├── integration/  # Real API tests (shared auth, auto cleanup)
+    └── *.test.ts     # Unit tests (mocked)
+```
+
+## Architecture Patterns
+
+### GraphQL Client
+- Uses native `fetch` API
+- Cookie-based authentication
+- GraphQL mutations for all operations
+- Type-safe query/mutation functions with gql-tag
+
+### Error Handling
+- Custom error hierarchy: `SunsamaError` → `SunsamaAuthError` / `SunsamaApiError`
+- Always throw errors, never return error objects
+- Include context in error messages
+
+### Type Safety
+- Strict TypeScript configuration
+- Zod schemas for runtime validation
+- No `any` types allowed
+- Discriminated unions for variant types (e.g., task integration types)
+
+### Collaborative Editing (Yjs)
+**CRITICAL**: Task notes use Yjs for real-time sync with Sunsama UI.
+
+Required structure:
+```typescript
 Y.XmlFragment('default')
   └─ Y.XmlElement('paragraph')
       └─ Y.XmlText
           └─ actual content
 ```
-This structure ensures proper synchronization with Sunsama's rich text editor.
 
-### Development Data
-The `dev/` directory contains:
-- Investigation notes for debugging (e.g., `NOTES-issue-14-investigation.md`)
-- Yjs decoding scripts for analyzing collaborative snapshots
-- Test scripts for verifying XmlFragment implementation
-- This directory is gitignored and should never be committed
+**NOT** `Y.Text` directly - this breaks Sunsama UI sync.
 
-## Context for LLM Assistance
-This project involves creating a production-ready TypeScript package that other developers will use to interact with Sunsama's API. Focus on best practices for API wrapper design, TypeScript package development, and NPM distribution. The code should be maintainable, well-documented, and follow modern JavaScript/TypeScript conventions.
+Functions:
+- `createCollabSnapshot(content)` - Create initial snapshot
+- `createUpdatedCollabSnapshot(existingSnapshot, newContent)` - Update existing
 
-When working with collaborative editing features, ensure proper Yjs structure (XmlFragment, not Text) is maintained for Sunsama UI compatibility.
+## Testing Patterns
+
+### Unit Tests
+- Location: `src/__tests__/**/*.test.ts` (excluding `integration/`)
+- Use Vitest with mocked dependencies
+- No real API calls
+- Fast, run in CI/CD
+
+### Integration Tests
+- Location: `src/__tests__/integration/*.test.ts`
+- Real API calls with credentials from `.env`
+- **MUST use shared authentication pattern** to avoid rate limiting
+
+**Pattern for new integration tests:**
+```typescript
+import { getAuthenticatedClient, hasCredentials, trackTaskForCleanup } from './setup.js';
+
+describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
+  let client: SunsamaClient;
+
+  beforeAll(async () => {
+    client = await getAuthenticatedClient(); // Reuses shared session
+  });
+
+  it('should test something', async () => {
+    const taskId = SunsamaClient.generateTaskId();
+    trackTaskForCleanup(taskId); // Auto-cleanup in teardown
+
+    await client.createTask('Test', { taskId });
+    // ... assertions
+  });
+});
+```
+
+**DO NOT:**
+- Create separate `client.login()` calls (causes rate limiting)
+- Skip `trackTaskForCleanup()` (leaves test data)
+- Add `afterAll` cleanup (handled by global teardown)
+
+### Test Organization
+- `user.test.ts` - User operations
+- `streams.test.ts` - Stream operations
+- `tasks-crud.test.ts` - Task CRUD
+- `tasks-scheduling.test.ts` - Task scheduling
+- `tasks-updates.test.ts` - Task property updates
+- `task-notes.test.ts` - Notes with Yjs
+- `subtasks.test.ts` - Subtask management
+- `archived-tasks.test.ts` - Archived task retrieval
+
+## Code Conventions
+
+### File Structure
+- One class/interface per file
+- Use explicit `.js` extensions in imports (ESM requirement)
+- Export types and functions separately
+
+### Naming
+- Interfaces: PascalCase (e.g., `CreateTaskOptions`)
+- Functions: camelCase (e.g., `createTask`)
+- Constants: UPPER_SNAKE_CASE (e.g., `CREATE_TASK_MUTATION`)
+- Private methods: camelCase with underscore prefix (e.g., `_makeRequest`)
+
+### GraphQL
+- Mutations in `src/queries/{domain}/mutations.ts`
+- Queries in `src/queries/{domain}/queries.ts`
+- Fragments in `src/queries/fragments/`
+- Use gql-tag for all operations
+- Include `__typename` in all response types
+
+### API Methods
+- All methods are async and return Promises
+- Use optional parameters with defaults where appropriate
+- Accept Date objects or ISO strings for dates
+- Convert minutes to seconds for time estimates (API uses seconds)
+- Always validate input with Zod schemas
+
+## Common Pitfalls
+
+1. **Yjs Structure**: Must use XmlFragment → XmlElement → XmlText, not Text directly
+2. **Integration Tests**: Must use `getAuthenticatedClient()`, never create new sessions
+3. **ESM Imports**: Must include `.js` extension in relative imports
+4. **Time Units**: API uses seconds, public API uses minutes (convert in client)
+5. **GraphQL Responses**: Always destructure from `data` property
+6. **Task IDs**: Use `generateTaskId()` for custom IDs (MongoDB ObjectId format)
+
+## Development Workflow
+
+### Adding New API Method
+1. Add TypeScript types in `src/types/api.ts`
+2. Add GraphQL mutation/query in `src/queries/{domain}/`
+3. Add client method in `src/client/index.ts`
+4. Add unit tests (mocked)
+5. Add integration test using shared auth pattern
+6. Update README.md with examples
+7. Run `pnpm typecheck && pnpm test && pnpm lint`
+
+### Release Process
+1. Make changes on feature branch
+2. Create PR to main
+3. After merge: `npx changeset` (describe changes)
+4. `pnpm changeset version` (bump version, update CHANGELOG)
+5. Commit version bump
+6. `pnpm release` (publishes to npm, auto-pushes tags)
 
 ## Git Rules
 
-**IMPORTANT**: Never commit the `dev/` directory or any of its files to git. This directory contains development data including sample API responses and testing data that should remain local only.
+- **Branch naming**: `{type}/{short-name}` (e.g., `feat/add-subtasks`, `fix/auth-bug`)
+- **Commit email**: Use GitHub no-reply for this project
 
-**Branch Naming Convention**: Use the format `{type}/{short-name}` where `{type}` follows conventional commit naming convention (feat, fix, chore, refactor, docs, style, test, ci, etc.).
+## Key Areas of Focus
+
+When working on this project:
+1. **Type safety** - No `any`, comprehensive types
+2. **Error handling** - Descriptive errors with context
+3. **Backwards compatibility** - Avoid breaking changes
+4. **Documentation** - Update README for all public APIs
+5. **Testing** - Unit tests + integration tests for all methods
+6. **Yjs structure** - Maintain XmlFragment structure for notes
+7. **Shared auth** - Always use singleton client in integration tests
+8. **Performance** - Minimize API calls, use `limitResponsePayload` where appropriate
