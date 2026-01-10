@@ -726,6 +726,136 @@ async function testRealAuth() {
       console.log('   ⚠️ No streams available to test stream assignment');
     }
 
+    // Test subtask management methods
+    console.log('\n📝 Testing subtask management methods...');
+
+    // Test addSubtask convenience method
+    console.log('\n   Testing addSubtask (convenience method)...');
+    const subtask1 = await client.addSubtask(taskId, 'First subtask - buy groceries');
+
+    console.log('✅ addSubtask successful!');
+    console.log('📊 Subtask Creation Information:');
+    console.log(`   Subtask ID: ${subtask1.subtaskId}`);
+    console.log(`   Success: ${subtask1.result.success}`);
+    console.log(`   Skipped: ${subtask1.result.skipped || false}`);
+
+    // Add a second subtask
+    console.log('\n   Adding second subtask...');
+    const subtask2 = await client.addSubtask(taskId, 'Second subtask - review documents');
+
+    console.log('✅ Second subtask added!');
+    console.log(`   Subtask ID: ${subtask2.subtaskId}`);
+
+    // Test low-level createSubtasks method (bulk create)
+    console.log('\n   Testing createSubtasks (bulk create)...');
+    const subtask3Id = SunsamaClient.generateTaskId();
+    const subtask4Id = SunsamaClient.generateTaskId();
+
+    const bulkCreateResult = await client.createSubtasks(taskId, [subtask3Id, subtask4Id]);
+
+    console.log('✅ createSubtasks (bulk) successful!');
+    console.log('📊 Bulk Subtask Creation Information:');
+    console.log(`   Success: ${bulkCreateResult.success}`);
+    console.log(`   Created subtask IDs: ${subtask3Id}, ${subtask4Id}`);
+
+    // Test updateSubtaskTitle
+    console.log('\n   Testing updateSubtaskTitle...');
+    const titleUpdateResult1 = await client.updateSubtaskTitle(
+      taskId,
+      subtask3Id,
+      'Third subtask - send email'
+    );
+
+    console.log('✅ updateSubtaskTitle (subtask 3) successful!');
+    console.log(`   Success: ${titleUpdateResult1.success}`);
+
+    const titleUpdateResult2 = await client.updateSubtaskTitle(
+      taskId,
+      subtask4Id,
+      'Fourth subtask - schedule meeting'
+    );
+
+    console.log('✅ updateSubtaskTitle (subtask 4) successful!');
+    console.log(`   Success: ${titleUpdateResult2.success}`);
+
+    // Test completeSubtask
+    console.log('\n   Testing completeSubtask...');
+    const completeSubtaskResult = await client.completeSubtask(taskId, subtask1.subtaskId);
+
+    console.log('✅ completeSubtask successful!');
+    console.log('📊 Subtask Completion Information:');
+    console.log(`   Success: ${completeSubtaskResult.success}`);
+    console.log(`   Skipped: ${completeSubtaskResult.skipped || false}`);
+
+    // Mark another subtask as complete
+    console.log('\n   Marking second subtask as complete...');
+    const completeSubtask2Result = await client.completeSubtask(taskId, subtask2.subtaskId);
+
+    console.log('✅ Second subtask marked complete!');
+    console.log(`   Success: ${completeSubtask2Result.success}`);
+
+    // Test uncompleteSubtask
+    console.log('\n   Testing uncompleteSubtask...');
+    const incompleteSubtaskResult = await client.uncompleteSubtask(taskId, subtask1.subtaskId);
+
+    console.log('✅ uncompleteSubtask successful!');
+    console.log('📊 Subtask Incompletion Information:');
+    console.log(`   Success: ${incompleteSubtaskResult.success}`);
+    console.log(`   Skipped: ${incompleteSubtaskResult.skipped || false}`);
+
+    // Verify subtasks by retrieving the task
+    console.log('\n🔍 Verifying subtasks by retrieving task...');
+    const taskWithSubtasks = await client.getTaskById(taskId);
+    if (taskWithSubtasks) {
+      console.log('✅ Task retrieved successfully after subtask operations');
+      console.log(`\n📊 Subtasks Summary (${taskWithSubtasks.subtasks.length} total):`);
+
+      if (taskWithSubtasks.subtasks.length > 0) {
+        taskWithSubtasks.subtasks.forEach((subtask, index) => {
+          const completionStatus = subtask.completed ? '✅' : '⬜';
+          console.log(`   ${index + 1}. ${completionStatus} ${subtask.title || '(no title)'}`);
+          console.log(`      Subtask ID: ${subtask._id}`);
+          console.log(`      Completed: ${subtask.completed}`);
+          if (subtask.completedAt) {
+            console.log(`      Completed At: ${subtask.completedAt}`);
+          }
+        });
+
+        // Verify expected subtasks
+        const expectedSubtaskIds = [subtask1.subtaskId, subtask2.subtaskId, subtask3Id, subtask4Id];
+        const foundSubtaskIds = taskWithSubtasks.subtasks.map(s => s._id);
+
+        const allFound = expectedSubtaskIds.every(id => foundSubtaskIds.includes(id));
+        if (allFound) {
+          console.log('\n✅ All 4 subtasks were successfully created and retrieved');
+        } else {
+          console.log('\n⚠️ Some subtasks may be missing');
+          console.log(`   Expected: ${expectedSubtaskIds.join(', ')}`);
+          console.log(`   Found: ${foundSubtaskIds.join(', ')}`);
+        }
+
+        // Verify completion states
+        const subtask1State = taskWithSubtasks.subtasks.find(s => s._id === subtask1.subtaskId);
+        const subtask2State = taskWithSubtasks.subtasks.find(s => s._id === subtask2.subtaskId);
+
+        if (subtask1State && !subtask1State.completed) {
+          console.log('✅ Subtask 1 correctly marked as incomplete');
+        } else {
+          console.log('⚠️ Subtask 1 completion state may be incorrect');
+        }
+
+        if (subtask2State && subtask2State.completed) {
+          console.log('✅ Subtask 2 correctly marked as complete');
+        } else {
+          console.log('⚠️ Subtask 2 completion state may be incorrect');
+        }
+      } else {
+        console.log('❌ No subtasks found on task after creation');
+      }
+    } else {
+      console.log('❌ Failed to retrieve task after subtask operations');
+    }
+
     // Test updateTaskComplete method
     console.log('\n✅ Testing updateTaskComplete method...');
     console.log(`   Marking task as complete: ${taskId}`);

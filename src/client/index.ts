@@ -27,6 +27,7 @@ import {
   UPDATE_TASK_STREAM_MUTATION,
   UPDATE_TASK_SUBTASK_TITLE_MUTATION,
   UPDATE_TASK_SUBTASK_COMPLETE_MUTATION,
+  UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION,
 } from '../queries/index.js';
 import type {
   CollabSnapshot,
@@ -66,6 +67,7 @@ import type {
   UpdateTaskStreamInput,
   UpdateTaskSubtaskTitleInput,
   UpdateTaskSubtaskCompleteInput,
+  UpdateTaskSubtaskUncompleteInput,
   User,
 } from '../types/index.js';
 import {
@@ -1728,37 +1730,34 @@ export class SunsamaClient {
   }
 
   /**
-   * Toggles a subtask's completion status
+   * Marks a subtask as complete
    *
    * @param taskId - The parent task ID
-   * @param subtaskId - The subtask ID to update
-   * @param completed - Whether the subtask is completed
-   * @param completedAt - ISO 8601 timestamp when completed (optional, defaults to now if completed is true)
+   * @param subtaskId - The subtask ID to mark as complete
+   * @param completedDate - ISO 8601 timestamp when completed (optional, defaults to now)
    * @param limitResponsePayload - Whether to limit response size (defaults to true)
    * @returns The update result with success status and optionally the updated task
    * @throws SunsamaAuthError if not authenticated or request fails
    *
    * @example
    * ```typescript
-   * // Mark subtask as complete
-   * await client.updateSubtaskComplete('parentTaskId', 'subtaskId', true);
+   * // Mark subtask as complete with current timestamp
+   * await client.completeSubtask('parentTaskId', 'subtaskId');
    *
-   * // Mark subtask as incomplete
-   * await client.updateSubtaskComplete('parentTaskId', 'subtaskId', false);
+   * // Mark subtask as complete with specific timestamp
+   * await client.completeSubtask('parentTaskId', 'subtaskId', '2024-01-15T10:00:00Z');
    * ```
    */
-  async updateSubtaskComplete(
+  async completeSubtask(
     taskId: string,
     subtaskId: string,
-    completed: boolean,
-    completedAt?: string,
+    completedDate?: string,
     limitResponsePayload = true
   ): Promise<UpdateTaskPayload> {
     const variables: UpdateTaskSubtaskCompleteInput = {
       taskId,
       subtaskId,
-      completed,
-      completedAt: completed ? (completedAt ?? new Date().toISOString()) : undefined,
+      completedDate: completedDate ?? new Date().toISOString(),
       limitResponsePayload,
     };
 
@@ -1781,6 +1780,50 @@ export class SunsamaClient {
   }
 
   /**
+   * Marks a subtask as incomplete (uncompletes it)
+   *
+   * @param taskId - The parent task ID
+   * @param subtaskId - The subtask ID to mark as incomplete
+   * @param limitResponsePayload - Whether to limit response size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Mark subtask as incomplete
+   * await client.uncompleteSubtask('parentTaskId', 'subtaskId');
+   * ```
+   */
+  async uncompleteSubtask(
+    taskId: string,
+    subtaskId: string,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    const variables: UpdateTaskSubtaskUncompleteInput = {
+      taskId,
+      subtaskId,
+      limitResponsePayload,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskSubtaskUncompleteInput }> = {
+      operationName: 'updateTaskSubtaskUncomplete',
+      variables: { input: variables },
+      query: UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskSubtaskUncomplete: UpdateTaskPayload },
+      { input: UpdateTaskSubtaskUncompleteInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No response data received');
+    }
+
+    return response.data.updateTaskSubtaskUncomplete;
+  }
+
+  /**
    * Convenience method to create a subtask with a title in one call
    *
    * This is a convenience wrapper around createSubtasks and updateSubtaskTitle.
@@ -1797,7 +1840,7 @@ export class SunsamaClient {
    * console.log('Created subtask:', subtaskId);
    *
    * // Later, mark it complete
-   * await client.updateSubtaskComplete('parentTaskId', subtaskId, true);
+   * await client.completeSubtask('parentTaskId', subtaskId);
    * ```
    */
   async addSubtask(

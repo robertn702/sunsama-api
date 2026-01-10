@@ -1464,20 +1464,33 @@ export interface UpdateTaskSubtaskTitleInput {
 /**
  * Input for updateTaskSubtaskComplete mutation
  *
- * Toggles the completion status of a subtask.
+ * Marks a subtask as complete.
  */
 export interface UpdateTaskSubtaskCompleteInput {
   /** The parent task ID */
   taskId: string;
 
-  /** The subtask ID to update */
+  /** The subtask ID to mark as complete */
   subtaskId: string;
 
-  /** Whether the subtask is completed */
-  completed: boolean;
+  /** ISO 8601 timestamp when the subtask was completed */
+  completedDate: string;
 
-  /** ISO 8601 timestamp when the subtask was completed (optional) */
-  completedAt?: string;
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Input for updateTaskSubtaskUncomplete mutation
+ *
+ * Marks a subtask as incomplete (uncompletes it).
+ */
+export interface UpdateTaskSubtaskUncompleteInput {
+  /** The parent task ID */
+  taskId: string;
+
+  /** The subtask ID to mark as incomplete */
+  subtaskId: string;
 
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
