@@ -252,3 +252,28 @@ export const UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION = gql`
   }
   ${UPDATE_TASK_PAYLOAD_FRAGMENT}
 `;
+
+/**
+ * Mutation for moving/reordering a task within a day panel
+ *
+ * Variables:
+ * - input.taskId: The ID of the task being moved
+ * - input.ordinal: The new ordinal position value
+ * - input.taskIds: All task IDs in the panel in order
+ * - input.userId: The user ID
+ * - input.timezone: User's timezone (e.g., "America/Denver")
+ * - input.panelDate: Target panel date (ISO format)
+ * - input.movedFromPanelDate: Source panel date (ISO format)
+ * - input.isMovedFromArchive: Whether task was moved from archive
+ * - input.isMovedFromRolloverToComplete: Whether moved from rollover to complete
+ * - input.isMovedFromCompleteToRollover: Whether moved from complete to rollover
+ * - input.isMovedWithinRollover: Whether moved within rollover
+ */
+export const UPDATE_TASK_MOVE_TO_PANEL_MUTATION = gql`
+  mutation updateTaskMoveToPanel($input: UpdateTaskMoveToPanelInput!) {
+    updateTaskMoveToPanel(input: $input) {
+      updatedTaskIds
+      __typename
+    }
+  }
+`;

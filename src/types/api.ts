@@ -1495,3 +1495,53 @@ export interface UpdateTaskSubtaskUncompleteInput {
   /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
   limitResponsePayload?: boolean;
 }
+
+/**
+ * Input for updateTaskMoveToPanel mutation
+ *
+ * Moves/reorders a task within a day panel.
+ */
+export interface UpdateTaskMoveToPanelInput {
+  /** The ID of the task being moved */
+  taskId: string;
+
+  /** The new ordinal position value (uses spacing system, not 0-indexed) */
+  ordinal: number;
+
+  /** All task IDs in the panel in their new order */
+  taskIds: string[];
+
+  /** The user ID */
+  userId: string;
+
+  /** User's timezone (e.g., "America/Denver") */
+  timezone: string;
+
+  /** Target panel date (ISO format, e.g., "2026-01-12T07:00:00.000Z") */
+  panelDate: string;
+
+  /** Source panel date (ISO format) - same as panelDate for same-day reorder */
+  movedFromPanelDate: string;
+
+  /** Whether task was moved from archive */
+  isMovedFromArchive: boolean;
+
+  /** Whether moved from rollover to complete */
+  isMovedFromRolloverToComplete: boolean;
+
+  /** Whether moved from complete to rollover */
+  isMovedFromCompleteToRollover: boolean;
+
+  /** Whether moved within rollover */
+  isMovedWithinRollover: boolean;
+}
+
+/**
+ * Payload returned by updateTaskMoveToPanel mutation
+ */
+export interface UpdateTaskMoveToPanelPayload {
+  /** Array of task IDs that were updated */
+  updatedTaskIds: string[];
+
+  __typename: 'UpdateTasksBulkPayload';
+}
