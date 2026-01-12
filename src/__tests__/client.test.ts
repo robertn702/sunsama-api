@@ -772,5 +772,74 @@ describe('SunsamaClient', () => {
         'GraphQL errors: Unauthorized'
       );
     });
+
+    it('should have reorderTask method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.reorderTask).toBe('function');
+    });
+
+    it('should throw error when calling reorderTask without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.reorderTask('test-task-id', 0, '2025-01-12')).rejects.toThrow();
+    });
+
+    it('should validate day format in reorderTask', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should reject invalid day format (validation happens before authentication)
+      await expect(client.reorderTask(validTaskId, 0, 'invalid-date')).rejects.toThrow(
+        'Invalid date format'
+      );
+      await expect(client.reorderTask(validTaskId, 0, '2025/01/12')).rejects.toThrow(
+        'Invalid date format'
+      );
+      await expect(client.reorderTask(validTaskId, 0, '01-12-2025')).rejects.toThrow(
+        'Invalid date format'
+      );
+    });
+
+    it('should accept valid parameters in reorderTask', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.reorderTask(validTaskId, 0, '2025-01-12')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should accept valid timezone in reorderTask', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.reorderTask(validTaskId, 0, '2025-01-12', { timezone: 'America/New_York' })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should accept various valid positions in reorderTask', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+      const validTaskId = '685022edbdef77163d659d4a';
+
+      // Position 0 (top)
+      await expect(client.reorderTask(validTaskId, 0, '2025-01-12')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+
+      // Position 1 (second)
+      await expect(client.reorderTask(validTaskId, 1, '2025-01-12')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+
+      // Large position (will be clamped to list end)
+      await expect(client.reorderTask(validTaskId, 100, '2025-01-12')).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
   });
 });
