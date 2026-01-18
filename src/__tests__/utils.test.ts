@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildUrlWithParams,
+  dayToPanelDate,
   isPlainObject,
   validateNonEmptyString,
   validatePositiveNumber,
@@ -77,6 +78,45 @@ describe('Utility Functions', () => {
       expect(isPlainObject(123)).toBe(false);
       expect(isPlainObject(new Date())).toBe(false);
       expect(isPlainObject(new Error())).toBe(false);
+    });
+  });
+
+  describe('dayToPanelDate', () => {
+    it('should convert a regular day to panel date (non-DST)', () => {
+      // January 17, 2025 in New York (EST, UTC-5)
+      // Midnight EST = 5am UTC
+      const result = dayToPanelDate('2025-01-17', 'America/New_York');
+      expect(result).toBe('2025-01-17T05:00:00.000Z');
+    });
+
+    it('should handle DST spring forward day correctly', () => {
+      // March 10, 2024 - US DST starts at 2am (clocks jump to 3am)
+      // At MIDNIGHT on March 10, it's still EST (UTC-5)
+      // So midnight EST = 5am UTC
+      const result = dayToPanelDate('2024-03-10', 'America/New_York');
+      expect(result).toBe('2024-03-10T05:00:00.000Z');
+    });
+
+    it('should handle DST fall back day correctly', () => {
+      // November 3, 2024 - US DST ends at 2am (clocks fall back to 1am)
+      // At MIDNIGHT on November 3, it's still EDT (UTC-4)
+      // So midnight EDT = 4am UTC
+      const result = dayToPanelDate('2024-11-03', 'America/New_York');
+      expect(result).toBe('2024-11-03T04:00:00.000Z');
+    });
+
+    it('should handle non-DST timezone (Arizona)', () => {
+      // Arizona doesn't observe DST, always MST (UTC-7)
+      // March 10, 2024 midnight MST = 7am UTC
+      const result = dayToPanelDate('2024-03-10', 'America/Phoenix');
+      expect(result).toBe('2024-03-10T07:00:00.000Z');
+    });
+
+    it('should handle positive UTC offset timezone', () => {
+      // Tokyo is UTC+9, no DST
+      // January 17, 2025 midnight JST = Jan 16 3pm UTC
+      const result = dayToPanelDate('2025-01-17', 'Asia/Tokyo');
+      expect(result).toBe('2025-01-16T15:00:00.000Z');
     });
   });
 });

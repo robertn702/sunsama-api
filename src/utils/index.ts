@@ -4,6 +4,7 @@
 
 export * from './validation.js';
 export * from './conversion.js';
+export * from './dates.js';
 
 /**
  * Validates that a string is not empty

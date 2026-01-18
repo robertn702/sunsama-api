@@ -79,6 +79,7 @@ import {
   htmlToMarkdown,
   markdownToHtml,
   parseMarkdownToBlocks,
+  dayToPanelDate,
   type DocumentBlock,
   type FormattedSegment,
 } from '../utils/index.js';
@@ -1949,7 +1950,7 @@ export class SunsamaClient {
 
     // Convert day to panel date format (ISO with timezone offset)
     // Sunsama uses the start of day in the user's timezone
-    const panelDate = this.dayToPanelDate(day, timezone);
+    const panelDate = dayToPanelDate(day, timezone);
 
     const input: UpdateTaskMoveToPanelInput = {
       taskId,
@@ -2027,33 +2028,6 @@ export class SunsamaClient {
     const prevOrdinal = getOrdinal(otherTasks[toIndex - 1]!);
     const nextOrdinal = getOrdinal(otherTasks[toIndex]!);
     return Math.floor((prevOrdinal + nextOrdinal) / 2);
-  }
-
-  /**
-   * Converts a day string (YYYY-MM-DD) to Sunsama's panel date format
-   *
-   * @param day - Day in YYYY-MM-DD format
-   * @param timezone - User's timezone
-   * @returns ISO date string for the start of day in the given timezone
-   * @internal
-   */
-  private dayToPanelDate(day: string, timezone: string): string {
-    // Parse the day components
-    const [year, month, dayOfMonth] = day.split('-').map(Number);
-
-    // Get the offset in the target timezone
-    const testDate = new Date(year!, month! - 1, dayOfMonth!, 12, 0, 0);
-    const utcString = testDate.toLocaleString('en-US', { timeZone: 'UTC' });
-    const tzString = testDate.toLocaleString('en-US', { timeZone: timezone });
-    const utcTime = new Date(utcString).getTime();
-    const tzTime = new Date(tzString).getTime();
-    const offsetMs = utcTime - tzTime;
-
-    // Create the panel date at midnight in the target timezone
-    const midnightUtc = new Date(Date.UTC(year!, month! - 1, dayOfMonth!, 0, 0, 0));
-    const panelDate = new Date(midnightUtc.getTime() + offsetMs);
-
-    return panelDate.toISOString();
   }
 
   /**
