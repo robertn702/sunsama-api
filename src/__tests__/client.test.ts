@@ -836,7 +836,7 @@ describe('SunsamaClient', () => {
         'GraphQL errors: Unauthorized'
       );
 
-      // Large position (will be clamped to list end)
+      // Large position (validated against task count at runtime)
       await expect(client.reorderTask(validTaskId, 100, '2025-01-12')).rejects.toThrow(
         'GraphQL errors: Unauthorized'
       );
