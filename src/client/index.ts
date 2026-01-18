@@ -1870,7 +1870,7 @@ export class SunsamaClient {
    * ordinal value and constructs the full task list.
    *
    * @param taskId - The ID of the task to reorder
-   * @param position - The target position (0 = top, 1 = second, etc.)
+   * @param position - The target position (0 = top, 1 = second, etc.). Must be less than the total number of tasks for the day.
    * @param day - The day to reorder within (YYYY-MM-DD format)
    * @param options - Additional options
    * @returns The result with updated task IDs
