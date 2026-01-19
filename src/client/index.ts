@@ -2013,9 +2013,11 @@ export class SunsamaClient {
     }
 
     if (toIndex === 0) {
-      // Moving to top - use half of the first task's ordinal
+      // Moving to top - place before first task's ordinal
+      // Using subtraction instead of division to handle edge cases where
+      // firstOrdinal is 0 or 1 (division would cause collisions)
       const firstOrdinal = getOrdinal(otherTasks[0]!);
-      return Math.floor(firstOrdinal / 2);
+      return firstOrdinal - 1024;
     }
 
     if (toIndex >= otherTasks.length) {
