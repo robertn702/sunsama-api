@@ -209,4 +209,36 @@ describe.skipIf(!hasCredentials())('Task CRUD Operations (Integration)', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('updateTaskUncomplete', () => {
+    it('should mark a completed task as incomplete', async () => {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const taskId = SunsamaClient.generateTaskId();
+      trackTaskForCleanup(taskId);
+
+      await client.createTask(`Test Uncomplete Task - ${timestamp}`, { taskId });
+      await client.updateTaskComplete(taskId);
+
+      const result = await client.updateTaskUncomplete(taskId);
+
+      expect(result.success).toBe(true);
+
+      // Verify task is no longer marked complete
+      const task = await client.getTaskById(taskId);
+      expect(task!.completed).toBe(false);
+    });
+
+    it('should support limitResponsePayload option', async () => {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const taskId = SunsamaClient.generateTaskId();
+      trackTaskForCleanup(taskId);
+
+      await client.createTask(`Test Uncomplete Options - ${timestamp}`, { taskId });
+      await client.updateTaskComplete(taskId);
+
+      const result = await client.updateTaskUncomplete(taskId, false);
+
+      expect(result.success).toBe(true);
+    });
+  });
 });

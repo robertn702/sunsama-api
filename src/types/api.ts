@@ -1018,6 +1018,17 @@ export interface UpdateTaskCompleteInput {
 }
 
 /**
+ * Input for updateTaskUncomplete mutation
+ */
+export interface UpdateTaskUncompleteInput {
+  /** The ID of the task to mark as incomplete */
+  taskId: string;
+
+  /** Flag to limit response payload (returns null for updatedTask and updatedFields when true) */
+  limitResponsePayload?: boolean;
+}
+
+/**
  * Payload returned by updateTaskComplete mutation
  */
 export interface UpdateTaskPayload {

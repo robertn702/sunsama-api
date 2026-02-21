@@ -254,6 +254,23 @@ export const UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION = gql`
 `;
 
 /**
+ * Mutation for marking a task as incomplete (uncompleting it)
+ *
+ * Variables:
+ * - input.taskId: The ID of the task to mark as incomplete
+ * - input.limitResponsePayload: Flag to limit response size (optional)
+ */
+export const UPDATE_TASK_UNCOMPLETE_MUTATION = gql`
+  mutation updateTaskUncomplete($input: UpdateTaskUncompleteInput!) {
+    updateTaskUncomplete(input: $input) {
+      ...UpdateTaskPayload
+      __typename
+    }
+  }
+  ${UPDATE_TASK_PAYLOAD_FRAGMENT}
+`;
+
+/**
  * Mutation for moving/reordering a task within a day panel
  *
  * Variables:

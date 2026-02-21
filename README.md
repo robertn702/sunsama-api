@@ -255,6 +255,12 @@ const completeResultTimed = await client.updateTaskComplete('taskId', '2025-01-1
 // Get full task details in response
 const completeResultFull = await client.updateTaskComplete('taskId', new Date(), false);
 
+// Mark a task as incomplete (uncomplete it)
+const uncompleteResult = await client.updateTaskUncomplete('taskId');
+
+// Get full task details in response
+const uncompleteResultFull = await client.updateTaskUncomplete('taskId', false);
+
 // Delete a task
 const deleteResult = await client.deleteTask('taskId');
 
