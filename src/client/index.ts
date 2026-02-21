@@ -10,7 +10,7 @@
  *         └─ TaskUpdateMethods — updateTaskText, updateTaskNotes, etc.
  *           └─ SubtaskMethods  — createSubtasks, addSubtask, etc.
  *             └─ TaskSchedulingMethods — reorderTask
- *               └─ CalendarEventMethods — createCalendarEvent
+ *               └─ CalendarEventMethods — createCalendarEvent, updateCalendarEvent
  *                 └─ SunsamaClient
  */
 

@@ -2068,6 +2068,62 @@ export interface CreateCalendarEventPayload {
   __typename: 'CreateCalendarEventPayload';
 }
 
+/**
+ * Updated fields returned in calendar event update response
+ */
+export interface UpdateCalendarEventUpdatedFields {
+  /** Updated service IDs */
+  serviceIds: CalendarEventServiceIds | null;
+
+  /** Updated conference data */
+  conferenceData: CalendarEventConferenceData | null;
+
+  /** Updated status */
+  status: string | null;
+
+  /** Updated scheduled-to entries */
+  scheduledTo: CalendarEventScheduledToEntry[] | null;
+
+  /** Updated organizer calendar */
+  organizerCalendar: CalendarEventOrganizerCalendar | null;
+
+  /** Updated invitee list */
+  inviteeList: CalendarEventInvitee[] | null;
+
+  /** Updated location */
+  location: CalendarEventLocation | null;
+
+  /** Updated Google Calendar URL */
+  googleCalendarURL: string | null;
+
+  /** Updated hangout link */
+  hangoutLink: string | null;
+
+  /** Updated permissions */
+  permissions: CalendarEventPermissions | null;
+
+  __typename: 'UpdateCalendarEventUpdatedFields';
+}
+
+/**
+ * Payload returned by updateCalendarEvent mutation
+ */
+export interface UpdateCalendarEventPayload {
+  /** The updated calendar event (null when limitResponsePayload is true) */
+  updatedCalendarEvent: CalendarEvent | null;
+
+  /** Fields that were updated (null when limitResponsePayload is true) */
+  updatedFields: UpdateCalendarEventUpdatedFields | null;
+
+  /** Whether the operation succeeded */
+  success: boolean;
+
+  /** Whether the operation was skipped */
+  skipped: boolean | null;
+
+  __typename: 'UpdateCalendarEventPayload';
+}
+
 // ---- Input types for calendar event mutations ----
 
 /**
@@ -2503,5 +2559,188 @@ export interface CreateCalendarEventOptions {
   seedTaskId?: string;
 
   /** When false, the full created event is returned (default: true) */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Calendar event update data - the fields that can be updated on a calendar event
+ */
+export interface CalendarEventUpdateData {
+  /** Event ID */
+  _id: string;
+
+  /** User ID of the creator */
+  createdBy: string;
+
+  /** Event date range */
+  date: {
+    startDate: string;
+    endDate: string;
+    isAllDay?: boolean | null;
+    timeZone?: string | null;
+  };
+
+  /** List of invitees */
+  inviteeList: Array<{
+    userId?: string | null;
+    email?: string | null;
+    name?: string | null;
+    requirement?: string | null;
+    status?: string | null;
+    type?: { admin?: boolean | null; guest?: boolean | null } | null;
+    profilePicture?: string | null;
+    resource?: boolean | null;
+  }>;
+
+  /** Event location */
+  location: {
+    name: string;
+    address: string;
+    alias: string;
+    coordinate: { lat: number; lng: number };
+  };
+
+  /** Static map URL */
+  staticMapUrl: string;
+
+  /** Event status */
+  status: string;
+
+  /** Event title */
+  title: string;
+
+  /** When the event was created */
+  createdAt: string;
+
+  /** Calendar(s) the event is scheduled to */
+  scheduledTo: Array<{ calendarId: string; userId: string }>;
+
+  /** Organizer calendar info */
+  organizerCalendar: {
+    calendarId: string;
+    calendarDisplayName?: string | null;
+  };
+
+  /** Calendar service (e.g., "google", "microsoft") */
+  service: string;
+
+  /** Cross-service IDs */
+  serviceIds: {
+    google?: string | null;
+    microsoft?: string | null;
+    microsoftUniqueId?: string | null;
+    apple?: string | null;
+    appleRecurrenceId?: string | null;
+    sunsama?: string | null;
+  };
+
+  /** Event description */
+  description: string;
+
+  /** Event sequence number */
+  sequence: number;
+
+  /** Stream IDs */
+  streamIds: string[];
+
+  /** Last modified timestamp */
+  lastModified: string;
+
+  /** Event permissions */
+  permissions: {
+    guestsCanModify?: boolean | null;
+    guestsCanInviteOthers?: boolean | null;
+    guestsCanSeeOtherGuests?: boolean | null;
+    anyoneCanAddSelf?: boolean | null;
+    locked?: boolean | null;
+    privateCopy?: boolean | null;
+  };
+
+  /** Hangout link */
+  hangoutLink: string;
+
+  /** Google Calendar URL */
+  googleCalendarURL: string;
+
+  /** Transparency */
+  transparency: string;
+
+  /** Visibility */
+  visibility: string;
+
+  /** Google location */
+  googleLocation: string | null;
+
+  /** Conference data */
+  conferenceData: CalendarEventConferenceData | null;
+
+  /** Recurring event info */
+  recurringEventInfo: {
+    recurringEventId?: string | null;
+    recurrence?: string | null;
+  } | null;
+
+  /** Run date */
+  runDate: { startDate: string; endDate: string } | null;
+
+  /** Agenda references */
+  agenda: Array<{ _id: string; groupId: string }>;
+
+  /** Outcome references */
+  outcomes: Array<{ _id: string; groupId: string }>;
+
+  /** Child task references */
+  childTasks: Array<{ taskId: string; groupId: string; userId: string }>;
+
+  /** Visualization preferences */
+  visualizationPreferences: Array<{
+    userId: string;
+    settings: { blockProjections?: boolean | null };
+  }> | null;
+
+  /** Seed task reference */
+  seedTask: { _id: string; groupId: string } | null;
+
+  /** Event type */
+  eventType: string;
+}
+
+/**
+ * Input for updateCalendarEvent mutation
+ */
+export interface UpdateCalendarEventInput {
+  /** The calendar event update data */
+  update: CalendarEventUpdateData;
+
+  /** The event ID being updated */
+  eventId: string;
+
+  /** The group ID */
+  groupId: string;
+
+  /** Whether this is an invitee status update */
+  isInviteeStatusUpdate: boolean;
+
+  /** The invitee's email address */
+  inviteeEmail: string;
+
+  /** Whether to skip reordering */
+  skipReorder: boolean;
+
+  /** Flag to limit response payload */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Simplified options for updating a calendar event
+ */
+export interface UpdateCalendarEventOptions {
+  /** Whether this is an invitee status update (defaults to false) */
+  isInviteeStatusUpdate?: boolean;
+
+  /** Whether to skip reordering (defaults to true) */
+  skipReorder?: boolean;
+
+  /** Flag to limit response payload (defaults to true) */
   limitResponsePayload?: boolean;
 }

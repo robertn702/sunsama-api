@@ -287,3 +287,53 @@ export const CREATE_CALENDAR_EVENT_PAYLOAD_FRAGMENT = gql`
   }
   ${CALENDAR_EVENT_FRAGMENT}
 `;
+
+/**
+ * Fragment for UpdateCalendarEventPayload
+ */
+export const UPDATE_CALENDAR_EVENT_PAYLOAD_FRAGMENT = gql`
+  fragment UpdateCalendarEventPayload on UpdateCalendarEventPayload {
+    updatedCalendarEvent {
+      ...CalendarEvent
+      __typename
+    }
+    updatedFields {
+      serviceIds {
+        ...CalendarEventServiceIds
+        __typename
+      }
+      conferenceData {
+        ...CalendarEventConferenceData
+        __typename
+      }
+      status
+      scheduledTo {
+        ...CalendarEventScheduledToEntry
+        __typename
+      }
+      organizerCalendar {
+        ...CalendarEventOrganizerCalendar
+        __typename
+      }
+      inviteeList {
+        ...CalendarEventInvitee
+        __typename
+      }
+      location {
+        ...CalendarEventLocation
+        __typename
+      }
+      googleCalendarURL
+      hangoutLink
+      permissions {
+        ...CalendarEventPermissions
+        __typename
+      }
+      __typename
+    }
+    success
+    skipped
+    __typename
+  }
+  ${CALENDAR_EVENT_FRAGMENT}
+`;

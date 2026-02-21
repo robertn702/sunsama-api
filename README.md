@@ -450,6 +450,37 @@ if (task?.collabSnapshot) {
 }
 ```
 
+### Calendar Events
+
+#### Updating Calendar Events
+
+You can update calendar events using the `updateCalendarEvent` method. This method takes the event ID and a full update object containing all event fields. The update object matches the structure of the calendar event as returned by the Sunsama API.
+
+```typescript
+// Update a calendar event's title and time
+const result = await client.updateCalendarEvent('eventId123', {
+  _id: 'eventId123',
+  createdBy: 'userId',
+  title: 'Updated Meeting Title',
+  date: {
+    startDate: '2026-02-22T10:00:00.000Z',
+    endDate: '2026-02-22T11:00:00.000Z',
+    isAllDay: null,
+    timeZone: null,
+  },
+  // ... other required event fields
+});
+
+// Update with options
+const result = await client.updateCalendarEvent('eventId123', eventData, {
+  skipReorder: true,
+  limitResponsePayload: false,
+});
+
+console.log(result.success); // true
+console.log(result.updatedCalendarEvent?.title); // 'Updated Meeting Title'
+```
+
 ### Streams
 ```typescript
 // Get all streams for the user's group
@@ -631,6 +662,7 @@ Integration tests cover:
 - Task notes with collaborative editing
 - Subtask management
 - Archived task retrieval
+- Calendar event operations
 
 ## Contributing
 

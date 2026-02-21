@@ -1,15 +1,22 @@
 /**
- * Calendar event methods: create calendar events
+ * Calendar event methods: create and update calendar events
  */
 
 import { SunsamaAuthError, SunsamaError, SunsamaValidationError } from '../../errors/index.js';
-import { CREATE_CALENDAR_EVENT_MUTATION } from '../../queries/index.js';
+import {
+  CREATE_CALENDAR_EVENT_MUTATION,
+  UPDATE_CALENDAR_EVENT_MUTATION,
+} from '../../queries/index.js';
 import type {
   CalendarEventInput,
+  CalendarEventUpdateData,
   CreateCalendarEventInput,
   CreateCalendarEventOptions,
   CreateCalendarEventPayload,
   GraphQLRequest,
+  UpdateCalendarEventInput,
+  UpdateCalendarEventOptions,
+  UpdateCalendarEventPayload,
 } from '../../types/index.js';
 import { createCalendarEventArgsSchema } from '../../utils/validation.js';
 import { SunsamaClientBase } from '../base.js';
@@ -203,5 +210,79 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
     }
 
     return response.data.createCalendarEventV2;
+  }
+
+  /**
+   * Updates a calendar event
+   *
+   * This method allows you to update a calendar event's properties such as title, date,
+   * location, invitees, and more. It requires the full event update data object and the
+   * event ID.
+   *
+   * @param eventId - The ID of the calendar event to update
+   * @param update - The calendar event update data containing all event fields
+   * @param options - Additional options for the operation
+   * @returns The update result with the updated calendar event and success status
+   * @throws SunsamaError if not authenticated, no response data, or missing user context
+   *
+   * @example
+   * ```typescript
+   * const result = await client.updateCalendarEvent('eventId123', {
+   *   _id: 'eventId123',
+   *   createdBy: 'userId',
+   *   title: 'Updated Meeting Title',
+   *   date: {
+   *     startDate: '2026-02-22T10:00:00.000Z',
+   *     endDate: '2026-02-22T11:00:00.000Z',
+   *     isAllDay: null,
+   *     timeZone: null,
+   *   },
+   *   // ... other required fields
+   * });
+   * ```
+   */
+  async updateCalendarEvent(
+    eventId: string,
+    update: CalendarEventUpdateData,
+    options?: UpdateCalendarEventOptions
+  ): Promise<UpdateCalendarEventPayload> {
+    // Ensure we have user context
+    if (!this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaError('Unable to determine group ID');
+    }
+
+    // Get the invitee email from the scheduledTo entries or the user's email
+    const inviteeEmail = update.scheduledTo?.[0]?.calendarId ?? '';
+
+    const variables: UpdateCalendarEventInput = {
+      update,
+      eventId,
+      groupId: this.groupId,
+      isInviteeStatusUpdate: options?.isInviteeStatusUpdate ?? false,
+      inviteeEmail,
+      skipReorder: options?.skipReorder ?? true,
+      limitResponsePayload: options?.limitResponsePayload ?? true,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateCalendarEventInput }> = {
+      operationName: 'updateCalendarEvent',
+      variables: { input: variables },
+      query: UPDATE_CALENDAR_EVENT_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateCalendarEventV2: UpdateCalendarEventPayload },
+      { input: UpdateCalendarEventInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaError('No response data received');
+    }
+
+    return response.data.updateCalendarEventV2;
   }
 }

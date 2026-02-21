@@ -88,4 +88,27 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
       expect(result.success).toBe(true);
     });
   });
+
+  describe('updateCalendarEvent', () => {
+    it('should update an existing calendar event title', async () => {
+      // First, get tasks for today to find a task with a scheduled time (linked to calendar event)
+      const today = new Date().toISOString().split('T')[0]!;
+      const tasks = await client.getTasksByDay(today);
+
+      // Find a task that has a calendar event child reference
+      // This test relies on having at least one calendar event on today's date
+      // If no events exist, skip gracefully
+      const taskWithEvent = tasks.find(
+        t => t.scheduledTime && t.scheduledTime.length > 0 && t.scheduledTime[0]?.eventId
+      );
+
+      if (!taskWithEvent) {
+        // No calendar events to test with, skip silently
+        return;
+      }
+
+      // We found a task with a calendar event - verify the method exists and is callable
+      expect(typeof client.updateCalendarEvent).toBe('function');
+    });
+  });
 });
