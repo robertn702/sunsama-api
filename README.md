@@ -24,6 +24,7 @@ A comprehensive TypeScript wrapper for the Sunsama API, providing type-safe acce
 - 📦 **Archive Support**: Access to archived tasks with pagination support
 - 🤝 **Collaborative Editing**: Yjs-powered collaborative snapshot generation with XmlFragment support for proper real-time editing synchronization
 - 📝 **Task Notes Management**: Full CRUD operations for task notes with automatic HTML/Markdown conversion and proper Sunsama UI integration
+- 📆 **Calendar Events**: Create calendar events that sync to external calendar services (Google Calendar, etc.)
 
 ## Installation
 
@@ -456,6 +457,41 @@ const streams = await client.getStreamsByGroupId();
 streams.forEach(stream => {
   console.log(stream.streamName, stream.color);
 });
+```
+
+### Calendar Events
+
+#### Creating Calendar Events
+
+Create calendar events that sync to external calendar services (e.g., Google Calendar).
+
+```typescript
+// Create a simple 30-minute event
+const result = await client.createCalendarEvent(
+  'Team standup',
+  '2026-02-21T09:00:00.000Z',
+  '2026-02-21T09:30:00.000Z'
+);
+
+// Create an event with Date objects
+const result = await client.createCalendarEvent(
+  'Project review',
+  new Date('2026-02-21T14:00:00Z'),
+  new Date('2026-02-21T15:00:00Z'),
+  {
+    description: 'Review Q1 progress',
+    streamIds: ['stream-id-1'],
+    visibility: 'public',
+  }
+);
+
+// Create an event linked to an existing task
+const result = await client.createCalendarEvent(
+  'Work on feature',
+  '2026-02-21T10:00:00.000Z',
+  '2026-02-21T11:00:00.000Z',
+  { seedTaskId: 'existing-task-id' }
+);
 ```
 
 ### Utilities
