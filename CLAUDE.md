@@ -27,18 +27,35 @@ pnpm release        # Publish to npm (runs build + test + lint first)
 ## Project Structure
 ```
 src/
-├── client/           # Main SunsamaClient class
-├── queries/          # GraphQL queries/mutations by domain
-│   ├── tasks/        # Task operations
-│   ├── streams/      # Stream operations
-│   ├── user/         # User operations
-│   └── fragments/    # Shared GraphQL fragments
-├── types/            # TypeScript type definitions
-├── utils/            # Utility functions (conversion, validation)
-├── errors/           # Custom error classes
+├── client/                    # SunsamaClient (assembled via inheritance chain)
+│   ├── index.ts               # SunsamaClient = final assembled class (thin)
+│   ├── base.ts                # SunsamaClientBase — auth, HTTP, session, generateTaskId
+│   └── methods/               # Domain method classes (each extends the previous)
+│       ├── user.ts            # getUser, getUserTimezone, getStreamsByGroupId, task queries
+│       ├── task-lifecycle.ts  # createTask, deleteTask, updateTaskComplete/Uncomplete
+│       ├── task-updates.ts    # updateTaskText/Notes/PlannedTime/DueDate/Stream/SnoozeDate
+│       ├── subtasks.ts        # createSubtasks, updateSubtaskTitle, addSubtask, etc.
+│       └── task-scheduling.ts # reorderTask (top of chain → SunsamaClient extends this)
+├── queries/                   # GraphQL queries/mutations by domain
+│   ├── tasks/                 # Task operations
+│   ├── streams/               # Stream operations
+│   ├── user/                  # User operations
+│   └── fragments/             # Shared GraphQL fragments
+├── types/                     # TypeScript type definitions
+├── utils/                     # Utility functions
+│   ├── collab.ts              # Yjs snapshot helpers (createCollabSnapshot, etc.)
+│   ├── conversion.ts          # HTML ↔ Markdown conversion
+│   ├── validation.ts          # Zod schemas
+│   └── dates.ts               # Timezone/date utilities
+├── errors/                    # Custom error classes
 └── __tests__/
-    ├── integration/  # Real API tests (shared auth, auto cleanup)
-    └── *.test.ts     # Unit tests (mocked)
+    ├── integration/           # Real API tests (shared auth, auto cleanup)
+    └── *.test.ts              # Unit tests (mocked)
+```
+
+**Client inheritance chain** (bottom to top):
+```
+SunsamaClientBase → UserMethods → TaskLifecycleMethods → TaskUpdateMethods → SubtaskMethods → TaskSchedulingMethods → SunsamaClient
 ```
 
 ## Architecture Patterns
@@ -79,8 +96,8 @@ Y.XmlFragment('default')
 
 **NOT** `Y.Text` directly - this breaks Sunsama UI sync.
 
-Functions:
-- `createCollabSnapshot(content)` - Create initial snapshot
+Functions (in `src/utils/collab.ts`, exported from `src/utils/index.ts`):
+- `createCollabSnapshot(taskId, notes)` - Create initial snapshot
 - `createUpdatedCollabSnapshot(existingSnapshot, newContent)` - Update existing
 
 ## Testing Patterns
@@ -173,7 +190,12 @@ describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
 ### Adding New API Method
 1. Add TypeScript types in `src/types/api.ts`
 2. Add GraphQL mutation/query in `src/queries/{domain}/`
-3. Add client method in `src/client/index.ts`
+3. Add client method to the appropriate file in `src/client/methods/`:
+   - Task queries → `user.ts`
+   - Task create/delete/complete/uncomplete → `task-lifecycle.ts`
+   - Task text/notes/time/stream/snooze updates → `task-updates.ts`
+   - Subtask operations → `subtasks.ts`
+   - Scheduling/reorder → `task-scheduling.ts`
 4. Add unit tests (mocked)
 5. Add integration test using shared auth pattern
 6. Update README.md with examples

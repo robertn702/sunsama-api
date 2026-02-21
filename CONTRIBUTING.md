@@ -81,12 +81,33 @@ Fixes #123
 
 ```
 src/
-├── client/           # Main client implementation
-├── types/           # TypeScript type definitions
-├── errors/          # Custom error classes
-├── utils/           # Utility functions
-└── __tests__/       # Test files
+├── client/                    # SunsamaClient (assembled via inheritance chain)
+│   ├── index.ts               # SunsamaClient — thin assembled class
+│   ├── base.ts                # SunsamaClientBase — auth, HTTP, session management
+│   └── methods/               # Domain method classes (each extends the previous)
+│       ├── user.ts            # getUser, task queries, stream queries
+│       ├── task-lifecycle.ts  # createTask, deleteTask, complete/uncomplete
+│       ├── task-updates.ts    # updateTaskText/Notes/PlannedTime/DueDate/Stream/SnoozeDate
+│       ├── subtasks.ts        # createSubtasks, addSubtask, complete/uncomplete subtask
+│       └── task-scheduling.ts # reorderTask
+├── queries/                   # GraphQL queries/mutations by domain
+│   ├── tasks/                 # Task mutations and queries
+│   ├── streams/               # Stream queries
+│   ├── user/                  # User query
+│   └── fragments/             # Shared GraphQL fragments
+├── types/                     # TypeScript type definitions
+├── utils/                     # Utility functions
+│   ├── collab.ts              # Yjs helpers (createCollabSnapshot, etc.)
+│   ├── conversion.ts          # HTML ↔ Markdown conversion
+│   ├── validation.ts          # Zod schemas and validators
+│   └── dates.ts               # Timezone/date utilities
+├── errors/                    # Custom error classes
+└── __tests__/                 # Test files
+    ├── integration/           # Real API tests (shared auth, auto cleanup)
+    └── *.test.ts              # Unit tests (mocked)
 ```
+
+When adding a new API method, add it to the appropriate file in `src/client/methods/` — **not** `src/client/index.ts` (which is just the assembled class). See `CLAUDE.md` for the full mapping.
 
 ## Guidelines
 
