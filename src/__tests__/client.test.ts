@@ -959,5 +959,168 @@ describe('SunsamaClient', () => {
         )
       ).rejects.toThrow('GraphQL errors: Unauthorized');
     });
+
+    it('should have updateCalendarEvent method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateCalendarEvent).toBe('function');
+    });
+
+    it('should throw error when calling updateCalendarEvent without authentication', async () => {
+      const client = new SunsamaClient();
+
+      const update = {
+        _id: 'event123',
+        createdBy: 'user123',
+        title: 'Test Event',
+        date: {
+          startDate: '2026-02-22T10:00:00.000Z',
+          endDate: '2026-02-22T11:00:00.000Z',
+        },
+      };
+
+      // Should fail because no authentication
+      await expect(client.updateCalendarEvent('event123', update as never)).rejects.toThrow();
+    });
+
+    it('should accept valid parameters in updateCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      const update = {
+        _id: '69918750b860250001bdecda',
+        createdBy: '66367c3f3371330001081260',
+        title: 'Updated Event',
+        date: {
+          startDate: '2026-02-22T10:00:00.000Z',
+          endDate: '2026-02-22T11:00:00.000Z',
+          isAllDay: null,
+          timeZone: null,
+        },
+        inviteeList: [],
+        location: {
+          name: '',
+          address: '',
+          alias: '',
+          coordinate: { lat: 0, lng: 0 },
+        },
+        staticMapUrl: '',
+        status: 'scheduled',
+        createdAt: '2022-09-03T06:01:38.000Z',
+        scheduledTo: [{ calendarId: 'test@example.com', userId: '66367c3f3371330001081260' }],
+        organizerCalendar: { calendarId: 'test@example.com', calendarDisplayName: null },
+        service: 'google',
+        serviceIds: {
+          google: 'test-google-id',
+          microsoft: null,
+          microsoftUniqueId: null,
+          apple: null,
+          appleRecurrenceId: null,
+          sunsama: null,
+        },
+        description: '',
+        sequence: 1,
+        streamIds: [],
+        lastModified: '2026-02-21T15:26:09.992Z',
+        permissions: {
+          guestsCanModify: null,
+          guestsCanInviteOthers: true,
+          guestsCanSeeOtherGuests: null,
+          anyoneCanAddSelf: null,
+          locked: null,
+          privateCopy: null,
+        },
+        hangoutLink: '',
+        googleCalendarURL: '',
+        transparency: 'opaque',
+        visibility: 'default',
+        googleLocation: null,
+        conferenceData: null,
+        recurringEventInfo: null,
+        runDate: null,
+        agenda: [],
+        outcomes: [],
+        childTasks: [],
+        visualizationPreferences: null,
+        seedTask: null,
+        eventType: 'default',
+      };
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.updateCalendarEvent('69918750b860250001bdecda', update)).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
+    it('should support options in updateCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      const update = {
+        _id: '69918750b860250001bdecda',
+        createdBy: '66367c3f3371330001081260',
+        title: 'Event With Options',
+        date: {
+          startDate: '2026-02-22T10:00:00.000Z',
+          endDate: '2026-02-22T11:00:00.000Z',
+          isAllDay: null,
+          timeZone: null,
+        },
+        inviteeList: [],
+        location: {
+          name: '',
+          address: '',
+          alias: '',
+          coordinate: { lat: 0, lng: 0 },
+        },
+        staticMapUrl: '',
+        status: 'scheduled',
+        createdAt: '2022-09-03T06:01:38.000Z',
+        scheduledTo: [{ calendarId: 'test@example.com', userId: '66367c3f3371330001081260' }],
+        organizerCalendar: { calendarId: 'test@example.com', calendarDisplayName: null },
+        service: 'google',
+        serviceIds: {
+          google: 'test-google-id',
+          microsoft: null,
+          microsoftUniqueId: null,
+          apple: null,
+          appleRecurrenceId: null,
+          sunsama: null,
+        },
+        description: '',
+        sequence: 1,
+        streamIds: [],
+        lastModified: '2026-02-21T15:26:09.992Z',
+        permissions: {
+          guestsCanModify: null,
+          guestsCanInviteOthers: true,
+          guestsCanSeeOtherGuests: null,
+          anyoneCanAddSelf: null,
+          locked: null,
+          privateCopy: null,
+        },
+        hangoutLink: '',
+        googleCalendarURL: '',
+        transparency: 'opaque',
+        visibility: 'default',
+        googleLocation: null,
+        conferenceData: null,
+        recurringEventInfo: null,
+        runDate: null,
+        agenda: [],
+        outcomes: [],
+        childTasks: [],
+        visualizationPreferences: null,
+        seedTask: null,
+        eventType: 'default',
+      };
+
+      // Should pass validation with options but fail at GraphQL level (unauthorized)
+      await expect(
+        client.updateCalendarEvent('69918750b860250001bdecda', update, {
+          isInviteeStatusUpdate: false,
+          skipReorder: true,
+          limitResponsePayload: false,
+        })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
   });
 });
