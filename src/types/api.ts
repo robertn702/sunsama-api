@@ -1848,7 +1848,7 @@ export interface CalendarEventReference {
   /** Group ID */
   groupId: string;
 
-  __typename: string;
+  __typename: 'CalendarEventReference';
 }
 
 /**
@@ -2214,6 +2214,149 @@ export interface CalendarEventSeedTaskInput {
 }
 
 /**
+ * Input for calendar event invitee
+ */
+export interface CalendarEventInviteeInput {
+  /** User ID of the invitee */
+  userId?: string | null;
+
+  /** Email address */
+  email?: string | null;
+
+  /** Display name */
+  name?: string | null;
+
+  /** Requirement level */
+  requirement?: string | null;
+
+  /** Response status */
+  status?: string | null;
+
+  /** Profile picture URL */
+  profilePicture?: string | null;
+
+  /** Whether this is a resource */
+  resource?: boolean | null;
+}
+
+/**
+ * Input for conference solution key
+ */
+export interface ConferenceSolutionKeyInput {
+  /** Type of conference solution */
+  type: string;
+}
+
+/**
+ * Input for conference create request
+ */
+export interface ConferenceCreateRequestInput {
+  /** Request ID */
+  requestId?: string | null;
+
+  /** Conference solution key */
+  conferenceSolutionKey?: ConferenceSolutionKeyInput | null;
+}
+
+/**
+ * Input for conference entry point
+ */
+export interface ConferenceEntryPointInput {
+  /** Type of entry point */
+  entryPointType?: string | null;
+
+  /** URI for the entry point */
+  uri?: string | null;
+
+  /** Label for the entry point */
+  label?: string | null;
+
+  /** PIN code */
+  pin?: string | null;
+}
+
+/**
+ * Input for conference solution
+ */
+export interface ConferenceSolutionInput {
+  /** Solution key */
+  key?: ConferenceSolutionKeyInput | null;
+
+  /** Solution name */
+  name?: string | null;
+
+  /** Icon URI */
+  iconUri?: string | null;
+}
+
+/**
+ * Input for calendar event conference data
+ */
+export interface CalendarEventConferenceDataInput {
+  /** Create request info */
+  createRequest?: ConferenceCreateRequestInput | null;
+
+  /** Entry points for joining */
+  entryPoints?: ConferenceEntryPointInput[];
+
+  /** Conference solution info */
+  conferenceSolution?: ConferenceSolutionInput | null;
+
+  /** Conference ID */
+  conferenceId?: string | null;
+
+  /** Signature */
+  signature?: string | null;
+}
+
+/**
+ * Input for recurring event info
+ */
+export interface CalendarEventRecurringEventInfoInput {
+  /** Recurring event ID */
+  recurringEventId?: string | null;
+
+  /** Recurrence rule */
+  recurrence?: string[] | null;
+}
+
+/**
+ * Input for calendar event run date
+ */
+export interface CalendarEventRunDateInput {
+  /** Start date */
+  startDate: string;
+
+  /** End date */
+  endDate: string;
+}
+
+/**
+ * Input for calendar event agenda/outcome reference
+ */
+export interface CalendarEventReferenceInput {
+  /** Reference ID */
+  _id: string;
+
+  /** Group ID */
+  groupId: string;
+}
+
+/**
+ * Input for calendar event child task
+ */
+export interface CalendarEventChildTaskInput {
+  /** Task ID */
+  taskId: string;
+
+  /** Group ID */
+  groupId: string;
+
+  /** User ID */
+  userId: string;
+}
+
+/**
  * Calendar event object input for the createCalendarEvent mutation
  */
 export interface CalendarEventInput {
@@ -2227,7 +2370,7 @@ export interface CalendarEventInput {
   date: CalendarEventDateInput;
 
   /** List of invitees */
-  inviteeList: CalendarEventInvitee[];
+  inviteeList: CalendarEventInviteeInput[];
 
   /** Event location */
   location: CalendarEventLocationInput;
@@ -2251,7 +2394,7 @@ export interface CalendarEventInput {
   organizerCalendar: CalendarEventOrganizerCalendarInput;
 
   /** Calendar service (e.g., "google", "microsoft") */
-  service: string;
+  service: 'google' | 'microsoft';
 
   /** External service IDs */
   serviceIds: CalendarEventServiceIdsInput;
@@ -2277,32 +2420,32 @@ export interface CalendarEventInput {
   /** Google Calendar URL */
   googleCalendarURL: string;
 
-  /** Event transparency (e.g., "opaque", "transparent") */
-  transparency: string;
+  /** Event transparency */
+  transparency: 'opaque' | 'transparent';
 
-  /** Event visibility (e.g., "private", "public") */
-  visibility: string;
+  /** Event visibility */
+  visibility: 'private' | 'public' | 'default' | 'confidential';
 
   /** Google location data */
   googleLocation: string | null;
 
   /** Conference data */
-  conferenceData: CalendarEventConferenceData | null;
+  conferenceData: CalendarEventConferenceDataInput | null;
 
   /** Recurring event info */
-  recurringEventInfo: CalendarEventRecurringEventInfo | null;
+  recurringEventInfo: CalendarEventRecurringEventInfoInput | null;
 
   /** Run date info */
-  runDate: CalendarEventRunDate | null;
+  runDate: CalendarEventRunDateInput | null;
 
   /** Agenda items */
-  agenda: CalendarEventReference[];
+  agenda: CalendarEventReferenceInput[];
 
   /** Outcome items */
-  outcomes: CalendarEventReference[];
+  outcomes: CalendarEventReferenceInput[];
 
   /** Child tasks */
-  childTasks: CalendarEventChildTask[];
+  childTasks: CalendarEventChildTaskInput[];
 
   /** Per-user visualization preferences */
   visualizationPreferences: CalendarEventVisualizationPreferenceInput[];
@@ -2342,20 +2485,23 @@ export interface CreateCalendarEventOptions {
   calendarId?: string;
 
   /** Calendar service to use (defaults to "google") */
-  service?: string;
+  service?: 'google' | 'microsoft';
 
   /** Array of stream IDs to associate with the event */
   streamIds?: string[];
 
   /** Event visibility (defaults to "private") */
-  visibility?: string;
+  visibility?: 'private' | 'public' | 'default' | 'confidential';
 
   /** Event transparency (defaults to "opaque") */
-  transparency?: string;
+  transparency?: 'opaque' | 'transparent';
 
   /** Whether this is an all-day event */
   isAllDay?: boolean;
 
   /** Seed task ID to link this event to an existing task */
   seedTaskId?: string;
+
+  /** When false, the full created event is returned (default: true) */
+  limitResponsePayload?: boolean;
 }

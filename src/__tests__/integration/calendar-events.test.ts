@@ -5,7 +5,7 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { SunsamaClient } from '../../client/index.js';
-import { getAuthenticatedClient, hasCredentials } from './setup.js';
+import { getAuthenticatedClient, hasCredentials, trackTaskForCleanup } from './setup.js';
 
 describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', () => {
   let client: SunsamaClient;
@@ -72,6 +72,7 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
 
       // Create a task first
       await client.createTask(`Seed Task for Event - ${timestamp}`, { taskId });
+      trackTaskForCleanup(taskId);
 
       const now = new Date();
       const startDate = new Date(now.getTime() + 4 * 60 * 60 * 1000);
@@ -85,9 +86,6 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
       );
 
       expect(result.success).toBe(true);
-
-      // Clean up the seed task
-      await client.deleteTask(taskId);
     });
   });
 });

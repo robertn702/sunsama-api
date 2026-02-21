@@ -118,6 +118,45 @@ export function validateUpdateTaskCompleteArgs(args: {
   }
 }
 
+const isValidDate = (val: unknown): val is Date | string => {
+  if (val instanceof Date) return !isNaN(val.getTime());
+  if (typeof val === 'string') return !isNaN(new Date(val).getTime());
+  return false;
+};
+
+/**
+ * Schema for validating createCalendarEvent arguments using Zod v4
+ */
+export const createCalendarEventArgsSchema = z
+  .object({
+    title: z.string({ message: 'Title must be a string' }),
+    startDate: z.custom<Date | string>(isValidDate, { message: 'Invalid start date' }),
+    endDate: z.custom<Date | string>(isValidDate, { message: 'Invalid end date' }),
+    visibility: z
+      .enum(['private', 'public', 'default', 'confidential'], {
+        message: 'visibility must be one of: private, public, default, confidential',
+      })
+      .optional(),
+    transparency: z
+      .enum(['opaque', 'transparent'], {
+        message: 'transparency must be one of: opaque, transparent',
+      })
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    const startMs = (
+      data.startDate instanceof Date ? data.startDate : new Date(data.startDate)
+    ).getTime();
+    const endMs = (data.endDate instanceof Date ? data.endDate : new Date(data.endDate)).getTime();
+    if (startMs > endMs) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Start date must be before or equal to end date',
+        path: ['startDate'],
+      });
+    }
+  });
+
 /**
  * Converts a Date or string to ISO string for API usage
  * @param value - Date object or string
