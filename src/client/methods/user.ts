@@ -5,6 +5,7 @@
 import { SunsamaAuthError } from '../../errors/index.js';
 import {
   GET_ARCHIVED_TASKS_QUERY,
+  GET_BACKLOG_FOLDERS_QUERY,
   GET_STREAMS_BY_GROUP_ID_QUERY,
   GET_TASK_BY_ID_QUERY,
   GET_TASKS_BACKLOG_QUERY,
@@ -12,8 +13,11 @@ import {
   GET_USER_QUERY,
 } from '../../queries/index.js';
 import type {
+  BacklogFolder,
   GetArchivedTasksInput,
   GetArchivedTasksResponse,
+  GetBacklogFoldersInput,
+  GetBacklogFoldersResponse,
   GetStreamsByGroupIdResponse,
   GetTaskByIdInput,
   GetTaskByIdResponse,
@@ -78,6 +82,54 @@ export abstract class UserMethods extends SunsamaClientBase {
     }
 
     return this.timezone;
+  }
+
+  /**
+   * Gets backlog folders for the user
+   *
+   * @returns Array of backlog folders
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * const folders = await client.getBacklogFolders();
+   * folders.forEach(folder => {
+   *   console.log(folder.name, folder.position);
+   * });
+   * ```
+   */
+  async getBacklogFolders(): Promise<BacklogFolder[]> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
+    }
+
+    const variables: GetBacklogFoldersInput = {
+      userId: this.userId!,
+      groupId: this.groupId,
+    };
+
+    const request: GraphQLRequest<GetBacklogFoldersInput> = {
+      operationName: 'getBacklogFolders',
+      variables,
+      query: GET_BACKLOG_FOLDERS_QUERY,
+    };
+
+    const response = await this.graphqlRequest<GetBacklogFoldersResponse, GetBacklogFoldersInput>(
+      request
+    );
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No backlog folders data received');
+    }
+
+    return response.data.backlogFolders;
   }
 
   /**
