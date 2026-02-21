@@ -71,10 +71,14 @@ async function example() {
     const archived = await client.getArchivedTasks();
     console.log('Archived tasks:', archived.length);
     
+    // Get backlog folders
+    const folders = await client.getBacklogFolders();
+    console.log('Backlog folders:', folders.length);
+
     // Get streams/projects
     const streams = await client.getStreamsByGroupId();
     console.log('Streams:', streams.length);
-    
+
     // Get user's timezone
     const timezone = await client.getUserTimezone();
     console.log('Timezone:', timezone);
@@ -481,6 +485,15 @@ console.log(result.success); // true
 console.log(result.updatedCalendarEvent?.title); // 'Updated Meeting Title'
 ```
 
+### Backlog Folders
+```typescript
+// Get all backlog folders
+const folders = await client.getBacklogFolders();
+folders.forEach(folder => {
+  console.log(folder.name, folder.position);
+});
+```
+
 ### Streams
 ```typescript
 // Get all streams for the user's group
@@ -655,6 +668,7 @@ The project uses a comprehensive testing strategy with clear separation between 
 
 Integration tests cover:
 - User operations (getUser, getUserTimezone)
+- Backlog folder operations (getBacklogFolders)
 - Stream operations (getStreamsByGroupId)
 - Task CRUD operations (create, read, update, delete)
 - Task scheduling (updateTaskSnoozeDate)

@@ -523,6 +523,55 @@ export interface GetUserResponse {
 }
 
 /**
+ * Backlog folder structure
+ */
+export interface BacklogFolder {
+  /** Folder ID */
+  _id: string;
+
+  /** Folder name */
+  name: string;
+
+  /** Position for ordering */
+  position: number;
+
+  /** Group ID the folder belongs to */
+  groupId: string;
+
+  /** User ID the folder belongs to */
+  userId: string;
+
+  /** Whether the folder is deleted */
+  deleted: boolean;
+
+  /** Creation timestamp */
+  createdAt: string;
+
+  /** Last modified timestamp */
+  lastModified: string;
+
+  __typename: 'BacklogFolder';
+}
+
+/**
+ * Input for getBacklogFolders query
+ */
+export interface GetBacklogFoldersInput {
+  /** User ID */
+  userId: string;
+
+  /** Group ID */
+  groupId: string;
+}
+
+/**
+ * Response for getBacklogFolders query
+ */
+export interface GetBacklogFoldersResponse {
+  backlogFolders: BacklogFolder[];
+}
+
+/**
  * Input for getTasksByDay query
  */
 export interface GetTasksByDayInput {

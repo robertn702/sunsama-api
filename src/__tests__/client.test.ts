@@ -104,6 +104,19 @@ describe('SunsamaClient', () => {
       await expect(client.getTasksBacklog()).rejects.toThrow();
     });
 
+    it('should have getBacklogFolders method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getBacklogFolders).toBe('function');
+    });
+
+    it('should throw error when calling getBacklogFolders without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getBacklogFolders()).rejects.toThrow();
+    });
+
     it('should have getStreamsByGroupId method', () => {
       const client = new SunsamaClient();
 
