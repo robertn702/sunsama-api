@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { SunsamaClient } from '../client/index.js';
+import type { CalendarEventUpdateData } from '../types/index.js';
 
 describe('SunsamaClient', () => {
   describe('constructor', () => {
@@ -980,7 +981,9 @@ describe('SunsamaClient', () => {
       };
 
       // Should fail because no authentication
-      await expect(client.updateCalendarEvent('event123', update as never)).rejects.toThrow();
+      await expect(
+        client.updateCalendarEvent('event123', update as CalendarEventUpdateData)
+      ).rejects.toThrow();
     });
 
     it('should accept valid parameters in updateCalendarEvent', async () => {

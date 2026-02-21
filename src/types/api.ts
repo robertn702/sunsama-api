@@ -2672,7 +2672,7 @@ export interface CalendarEventUpdateData {
   googleLocation: string | null;
 
   /** Conference data */
-  conferenceData: CalendarEventConferenceData | null;
+  conferenceData: CalendarEventConferenceDataInput | null;
 
   /** Recurring event info */
   recurringEventInfo: {
