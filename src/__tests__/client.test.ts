@@ -302,11 +302,11 @@ describe('SunsamaClient', () => {
       const client = new SunsamaClient({ sessionToken: 'test-token' });
 
       // Both calls should use same default values and fail the same way
-      const promise1 = client.getArchivedTasks();
-      const promise2 = client.getArchivedTasks(0, 300);
-
-      await expect(promise1).rejects.toThrow('GraphQL errors: Unauthorized');
-      await expect(promise2).rejects.toThrow('GraphQL errors: Unauthorized');
+      // Use Promise.all to attach rejection handlers before either promise rejects
+      await Promise.all([
+        expect(client.getArchivedTasks()).rejects.toThrow('GraphQL errors: Unauthorized'),
+        expect(client.getArchivedTasks(0, 300)).rejects.toThrow('GraphQL errors: Unauthorized'),
+      ]);
     });
 
     it('should have getTaskById method', () => {
