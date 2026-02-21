@@ -265,6 +265,28 @@ const deleteResultFull = await client.deleteTask('taskId', false);
 const deleteResultMerged = await client.deleteTask('taskId', true, true);
 ```
 
+#### Reordering Tasks
+
+Move a task to a specific position within a day using the `reorderTask` method. Positions are 0-based (0 = top of the list).
+
+```typescript
+// Move a task to the top of today's list
+const result = await client.reorderTask('taskId123', 0, '2026-01-12');
+
+// Move a task to the second position
+const result = await client.reorderTask('taskId123', 1, '2026-01-12');
+
+// Move a task to position 3 (fourth from top)
+const result = await client.reorderTask('taskId123', 3, '2026-01-12');
+
+// With explicit timezone
+const result = await client.reorderTask('taskId123', 0, '2026-01-12', {
+  timezone: 'America/New_York',
+});
+
+console.log(result.updatedTaskIds); // Array of task IDs affected by the reorder
+```
+
 #### Updating Task Text/Title
 
 You can update the text or title of a task using the `updateTaskText` method. This method allows you to change the main title/description of a task and optionally set a recommended stream ID.

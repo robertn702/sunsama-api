@@ -50,9 +50,15 @@ src/
 - Type-safe query/mutation functions with gql-tag
 
 ### Error Handling
-- Custom error hierarchy: `SunsamaError` → `SunsamaAuthError` / `SunsamaApiError`
+- Custom error hierarchy: `SunsamaError` → `SunsamaAuthError` / `SunsamaApiError` / `SunsamaValidationError`
 - Always throw errors, never return error objects
 - Include context in error messages
+- Use the right subclass:
+  - `SunsamaAuthError` — authentication failures only (login failed, session expired, cannot determine user ID)
+  - `SunsamaApiError` — API-level failures with HTTP status (use the existing throw sites in `graphqlRequest` as the primary source)
+  - `SunsamaValidationError` — invalid caller input (bad format, out-of-range values); accepts optional `field` parameter
+  - `SunsamaError` — generic errors that don't fit a more specific class (e.g. missing response data)
+  - **Never** use `SunsamaAuthError` for validation errors or data-not-found conditions
 
 ### Type Safety
 - Strict TypeScript configuration
@@ -185,6 +191,7 @@ describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
 
 - **Branch naming**: `{type}/{short-name}` (e.g., `feat/add-subtasks`, `fix/auth-bug`)
 - **Commit email**: Use GitHub no-reply for this project
+- **Merge strategy**: Use rebase merge (`gh pr merge --rebase`) — not squash or merge commit
 
 ## Key Areas of Focus
 
