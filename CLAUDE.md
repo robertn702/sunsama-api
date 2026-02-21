@@ -187,6 +187,10 @@ describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
 7. **Input vs Response Types**: GraphQL Input types must NOT have `__typename` fields — only response types include `__typename`. When creating new Input types for nested objects (e.g., `CalendarEventInviteeInput`), mirror the response type but omit `__typename`.
 8. **Zod Field-Specific Errors**: Use `z.custom<T>(validator, { message })` instead of `z.union()` when you need field-specific error messages. `z.union()` produces generic "Invalid input" errors when all branches fail, while `z.custom()` emits the exact message you specify.
 9. **trackTaskForCleanup Timing**: Call `trackTaskForCleanup(taskId)` IMMEDIATELY after creating a task, BEFORE any assertions or operations that might throw. This ensures cleanup even if subsequent code throws an error.
+10. **Always normalize dates to ISO 8601**: When accepting `Date | string` inputs, always call `.toISOString()` on strings too (via `new Date(str).toISOString()`), not just on `Date` objects. The API expects strict ISO 8601 format — passing loosely-formatted strings like `"Feb 21, 2026"` or `"2026-02-21"` verbatim will break server-side parsing.
+11. **Zod date validation must use ISO 8601 regex**: The `isValidDate` helper and any Zod schema for date strings should reuse `isoDateSchema` (not plain `new Date(val)`) so only proper ISO 8601 datetime strings are accepted.
+12. **Validation vs Auth errors**: `toISOString` and other input-processing helpers must throw `SunsamaValidationError` (not `SunsamaAuthError`) for bad input — auth errors are reserved for authentication failures only.
+13. **Optional fields over zero-defaults**: For optional spatial/numeric API fields (e.g., coordinates), omit the field entirely rather than defaulting to `{ lat: 0, lng: 0 }` — zero coordinates are a real location (off the coast of Africa) and the API may treat them as such.
 
 ## Development Workflow
 

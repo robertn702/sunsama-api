@@ -10,7 +10,7 @@ import {
   isoDateSchema,
   dateOrStringSchema,
 } from '../utils/validation.js';
-import { SunsamaAuthError } from '../errors/index.js';
+import { SunsamaAuthError, SunsamaValidationError } from '../errors/index.js';
 
 describe('Validation utilities', () => {
   describe('objectIdSchema', () => {
@@ -203,9 +203,9 @@ describe('Validation utilities', () => {
       expect(result).toBe('2025-06-15T10:30:00.000Z');
     });
 
-    it('should throw SunsamaAuthError for invalid dates', () => {
-      expect(() => toISOString('invalid-date')).toThrow(SunsamaAuthError);
-      expect(() => toISOString('')).toThrow(SunsamaAuthError);
+    it('should throw SunsamaValidationError for invalid dates', () => {
+      expect(() => toISOString('invalid-date')).toThrow(SunsamaValidationError);
+      expect(() => toISOString('')).toThrow(SunsamaValidationError);
     });
   });
 });
