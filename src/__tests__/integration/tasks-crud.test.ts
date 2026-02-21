@@ -152,6 +152,53 @@ describe.skipIf(!hasCredentials())('Task CRUD Operations (Integration)', () => {
     });
   });
 
+  describe('getTasksBacklogBucketed', () => {
+    it('should retrieve paginated backlog tasks', async () => {
+      const result = await client.getTasksBacklogBucketed();
+
+      expect(result).toBeDefined();
+      expect(result.pageInfo).toBeDefined();
+      expect(typeof result.pageInfo.hasNextPage).toBe('boolean');
+      expect(Array.isArray(result.tasks)).toBe(true);
+    });
+
+    it('should support custom page size', async () => {
+      const result = await client.getTasksBacklogBucketed({ first: 5 });
+
+      expect(result).toBeDefined();
+      expect(Array.isArray(result.tasks)).toBe(true);
+      expect(result.tasks.length).toBeLessThanOrEqual(5);
+    });
+
+    it('should support cursor-based pagination', async () => {
+      const firstPage = await client.getTasksBacklogBucketed({ first: 2 });
+
+      expect(firstPage).toBeDefined();
+
+      if (firstPage.pageInfo.hasNextPage && firstPage.pageInfo.endCursor) {
+        const secondPage = await client.getTasksBacklogBucketed({
+          first: 2,
+          after: firstPage.pageInfo.endCursor,
+        });
+
+        expect(secondPage).toBeDefined();
+        expect(Array.isArray(secondPage.tasks)).toBe(true);
+      }
+    });
+
+    it('should have valid task properties in backlog results', async () => {
+      const result = await client.getTasksBacklogBucketed({ first: 5 });
+
+      if (result.tasks.length > 0) {
+        const task = result.tasks[0]!;
+
+        expect(task._id).toBeDefined();
+        expect(task.text).toBeDefined();
+        expect(typeof task.completed).toBe('boolean');
+      }
+    });
+  });
+
   describe('deleteTask', () => {
     it('should delete a task', async () => {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

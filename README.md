@@ -142,6 +142,19 @@ const tasksWithTz = await client.getTasksByDay('2025-01-15', 'America/New_York')
 // Get backlog tasks
 const backlog = await client.getTasksBacklog();
 
+// Get paginated backlog tasks (with cursor-based pagination)
+const backlogPage = await client.getTasksBacklogBucketed({ first: 10 });
+console.log('Tasks:', backlogPage.tasks.length);
+console.log('Has more:', backlogPage.pageInfo.hasNextPage);
+
+// Fetch next page
+if (backlogPage.pageInfo.hasNextPage) {
+  const nextPage = await client.getTasksBacklogBucketed({
+    first: 10,
+    after: backlogPage.pageInfo.endCursor,
+  });
+}
+
 // Get archived tasks with pagination
 const archivedTasks = await client.getArchivedTasks();
 const moreArchived = await client.getArchivedTasks(100, 50); // offset 100, limit 50
