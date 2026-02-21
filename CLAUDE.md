@@ -184,6 +184,9 @@ describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
 4. **Time Units**: API uses seconds, public API uses minutes (convert in client)
 5. **GraphQL Responses**: Always destructure from `data` property
 6. **Task IDs**: Use `generateTaskId()` for custom IDs (MongoDB ObjectId format)
+7. **Input vs Response Types**: GraphQL Input types must NOT have `__typename` fields — only response types include `__typename`. When creating new Input types for nested objects (e.g., `CalendarEventInviteeInput`), mirror the response type but omit `__typename`.
+8. **Zod Field-Specific Errors**: Use `z.custom<T>(validator, { message })` instead of `z.union()` when you need field-specific error messages. `z.union()` produces generic "Invalid input" errors when all branches fail, while `z.custom()` emits the exact message you specify.
+9. **trackTaskForCleanup Timing**: Call `trackTaskForCleanup(taskId)` IMMEDIATELY after creating a task, BEFORE any assertions or operations that might throw. This ensures cleanup even if subsequent code throws an error.
 
 ## Development Workflow
 
