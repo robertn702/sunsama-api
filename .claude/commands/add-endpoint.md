@@ -39,7 +39,12 @@ Read these files to understand existing conventions before writing anything:
 - `src/types/api.ts` — find analogous input interfaces
 - `src/queries/tasks/mutations.ts` — see how mutations are structured
 - `src/queries/fragments/index.ts` — see what fragments are available
-- `src/client/index.ts` — find the most similar existing method to model after
+- The appropriate method file in `src/client/methods/` — find the most similar existing method:
+  - Task queries → `src/client/methods/user.ts`
+  - Task create/delete/complete/uncomplete → `src/client/methods/task-lifecycle.ts`
+  - Task text/notes/time/stream/snooze updates → `src/client/methods/task-updates.ts`
+  - Subtask operations → `src/client/methods/subtasks.ts`
+  - Scheduling/reorder → `src/client/methods/task-scheduling.ts`
 - `src/__tests__/client.test.ts` — see unit test patterns
 - `src/__tests__/integration/tasks-crud.test.ts` — see integration test patterns
 
@@ -100,11 +105,11 @@ export const UPDATE_TASK_FOO_MUTATION = gql`
 
 ### 6. Add the client method
 
-Add the method to `src/client/index.ts`:
+Add the method to the appropriate file in `src/client/methods/` (identified in step 3):
 
-1. Import the new mutation constant (add to the existing import block at the top)
-2. Import the new input type (add to the existing type import block)
-3. Add the method in alphabetical order among similar methods
+1. Import the new mutation constant at the top of the method file
+2. Import the new input type at the top of the method file
+3. Add the method in alphabetical order among similar methods in that class
 
 Method conventions:
 - All methods are `async` and return `Promise<...>`
