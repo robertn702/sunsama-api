@@ -164,6 +164,19 @@ describe('SunsamaClient', () => {
       );
     });
 
+    it('should have updateTaskUncomplete method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTaskUncomplete).toBe('function');
+    });
+
+    it('should throw error when calling updateTaskUncomplete without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTaskUncomplete('test-task-id')).rejects.toThrow();
+    });
+
     it('should have deleteTask method', () => {
       const client = new SunsamaClient();
 

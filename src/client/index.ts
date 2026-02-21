@@ -28,6 +28,7 @@ import {
   UPDATE_TASK_SUBTASK_TITLE_MUTATION,
   UPDATE_TASK_SUBTASK_COMPLETE_MUTATION,
   UPDATE_TASK_SUBTASK_UNCOMPLETE_MUTATION,
+  UPDATE_TASK_UNCOMPLETE_MUTATION,
   UPDATE_TASK_MOVE_TO_PANEL_MUTATION,
 } from '../queries/index.js';
 import type {
@@ -58,6 +59,7 @@ import type {
   TaskSnoozeInput,
   UpdateTaskCompleteInput,
   UpdateTaskDeleteInput,
+  UpdateTaskUncompleteInput,
   UpdateTaskNotesInput,
   UpdateTaskNotesOptions,
   UpdateTaskPayload,
@@ -128,6 +130,16 @@ export class SunsamaClient {
   async isAuthenticated(): Promise<boolean> {
     const cookies = await this.cookieJar.getCookies(SunsamaClient.BASE_URL);
     return cookies.some(cookie => cookie.key === 'sunsamaSession');
+  }
+
+  /**
+   * Returns the current session token, or undefined if not authenticated
+   *
+   * @returns The session token string, or undefined
+   */
+  async getSessionToken(): Promise<string | undefined> {
+    const cookies = await this.cookieJar.getCookies(SunsamaClient.BASE_URL);
+    return cookies.find(cookie => cookie.key === 'sunsamaSession')?.value;
   }
 
   /**
@@ -638,6 +650,50 @@ export class SunsamaClient {
     }
 
     return response.data.updateTaskComplete;
+  }
+
+  /**
+   * Marks a task as incomplete (uncompletes it)
+   *
+   * @param taskId - The ID of the task to mark as incomplete
+   * @param limitResponsePayload - Whether to limit the response payload size (defaults to true)
+   * @returns The update result with success status and optionally the updated task
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Mark a task as incomplete
+   * const result = await client.updateTaskUncomplete('taskId');
+   *
+   * // Get full task details in response
+   * const result = await client.updateTaskUncomplete('taskId', false);
+   * ```
+   */
+  async updateTaskUncomplete(
+    taskId: string,
+    limitResponsePayload = true
+  ): Promise<UpdateTaskPayload> {
+    const variables: UpdateTaskUncompleteInput = {
+      taskId,
+      limitResponsePayload,
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTaskUncompleteInput }> = {
+      operationName: 'updateTaskUncomplete',
+      variables: { input: variables },
+      query: UPDATE_TASK_UNCOMPLETE_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTaskUncomplete: UpdateTaskPayload },
+      { input: UpdateTaskUncompleteInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaError('No response data received');
+    }
+
+    return response.data.updateTaskUncomplete;
   }
 
   /**
