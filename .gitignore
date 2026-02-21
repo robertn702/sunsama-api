@@ -115,6 +115,7 @@ Thumbs.db
 
 # Claude local config
 .claude/settings.local.json
+.claude/**/*.local.md
 
 # Integration test session token (written by globalSetup, deleted by teardown)
 .integration-session.tmp
