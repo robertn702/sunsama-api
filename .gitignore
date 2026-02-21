@@ -113,5 +113,8 @@ Thumbs.db
 # MCP configuration
 .mcp.json
 
-# Claude commands
-.claude/commands
+# Claude local config
+.claude/settings.local.json
+
+# Integration test session token (written by globalSetup, deleted by teardown)
+.integration-session.tmp

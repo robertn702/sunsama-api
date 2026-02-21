@@ -3,11 +3,18 @@
  *
  * This module provides a singleton authenticated SunsamaClient instance
  * that is shared across all integration tests to avoid rate limiting.
+ *
+ * Each fork worker reads the session token written by globalSetup and
+ * constructs a client with it directly, avoiding repeated login() calls.
  */
 
 /* eslint-disable no-console */
 
+import fs from 'fs';
+import path from 'path';
 import { SunsamaClient } from '../../client/index.js';
+
+const SESSION_TOKEN_FILE = path.resolve('.integration-session.tmp');
 
 let sharedClient: SunsamaClient | null = null;
 const createdTaskIds: string[] = [];
@@ -15,14 +22,25 @@ const createdTaskIds: string[] = [];
 /**
  * Get or create an authenticated SunsamaClient instance
  *
- * This function returns a singleton client that authenticates once
- * and is reused across all integration tests.
+ * Prefers reusing the session token written by globalSetup to avoid
+ * calling login() in every fork worker. Falls back to login() if the
+ * token file is not present (e.g. running a single test file directly).
  */
 export async function getAuthenticatedClient(): Promise<SunsamaClient> {
   if (sharedClient) {
     return sharedClient;
   }
 
+  // Prefer the pre-shared session token to avoid repeated logins
+  if (fs.existsSync(SESSION_TOKEN_FILE)) {
+    const token = fs.readFileSync(SESSION_TOKEN_FILE, 'utf-8').trim();
+    if (token) {
+      sharedClient = new SunsamaClient({ sessionToken: token });
+      return sharedClient;
+    }
+  }
+
+  // Fallback: login directly (used when running a single test file without globalSetup)
   const email = process.env['SUNSAMA_EMAIL'];
   const password = process.env['SUNSAMA_PASSWORD'];
 
