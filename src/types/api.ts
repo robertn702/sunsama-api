@@ -1556,3 +1556,806 @@ export interface UpdateTaskMoveToPanelPayload {
 
   __typename: 'UpdateTasksBulkPayload';
 }
+
+// ==========================================
+// Calendar Event Types
+// ==========================================
+
+/**
+ * Calendar event date range
+ */
+export interface CalendarEventDate {
+  /** Start date (ISO 8601 string) */
+  startDate: string;
+
+  /** End date (ISO 8601 string) */
+  endDate: string;
+
+  /** Whether this is an all-day event */
+  isAllDay: boolean | null;
+
+  /** Timezone for the event */
+  timeZone: string | null;
+
+  __typename: 'CalendarEventDate';
+}
+
+/**
+ * Calendar event coordinate
+ */
+export interface CalendarEventCoordinate {
+  /** Latitude */
+  lat: number;
+
+  /** Longitude */
+  lng: number;
+
+  __typename: 'CalendarEventCoordinate';
+}
+
+/**
+ * Calendar event location
+ */
+export interface CalendarEventLocation {
+  /** Location name */
+  name: string;
+
+  /** Location address */
+  address: string;
+
+  /** Location alias */
+  alias: string;
+
+  /** Geographic coordinates */
+  coordinate: CalendarEventCoordinate;
+
+  __typename: 'CalendarEventLocation';
+}
+
+/**
+ * Calendar event invitee type
+ */
+export interface CalendarEventInviteeType {
+  /** Whether the invitee is an admin */
+  admin: boolean | null;
+
+  /** Whether the invitee is a guest */
+  guest: boolean | null;
+
+  __typename: 'CalendarEventInviteeType';
+}
+
+/**
+ * Calendar event invitee
+ */
+export interface CalendarEventInvitee {
+  /** User ID of the invitee */
+  userId: string | null;
+
+  /** Email address */
+  email: string | null;
+
+  /** Display name */
+  name: string | null;
+
+  /** Requirement level */
+  requirement: string | null;
+
+  /** Response status */
+  status: string | null;
+
+  /** Invitee type */
+  type: CalendarEventInviteeType | null;
+
+  /** Profile picture URL */
+  profilePicture: string | null;
+
+  /** Whether this is a resource */
+  resource: boolean | null;
+
+  __typename: 'CalendarEventInvitee';
+}
+
+/**
+ * Calendar event service IDs for external calendar services
+ */
+export interface CalendarEventServiceIds {
+  /** Google Calendar event ID */
+  google: string | null;
+
+  /** Microsoft Calendar event ID */
+  microsoft: string | null;
+
+  /** Microsoft unique ID */
+  microsoftUniqueId: string | null;
+
+  /** Apple Calendar event ID */
+  apple: string | null;
+
+  /** Apple recurrence ID */
+  appleRecurrenceId: string | null;
+
+  /** Sunsama internal ID */
+  sunsama: string | null;
+
+  __typename: 'CalendarEventServiceIds';
+}
+
+/**
+ * Calendar event scheduled-to entry
+ */
+export interface CalendarEventScheduledToEntry {
+  /** Calendar ID (usually email address) */
+  calendarId: string;
+
+  /** User ID */
+  userId: string;
+
+  __typename: 'CalendarEventScheduledToEntry';
+}
+
+/**
+ * Calendar event organizer calendar info
+ */
+export interface CalendarEventOrganizerCalendar {
+  /** Calendar ID (usually email address) */
+  calendarId: string;
+
+  /** Display name of the calendar */
+  calendarDisplayName: string;
+
+  __typename: 'CalendarEventOrganizerCalendar';
+}
+
+/**
+ * Calendar event permissions
+ */
+export interface CalendarEventPermissions {
+  /** Whether guests can modify the event */
+  guestsCanModify: boolean | null;
+
+  /** Whether guests can invite others */
+  guestsCanInviteOthers: boolean | null;
+
+  /** Whether guests can see other guests */
+  guestsCanSeeOtherGuests: boolean | null;
+
+  /** Whether anyone can add themselves */
+  anyoneCanAddSelf: boolean | null;
+
+  /** Whether the event is locked */
+  locked: boolean | null;
+
+  /** Whether this is a private copy */
+  privateCopy: boolean | null;
+
+  __typename: 'CalendarEventPermissions';
+}
+
+/**
+ * Conference solution key
+ */
+export interface ConferenceSolutionKey {
+  /** Type of conference solution */
+  type: string;
+
+  __typename: 'ConferenceSolutionKey';
+}
+
+/**
+ * Conference create request
+ */
+export interface ConferenceCreateRequest {
+  /** Request ID */
+  requestId: string | null;
+
+  /** Conference solution key */
+  conferenceSolutionKey: ConferenceSolutionKey | null;
+
+  __typename: 'ConferenceCreateRequest';
+}
+
+/**
+ * Conference entry point
+ */
+export interface ConferenceEntryPoint {
+  /** Type of entry point */
+  entryPointType: string | null;
+
+  /** URI for the entry point */
+  uri: string | null;
+
+  /** Label for the entry point */
+  label: string | null;
+
+  /** PIN code */
+  pin: string | null;
+
+  __typename: 'ConferenceEntryPoint';
+}
+
+/**
+ * Conference solution
+ */
+export interface ConferenceSolution {
+  /** Solution key */
+  key: ConferenceSolutionKey | null;
+
+  /** Solution name */
+  name: string | null;
+
+  /** Icon URI */
+  iconUri: string | null;
+
+  __typename: 'ConferenceSolution';
+}
+
+/**
+ * Calendar event conference data
+ */
+export interface CalendarEventConferenceData {
+  /** Create request info */
+  createRequest: ConferenceCreateRequest | null;
+
+  /** Entry points for joining */
+  entryPoints: ConferenceEntryPoint[];
+
+  /** Conference solution info */
+  conferenceSolution: ConferenceSolution | null;
+
+  /** Conference ID */
+  conferenceId: string | null;
+
+  /** Signature */
+  signature: string | null;
+
+  __typename: 'CalendarEventConferenceData';
+}
+
+/**
+ * Recurring event info
+ */
+export interface CalendarEventRecurringEventInfo {
+  /** Recurring event ID */
+  recurringEventId: string | null;
+
+  /** Recurrence rule */
+  recurrence: string[] | null;
+
+  __typename: 'CalendarEventRecurringEventInfo';
+}
+
+/**
+ * Calendar event run date
+ */
+export interface CalendarEventRunDate {
+  /** Start date */
+  startDate: string;
+
+  /** End date */
+  endDate: string;
+
+  __typename: 'CalendarEventRunDate';
+}
+
+/**
+ * Calendar event agenda/outcome reference
+ */
+export interface CalendarEventReference {
+  /** Reference ID */
+  _id: string;
+
+  /** Group ID */
+  groupId: string;
+
+  __typename: string;
+}
+
+/**
+ * Calendar event child task
+ */
+export interface CalendarEventChildTask {
+  /** Task ID */
+  taskId: string;
+
+  /** Group ID */
+  groupId: string;
+
+  /** User ID */
+  userId: string;
+
+  __typename: 'CalendarEventChildTask';
+}
+
+/**
+ * Calendar event visualization preference settings
+ */
+export interface CalendarEventVisualizationSettings {
+  /** Block projections setting */
+  blockProjections: boolean | null;
+
+  __typename: 'CalendarEventVisualizationSettings';
+}
+
+/**
+ * Calendar event visualization preference per user
+ */
+export interface CalendarEventVisualizationPreference {
+  /** User ID */
+  userId: string;
+
+  /** Visualization settings */
+  settings: CalendarEventVisualizationSettings;
+
+  __typename: 'CalendarEventVisualizationPreference';
+}
+
+/**
+ * Calendar event seed task reference
+ */
+export interface CalendarEventSeedTask {
+  /** Task ID */
+  _id: string;
+
+  /** Group ID */
+  groupId: string;
+
+  __typename: 'CalendarEventSeedTask';
+}
+
+/**
+ * Full calendar event structure returned by the API
+ */
+export interface CalendarEvent {
+  /** Event ID */
+  _id: string;
+
+  /** User who created the event */
+  createdBy: string;
+
+  /** Event date range */
+  date: CalendarEventDate;
+
+  /** List of invitees */
+  inviteeList: CalendarEventInvitee[];
+
+  /** Event location */
+  location: CalendarEventLocation;
+
+  /** Static map URL */
+  staticMapUrl: string;
+
+  /** Event status (e.g., "scheduled") */
+  status: string;
+
+  /** Event title */
+  title: string;
+
+  /** Creation timestamp */
+  createdAt: string;
+
+  /** Calendars the event is scheduled to */
+  scheduledTo: CalendarEventScheduledToEntry[];
+
+  /** Organizer calendar info */
+  organizerCalendar: CalendarEventOrganizerCalendar;
+
+  /** Calendar service (e.g., "google", "microsoft") */
+  service: string;
+
+  /** External service IDs */
+  serviceIds: CalendarEventServiceIds;
+
+  /** Event description */
+  description: string;
+
+  /** Sequence number */
+  sequence: number;
+
+  /** Associated stream IDs */
+  streamIds: string[];
+
+  /** Last modified timestamp */
+  lastModified: string;
+
+  /** Event permissions */
+  permissions: CalendarEventPermissions;
+
+  /** Hangout/meeting link */
+  hangoutLink: string;
+
+  /** Google Calendar URL */
+  googleCalendarURL: string;
+
+  /** Event transparency (e.g., "opaque", "transparent") */
+  transparency: string;
+
+  /** Event visibility (e.g., "private", "public") */
+  visibility: string;
+
+  /** Google location data */
+  googleLocation: string | null;
+
+  /** Conference data */
+  conferenceData: CalendarEventConferenceData | null;
+
+  /** Recurring event info */
+  recurringEventInfo: CalendarEventRecurringEventInfo | null;
+
+  /** Run date info */
+  runDate: CalendarEventRunDate | null;
+
+  /** Agenda items */
+  agenda: CalendarEventReference[];
+
+  /** Outcome items */
+  outcomes: CalendarEventReference[];
+
+  /** Child tasks */
+  childTasks: CalendarEventChildTask[];
+
+  /** Per-user visualization preferences */
+  visualizationPreferences: CalendarEventVisualizationPreference[];
+
+  /** Seed task reference */
+  seedTask: CalendarEventSeedTask | null;
+
+  /** Event type (e.g., "default") */
+  eventType: string;
+
+  /** Whether current user can view this event */
+  _userCanView: boolean | null;
+
+  /** Whether current user can edit this event */
+  _userCanEdit: boolean | null;
+
+  /** Calendar ID this event belongs to */
+  _calendarId: string | null;
+
+  __typename: 'CalendarEvent';
+}
+
+/**
+ * Updated fields returned after creating a calendar event
+ */
+export interface CreateCalendarEventUpdatedFields {
+  /** Updated service IDs */
+  serviceIds: CalendarEventServiceIds | null;
+
+  /** Updated conference data */
+  conferenceData: CalendarEventConferenceData | null;
+
+  /** Updated status */
+  status: string | null;
+
+  /** Updated scheduled-to entries */
+  scheduledTo: CalendarEventScheduledToEntry[] | null;
+
+  /** Updated organizer calendar */
+  organizerCalendar: CalendarEventOrganizerCalendar | null;
+
+  /** Updated invitee list */
+  inviteeList: CalendarEventInvitee[] | null;
+
+  /** Updated location */
+  location: CalendarEventLocation | null;
+
+  /** Updated Google Calendar URL */
+  googleCalendarURL: string | null;
+
+  /** Updated hangout link */
+  hangoutLink: string | null;
+
+  /** Updated permissions */
+  permissions: CalendarEventPermissions | null;
+
+  __typename: 'CreateCalendarEventUpdatedFields';
+}
+
+/**
+ * Payload returned by createCalendarEvent mutation
+ */
+export interface CreateCalendarEventPayload {
+  /** The created calendar event (null when limitResponsePayload is true) */
+  createdCalendarEvent: CalendarEvent | null;
+
+  /** Fields that were updated by the server (null when limitResponsePayload is true) */
+  updatedFields: CreateCalendarEventUpdatedFields | null;
+
+  /** Whether the operation succeeded */
+  success: boolean;
+
+  __typename: 'CreateCalendarEventPayload';
+}
+
+// ---- Input types for calendar event mutations ----
+
+/**
+ * Input for calendar event date range
+ */
+export interface CalendarEventDateInput {
+  /** Start date (ISO 8601 string) */
+  startDate: string;
+
+  /** End date (ISO 8601 string) */
+  endDate: string;
+
+  /** Whether this is an all-day event */
+  isAllDay?: boolean | null;
+
+  /** Timezone for the event */
+  timeZone?: string | null;
+}
+
+/**
+ * Input for calendar event coordinate
+ */
+export interface CalendarEventCoordinateInput {
+  /** Latitude */
+  lat: number;
+
+  /** Longitude */
+  lng: number;
+}
+
+/**
+ * Input for calendar event location
+ */
+export interface CalendarEventLocationInput {
+  /** Location name */
+  name?: string;
+
+  /** Location address */
+  address?: string;
+
+  /** Location alias */
+  alias?: string;
+
+  /** Geographic coordinates */
+  coordinate?: CalendarEventCoordinateInput;
+}
+
+/**
+ * Input for calendar event service IDs
+ */
+export interface CalendarEventServiceIdsInput {
+  /** Google Calendar event ID */
+  google?: string | null;
+
+  /** Microsoft Calendar event ID */
+  microsoft?: string | null;
+
+  /** Microsoft unique ID */
+  microsoftUniqueId?: string | null;
+
+  /** Apple Calendar event ID */
+  apple?: string | null;
+
+  /** Apple recurrence ID */
+  appleRecurrenceId?: string | null;
+
+  /** Sunsama internal ID */
+  sunsama?: string | null;
+}
+
+/**
+ * Input for calendar event scheduled-to entry
+ */
+export interface CalendarEventScheduledToEntryInput {
+  /** Calendar ID (usually email address) */
+  calendarId: string;
+
+  /** User ID */
+  userId: string;
+}
+
+/**
+ * Input for calendar event organizer calendar info
+ */
+export interface CalendarEventOrganizerCalendarInput {
+  /** Calendar ID (usually email address) */
+  calendarId: string;
+
+  /** Display name of the calendar */
+  calendarDisplayName?: string;
+}
+
+/**
+ * Input for calendar event permissions
+ */
+export interface CalendarEventPermissionsInput {
+  /** Whether guests can modify the event */
+  guestsCanModify?: boolean | null;
+
+  /** Whether guests can invite others */
+  guestsCanInviteOthers?: boolean | null;
+
+  /** Whether guests can see other guests */
+  guestsCanSeeOtherGuests?: boolean | null;
+
+  /** Whether anyone can add themselves */
+  anyoneCanAddSelf?: boolean | null;
+
+  /** Whether the event is locked */
+  locked?: boolean | null;
+
+  /** Whether this is a private copy */
+  privateCopy?: boolean | null;
+}
+
+/**
+ * Input for calendar event visualization preference settings
+ */
+export interface CalendarEventVisualizationSettingsInput {
+  /** Block projections setting */
+  blockProjections?: boolean | null;
+}
+
+/**
+ * Input for calendar event visualization preference per user
+ */
+export interface CalendarEventVisualizationPreferenceInput {
+  /** User ID */
+  userId: string;
+
+  /** Visualization settings */
+  settings: CalendarEventVisualizationSettingsInput;
+}
+
+/**
+ * Input for calendar event seed task reference
+ */
+export interface CalendarEventSeedTaskInput {
+  /** Task ID */
+  _id: string;
+
+  /** Group ID */
+  groupId: string;
+}
+
+/**
+ * Calendar event object input for the createCalendarEvent mutation
+ */
+export interface CalendarEventInput {
+  /** Client-generated unique ID for the event */
+  _id: string;
+
+  /** User who created the event */
+  createdBy: string;
+
+  /** Event date range */
+  date: CalendarEventDateInput;
+
+  /** List of invitees */
+  inviteeList: CalendarEventInvitee[];
+
+  /** Event location */
+  location: CalendarEventLocationInput;
+
+  /** Static map URL */
+  staticMapUrl: string;
+
+  /** Event status (e.g., "scheduled") */
+  status: string;
+
+  /** Event title */
+  title: string;
+
+  /** Creation timestamp */
+  createdAt: string;
+
+  /** Calendars the event is scheduled to */
+  scheduledTo: CalendarEventScheduledToEntryInput[];
+
+  /** Organizer calendar info */
+  organizerCalendar: CalendarEventOrganizerCalendarInput;
+
+  /** Calendar service (e.g., "google", "microsoft") */
+  service: string;
+
+  /** External service IDs */
+  serviceIds: CalendarEventServiceIdsInput;
+
+  /** Event description */
+  description: string;
+
+  /** Sequence number */
+  sequence: number;
+
+  /** Associated stream IDs */
+  streamIds: string[];
+
+  /** Last modified timestamp */
+  lastModified: string;
+
+  /** Event permissions */
+  permissions: CalendarEventPermissionsInput;
+
+  /** Hangout/meeting link */
+  hangoutLink: string;
+
+  /** Google Calendar URL */
+  googleCalendarURL: string;
+
+  /** Event transparency (e.g., "opaque", "transparent") */
+  transparency: string;
+
+  /** Event visibility (e.g., "private", "public") */
+  visibility: string;
+
+  /** Google location data */
+  googleLocation: string | null;
+
+  /** Conference data */
+  conferenceData: CalendarEventConferenceData | null;
+
+  /** Recurring event info */
+  recurringEventInfo: CalendarEventRecurringEventInfo | null;
+
+  /** Run date info */
+  runDate: CalendarEventRunDate | null;
+
+  /** Agenda items */
+  agenda: CalendarEventReference[];
+
+  /** Outcome items */
+  outcomes: CalendarEventReference[];
+
+  /** Child tasks */
+  childTasks: CalendarEventChildTask[];
+
+  /** Per-user visualization preferences */
+  visualizationPreferences: CalendarEventVisualizationPreferenceInput[];
+
+  /** Seed task reference (link to a task) */
+  seedTask: CalendarEventSeedTaskInput | null;
+
+  /** Event type (e.g., "default") */
+  eventType: string;
+}
+
+/**
+ * Input for createCalendarEvent mutation (internal GraphQL API)
+ */
+export interface CreateCalendarEventInput {
+  /** The calendar event object to create */
+  calendarEvent: CalendarEventInput;
+
+  /** Group ID */
+  groupId: string;
+
+  /** Flag to limit response payload */
+  limitResponsePayload?: boolean;
+}
+
+/**
+ * Simplified options for creating a calendar event
+ */
+export interface CreateCalendarEventOptions {
+  /** Custom event ID (if not provided, one will be generated automatically) */
+  eventId?: string;
+
+  /** Event description */
+  description?: string;
+
+  /** Calendar ID to schedule the event to (e.g., email address) */
+  calendarId?: string;
+
+  /** Calendar service to use (defaults to "google") */
+  service?: string;
+
+  /** Array of stream IDs to associate with the event */
+  streamIds?: string[];
+
+  /** Event visibility (defaults to "private") */
+  visibility?: string;
+
+  /** Event transparency (defaults to "opaque") */
+  transparency?: string;
+
+  /** Whether this is an all-day event */
+  isAllDay?: boolean;
+
+  /** Seed task ID to link this event to an existing task */
+  seedTaskId?: string;
+}

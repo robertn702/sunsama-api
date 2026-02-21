@@ -10,9 +10,10 @@
  *         └─ TaskUpdateMethods — updateTaskText, updateTaskNotes, etc.
  *           └─ SubtaskMethods  — createSubtasks, addSubtask, etc.
  *             └─ TaskSchedulingMethods — reorderTask
- *               └─ SunsamaClient
+ *               └─ CalendarEventMethods — createCalendarEvent
+ *                 └─ SunsamaClient
  */
 
-import { TaskSchedulingMethods } from './methods/task-scheduling.js';
+import { CalendarEventMethods } from './methods/calendar-events.js';
 
-export class SunsamaClient extends TaskSchedulingMethods {}
+export class SunsamaClient extends CalendarEventMethods {}

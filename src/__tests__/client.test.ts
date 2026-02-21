@@ -854,5 +854,110 @@ describe('SunsamaClient', () => {
         'GraphQL errors: Unauthorized'
       );
     });
+
+    it('should have createCalendarEvent method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.createCalendarEvent).toBe('function');
+    });
+
+    it('should throw error when calling createCalendarEvent without authentication', async () => {
+      const client = new SunsamaClient();
+
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          '2026-02-21T09:00:00.000Z',
+          '2026-02-21T09:30:00.000Z'
+        )
+      ).rejects.toThrow();
+    });
+
+    it('should validate start date in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      await expect(
+        client.createCalendarEvent('Test event', 'invalid-date', '2026-02-21T09:30:00.000Z')
+      ).rejects.toThrow('Invalid start date');
+    });
+
+    it('should validate end date in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      await expect(
+        client.createCalendarEvent('Test event', '2026-02-21T09:00:00.000Z', 'invalid-date')
+      ).rejects.toThrow('Invalid end date');
+    });
+
+    it('should validate start date is before end date in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          '2026-02-21T10:00:00.000Z',
+          '2026-02-21T09:00:00.000Z'
+        )
+      ).rejects.toThrow('Start date must be before or equal to end date');
+    });
+
+    it('should accept Date objects in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          new Date('2026-02-21T09:00:00Z'),
+          new Date('2026-02-21T09:30:00Z')
+        )
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should accept ISO strings in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          '2026-02-21T09:00:00.000Z',
+          '2026-02-21T09:30:00.000Z'
+        )
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should accept options in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          '2026-02-21T09:00:00.000Z',
+          '2026-02-21T09:30:00.000Z',
+          {
+            description: 'Test description',
+            streamIds: ['stream-id-1'],
+            visibility: 'public',
+            transparency: 'transparent',
+            seedTaskId: 'task-id-1',
+          }
+        )
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should allow equal start and end dates in createCalendarEvent', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Same start and end date should be valid (zero-duration event)
+      await expect(
+        client.createCalendarEvent(
+          'Test event',
+          '2026-02-21T09:00:00.000Z',
+          '2026-02-21T09:00:00.000Z'
+        )
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
   });
 });
