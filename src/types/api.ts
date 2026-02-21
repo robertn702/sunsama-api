@@ -886,6 +886,92 @@ export interface GetTasksBacklogResponse {
 }
 
 /**
+ * Filter for backlog bucketed query
+ */
+export interface TaskFilter {
+  [key: string]: unknown;
+}
+
+/**
+ * Options for getTasksBacklogBucketed method
+ */
+export interface GetTasksBacklogBucketedOptions {
+  /** Number of tasks to fetch (forward pagination). Defaults to 30. */
+  first?: number;
+
+  /** Cursor for forward pagination (fetch tasks after this cursor) */
+  after?: string;
+
+  /** Number of tasks to fetch (backward pagination) */
+  last?: number;
+
+  /** Cursor for backward pagination (fetch tasks before this cursor) */
+  before?: string;
+
+  /** Filter to apply to backlog tasks */
+  filter?: TaskFilter;
+}
+
+/**
+ * Input variables for getTasksBacklogBucketed query (internal GraphQL API)
+ */
+export interface GetTasksBacklogBucketedInput {
+  /** User ID */
+  userId: string;
+
+  /** Group ID */
+  groupId: string;
+
+  /** Number of tasks to fetch (forward pagination) */
+  first?: number;
+
+  /** Cursor for forward pagination */
+  after?: string;
+
+  /** Number of tasks to fetch (backward pagination) */
+  last?: number;
+
+  /** Cursor for backward pagination */
+  before?: string;
+
+  /** Filter to apply to backlog tasks */
+  filter?: TaskFilter;
+}
+
+/**
+ * Page info for cursor-based pagination
+ */
+export interface BacklogPageInfo {
+  /** Whether there are more pages after the current one */
+  hasNextPage: boolean;
+
+  /** Cursor for the last item in the current page */
+  endCursor: string | null;
+
+  __typename: 'BacklogPageInfo';
+}
+
+/**
+ * Result of getTasksBacklogBucketed query
+ */
+export interface TasksBacklogBucketedResult {
+  /** Pagination info */
+  pageInfo: BacklogPageInfo;
+
+  /** Array of backlog tasks */
+  tasks: Task[];
+
+  __typename: 'TasksBacklogBucketedResult';
+}
+
+/**
+ * Response for getTasksBacklogBucketed query
+ */
+export interface GetTasksBacklogBucketedResponse {
+  tasksBacklogBucketed: TasksBacklogBucketedResult;
+}
+
+/**
  * Stream standup rule structure
  */
 export interface StreamStandupRule {

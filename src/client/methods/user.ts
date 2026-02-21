@@ -7,6 +7,7 @@ import {
   GET_ARCHIVED_TASKS_QUERY,
   GET_STREAMS_BY_GROUP_ID_QUERY,
   GET_TASK_BY_ID_QUERY,
+  GET_TASKS_BACKLOG_BUCKETED_QUERY,
   GET_TASKS_BACKLOG_QUERY,
   GET_TASKS_BY_DAY_QUERY,
   GET_USER_QUERY,
@@ -17,6 +18,9 @@ import type {
   GetStreamsByGroupIdResponse,
   GetTaskByIdInput,
   GetTaskByIdResponse,
+  GetTasksBacklogBucketedInput,
+  GetTasksBacklogBucketedOptions,
+  GetTasksBacklogBucketedResponse,
   GetTasksBacklogInput,
   GetTasksBacklogResponse,
   GetTasksByDayInput,
@@ -25,6 +29,7 @@ import type {
   GraphQLRequest,
   Stream,
   Task,
+  TasksBacklogBucketedResult,
   User,
 } from '../../types/index.js';
 import { SunsamaClientBase } from '../base.js';
@@ -200,6 +205,81 @@ export abstract class UserMethods extends SunsamaClientBase {
     }
 
     return response.data.tasksBacklog;
+  }
+
+  /**
+   * Gets tasks from the backlog with cursor-based pagination
+   *
+   * This is the paginated version of `getTasksBacklog`. It returns tasks in pages
+   * with cursor-based navigation, useful for large backlogs.
+   *
+   * @param options - Pagination and filter options
+   * @param options.first - Number of tasks to fetch (forward pagination, defaults to 30)
+   * @param options.after - Cursor for forward pagination (fetch tasks after this cursor)
+   * @param options.last - Number of tasks to fetch (backward pagination)
+   * @param options.before - Cursor for backward pagination (fetch tasks before this cursor)
+   * @param options.filter - Filter to apply to backlog tasks
+   * @returns Paginated backlog result with tasks and page info
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Get first page of backlog tasks
+   * const result = await client.getTasksBacklogBucketed();
+   * console.log('Tasks:', result.tasks.length);
+   * console.log('Has more:', result.pageInfo.hasNextPage);
+   *
+   * // Get next page using cursor
+   * if (result.pageInfo.hasNextPage) {
+   *   const nextPage = await client.getTasksBacklogBucketed({
+   *     after: result.pageInfo.endCursor,
+   *   });
+   * }
+   *
+   * // Fetch a custom page size
+   * const smallPage = await client.getTasksBacklogBucketed({ first: 10 });
+   * ```
+   */
+  async getTasksBacklogBucketed(
+    options?: GetTasksBacklogBucketedOptions
+  ): Promise<TasksBacklogBucketedResult> {
+    // Use cached values if available, otherwise fetch user data
+    if (!this.userId || !this.groupId) {
+      await this.getUser();
+    }
+
+    if (!this.groupId) {
+      throw new SunsamaAuthError(
+        'Unable to determine group ID from user data. User primaryGroup is required.'
+      );
+    }
+
+    const variables: GetTasksBacklogBucketedInput = {
+      userId: this.userId!,
+      groupId: this.groupId,
+      first: options?.first ?? 30,
+      ...(options?.after !== undefined && { after: options.after }),
+      ...(options?.last !== undefined && { last: options.last }),
+      ...(options?.before !== undefined && { before: options.before }),
+      ...(options?.filter !== undefined && { filter: options.filter }),
+    };
+
+    const request: GraphQLRequest<GetTasksBacklogBucketedInput> = {
+      operationName: 'getTasksBacklogBucketed',
+      variables,
+      query: GET_TASKS_BACKLOG_BUCKETED_QUERY,
+    };
+
+    const response = await this.graphqlRequest<
+      GetTasksBacklogBucketedResponse,
+      GetTasksBacklogBucketedInput
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaAuthError('No backlog data received');
+    }
+
+    return response.data.tasksBacklogBucketed;
   }
 
   /**

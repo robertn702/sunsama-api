@@ -104,6 +104,40 @@ describe('SunsamaClient', () => {
       await expect(client.getTasksBacklog()).rejects.toThrow();
     });
 
+    it('should have getTasksBacklogBucketed method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.getTasksBacklogBucketed).toBe('function');
+    });
+
+    it('should throw error when calling getTasksBacklogBucketed without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.getTasksBacklogBucketed()).rejects.toThrow();
+    });
+
+    it('should accept pagination options in getTasksBacklogBucketed', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation but fail at GraphQL level (unauthorized)
+      await expect(client.getTasksBacklogBucketed({ first: 10 })).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+      await expect(
+        client.getTasksBacklogBucketed({ first: 20, after: 'cursor123' })
+      ).rejects.toThrow('GraphQL errors: Unauthorized');
+    });
+
+    it('should use default first value in getTasksBacklogBucketed', async () => {
+      const client = new SunsamaClient({ sessionToken: 'test-token' });
+
+      // Should pass validation with defaults but fail at GraphQL level (unauthorized)
+      await expect(client.getTasksBacklogBucketed()).rejects.toThrow(
+        'GraphQL errors: Unauthorized'
+      );
+    });
+
     it('should have getStreamsByGroupId method', () => {
       const client = new SunsamaClient();
 
