@@ -7,7 +7,7 @@
 import { print } from 'graphql';
 import { Cookie, CookieJar } from 'tough-cookie';
 import * as Y from 'yjs';
-import { SunsamaAuthError } from '../errors/index.js';
+import { SunsamaAuthError, SunsamaValidationError, SunsamaError } from '../errors/index.js';
 import {
   CREATE_TASK_MUTATION,
   CREATE_TASK_SUBTASKS_MUTATION,
@@ -1900,7 +1900,7 @@ export class SunsamaClient {
   ): Promise<UpdateTaskMoveToPanelPayload> {
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
-      throw new SunsamaAuthError('Invalid date format. Use YYYY-MM-DD format.');
+      throw new SunsamaValidationError('Invalid date format. Use YYYY-MM-DD format.', 'day');
     }
 
     // Ensure we have user context
@@ -1928,13 +1928,14 @@ export class SunsamaClient {
     // Find the task we're moving (in the sorted list)
     const taskIndex = tasks.findIndex(t => t._id === taskId);
     if (taskIndex === -1) {
-      throw new SunsamaAuthError(`Task ${taskId} not found in day ${day}`);
+      throw new SunsamaError(`Task ${taskId} not found in day ${day}`);
     }
 
     // Validate position
     if (position < 0 || position >= tasks.length) {
-      throw new SunsamaAuthError(
-        `Invalid position ${position}. Must be between 0 and ${tasks.length - 1}`
+      throw new SunsamaValidationError(
+        `Invalid position ${position}. Must be between 0 and ${tasks.length - 1}`,
+        'position'
       );
     }
 
@@ -1978,7 +1979,7 @@ export class SunsamaClient {
     >(request);
 
     if (!response.data) {
-      throw new SunsamaAuthError('No response data received');
+      throw new SunsamaError('No response data received');
     }
 
     return response.data.updateTaskMoveToPanel;
@@ -2013,11 +2014,11 @@ export class SunsamaClient {
     }
 
     if (toIndex === 0) {
-      // Moving to top - place before first task's ordinal
-      // Using subtraction instead of division to handle edge cases where
-      // firstOrdinal is 0 or 1 (division would cause collisions)
+      // Moving to top - place before first task's ordinal.
+      // Use midpoint when possible to avoid negative ordinals; fall back to
+      // subtraction only when the first ordinal is already at or below zero.
       const firstOrdinal = getOrdinal(otherTasks[0]!);
-      return firstOrdinal - 1024;
+      return firstOrdinal > 0 ? Math.floor(firstOrdinal / 2) : firstOrdinal - 1024;
     }
 
     if (toIndex >= otherTasks.length) {
