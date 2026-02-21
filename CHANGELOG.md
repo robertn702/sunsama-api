@@ -1,5 +1,83 @@
 # sunsama-api
 
+## 0.14.0
+
+### Minor Changes
+
+- 2ba6838: feat: add createCalendarEvent endpoint
+
+  Adds `client.createCalendarEvent(title, startDate, endDate, options?)` for creating calendar events in Sunsama, with optional sync to external calendar services (e.g. Google Calendar).
+
+  New options:
+
+  - `eventId` — custom event ID (auto-generated if omitted)
+  - `description` — event description
+  - `calendarId` — target calendar (e.g. email address)
+  - `service` — calendar service (`"google"` | `"microsoft"`, defaults to `"google"`)
+  - `streamIds` — associate with one or more streams
+  - `visibility` — `"private"` | `"public"` | `"default"` | `"confidential"`
+  - `transparency` — `"opaque"` | `"transparent"`
+  - `isAllDay` — mark as all-day event
+  - `seedTaskId` — link the event to an existing task
+  - `limitResponsePayload` — control response size (defaults to `true`)
+
+- 631dadf: feat: add updateTaskUncomplete method
+
+  Adds `updateTaskUncomplete(taskId, limitResponsePayload?)` to mark a completed task as incomplete. Also adds `getSessionToken()` to `SunsamaClient` to retrieve the current session cookie value.
+
+- feat: add updateCalendarEvent endpoint
+
+  Adds `client.updateCalendarEvent(eventId, options?)` for updating existing calendar events in Sunsama.
+
+  Updatable properties:
+
+  - `title` — event title
+  - `startDate` / `endDate` — event time range (Date or ISO string)
+  - `description` — event description
+  - `calendarId` — target calendar
+  - `service` — calendar service (`"google"` | `"microsoft"`, defaults to `"google"`)
+  - `streamIds` — associated streams
+  - `visibility` — `"private"` | `"public"` | `"default"` | `"confidential"`
+  - `transparency` — `"opaque"` | `"transparent"`
+  - `isAllDay` — mark as all-day event
+  - `limitResponsePayload` — control response size (defaults to `true`)
+
+### Patch Changes
+
+- 0a847a8: Exclude test files from build output
+
+  Integration test setup files (`setup.ts`, `globalSetup.ts`, etc.) were being included in the published package because they didn't match the `**/*.test.ts` exclude pattern.
+
+  **Changes:**
+
+  - Add `**/__tests__/**` to exclude patterns in all TypeScript build configs (tsconfig.types.json, tsconfig.cjs.json, tsconfig.esm.json)
+  - Update verify-package script to check for unwanted `__tests__` directories and prevent future regressions
+
+  This reduces package size and prevents test-related code from being shipped to consumers.
+
+- 4a7ccb8: fix: correct error classes and ordinal calculation in reorderTask
+
+  - Use `SunsamaValidationError` for invalid date format and position errors
+  - Use `SunsamaError` for task-not-found and missing response data
+  - Fix `calculateOrdinal` to avoid negative ordinals when moving a task to the top of a list with small ordinal values
+  - Add integration tests for `reorderTask`
+  - Add `reorderTask` documentation to README
+
+- 1f4dc79: refactor: split SunsamaClient into modular domain files
+
+  Extracted the monolithic `src/client/index.ts` (~2100 lines) into a chain of abstract domain classes:
+
+  - `src/client/base.ts` — auth, HTTP, session management
+  - `src/client/methods/user.ts` — user, stream, and task query methods
+  - `src/client/methods/task-lifecycle.ts` — createTask, deleteTask, complete/uncomplete
+  - `src/client/methods/task-updates.ts` — text, notes, planned time, due date, stream, snooze
+  - `src/client/methods/subtasks.ts` — subtask CRUD
+  - `src/client/methods/task-scheduling.ts` — reorderTask
+
+  Also extracted Yjs collaborative snapshot helpers to pure functions in `src/utils/collab.ts`.
+
+  No public API changes.
+
 ## 0.13.1
 
 ### Patch Changes
