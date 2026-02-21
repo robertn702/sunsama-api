@@ -118,6 +118,52 @@ export function validateUpdateTaskCompleteArgs(args: {
   }
 }
 
+/**
+ * Schema for validating updateCalendarEvent arguments
+ */
+export const updateCalendarEventArgsSchema = z.object({
+  eventId: objectIdSchema,
+  options: z
+    .object({
+      isInviteeStatusUpdate: z
+        .boolean({ message: 'isInviteeStatusUpdate must be a boolean' })
+        .optional(),
+      skipReorder: z.boolean({ message: 'skipReorder must be a boolean' }).optional(),
+      limitResponsePayload: z
+        .boolean({ message: 'limitResponsePayload must be a boolean' })
+        .optional(),
+    })
+    .optional(),
+});
+
+/**
+ * Validates updateCalendarEvent arguments
+ * @throws SunsamaValidationError if validation fails
+ */
+export function validateUpdateCalendarEventArgs(args: {
+  eventId: string;
+  options?: {
+    isInviteeStatusUpdate?: boolean;
+    skipReorder?: boolean;
+    limitResponsePayload?: boolean;
+  };
+}): {
+  eventId: string;
+  options?: {
+    isInviteeStatusUpdate?: boolean;
+    skipReorder?: boolean;
+    limitResponsePayload?: boolean;
+  };
+} {
+  const parsed = updateCalendarEventArgsSchema.safeParse(args);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const field = issue?.path?.join('.') ?? 'input';
+    throw new SunsamaValidationError(issue?.message ?? 'Validation error', field);
+  }
+  return parsed.data;
+}
+
 const isValidDate = (val: unknown): val is Date | string => {
   if (val instanceof Date) return !isNaN(val.getTime());
   if (typeof val === 'string') return isoDateSchema.safeParse(val).success;

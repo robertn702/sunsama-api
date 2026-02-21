@@ -2677,7 +2677,7 @@ export interface CalendarEventUpdateData {
   /** Recurring event info */
   recurringEventInfo: {
     recurringEventId?: string | null;
-    recurrence?: string | null;
+    recurrence?: string[] | null;
   } | null;
 
   /** Run date */

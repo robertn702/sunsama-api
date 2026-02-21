@@ -18,7 +18,10 @@ import type {
   UpdateCalendarEventOptions,
   UpdateCalendarEventPayload,
 } from '../../types/index.js';
-import { createCalendarEventArgsSchema } from '../../utils/validation.js';
+import {
+  createCalendarEventArgsSchema,
+  validateUpdateCalendarEventArgs,
+} from '../../utils/validation.js';
 import { SunsamaClientBase } from '../base.js';
 import { TaskSchedulingMethods } from './task-scheduling.js';
 
@@ -246,6 +249,9 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
     update: CalendarEventUpdateData,
     options?: UpdateCalendarEventOptions
   ): Promise<UpdateCalendarEventPayload> {
+    // Validate eventId and options
+    validateUpdateCalendarEventArgs({ eventId, options });
+
     // Ensure we have user context
     if (!this.groupId) {
       await this.getUser();
@@ -255,11 +261,30 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
       throw new SunsamaError('Unable to determine group ID');
     }
 
-    // Get the invitee email from the scheduledTo entries or the user's email
-    const inviteeEmail = update.scheduledTo?.[0]?.calendarId ?? '';
+    // Normalize date fields to ISO strings (accept Date objects or strings)
+    const normalizeDate = (value: string | Date, field: string): string => {
+      const date = value instanceof Date ? value : new Date(value as string);
+      if (isNaN(date.getTime())) {
+        throw new SunsamaValidationError(`updateCalendarEvent: invalid ${field}`, field);
+      }
+      return date.toISOString();
+    };
+
+    const normalizedUpdate: CalendarEventUpdateData = {
+      ...update,
+      date: {
+        ...update.date,
+        startDate: normalizeDate(update.date.startDate, 'update.date.startDate'),
+        endDate: normalizeDate(update.date.endDate, 'update.date.endDate'),
+      },
+    };
+
+    // Get the invitee email from the scheduledTo entries or the organizer calendar
+    const inviteeEmail =
+      update.scheduledTo?.[0]?.calendarId ?? update.organizerCalendar?.calendarId ?? '';
 
     const variables: UpdateCalendarEventInput = {
-      update,
+      update: normalizedUpdate,
       eventId,
       groupId: this.groupId,
       isInviteeStatusUpdate: options?.isInviteeStatusUpdate ?? false,
@@ -274,15 +299,15 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
       query: UPDATE_CALENDAR_EVENT_MUTATION,
     };
 
-    const response = await this.graphqlRequest<
+    const { data } = await this.graphqlRequest<
       { updateCalendarEventV2: UpdateCalendarEventPayload },
       { input: UpdateCalendarEventInput }
     >(request);
 
-    if (!response.data) {
-      throw new SunsamaError('No response data received');
+    if (!data) {
+      throw new SunsamaError('updateCalendarEvent: no response data received');
     }
 
-    return response.data.updateCalendarEventV2;
+    return data.updateCalendarEventV2;
   }
 }

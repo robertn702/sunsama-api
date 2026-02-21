@@ -104,24 +104,116 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
 
   describe('updateCalendarEvent', () => {
     it('should update an existing calendar event title', async () => {
-      // First, get tasks for today to find a task with a scheduled time (linked to calendar event)
-      const today = new Date().toISOString().split('T')[0]!;
-      const tasks = await client.getTasksByDay(today);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const now = new Date();
+      const startDate = new Date(now.getTime() + 5 * 60 * 60 * 1000);
+      const endDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
 
-      // Find a task that has a calendar event child reference
-      // This test relies on having at least one calendar event on today's date
-      // If no events exist, skip gracefully
-      const taskWithEvent = tasks.find(
-        t => t.scheduledTime && t.scheduledTime.length > 0 && t.scheduledTime[0]?.eventId
+      // Create a calendar event with full response payload so we have the event data for update
+      const createResult = await client.createCalendarEvent(
+        `Test Update Event - ${timestamp}`,
+        startDate,
+        endDate,
+        { calendarId: googleCalendarId, service: 'google', limitResponsePayload: false }
       );
 
-      if (!taskWithEvent) {
-        // No calendar events to test with, skip silently
-        return;
-      }
+      expect(createResult.success).toBe(true);
+      expect(createResult.createdCalendarEvent).not.toBeNull();
 
-      // We found a task with a calendar event - verify the method exists and is callable
-      expect(typeof client.updateCalendarEvent).toBe('function');
+      const event = createResult.createdCalendarEvent!;
+
+      // Update the event with a modified title
+      const updateResult = await client.updateCalendarEvent(event._id, {
+        _id: event._id,
+        createdBy: event.createdBy,
+        title: `Updated Event - ${timestamp}`,
+        date: {
+          startDate: event.date.startDate,
+          endDate: event.date.endDate,
+          isAllDay: event.date.isAllDay,
+          timeZone: event.date.timeZone,
+        },
+        inviteeList: event.inviteeList.map(inv => ({
+          userId: inv.userId,
+          email: inv.email,
+          name: inv.name,
+          requirement: inv.requirement,
+          status: inv.status,
+          type: inv.type ? { admin: inv.type.admin, guest: inv.type.guest } : null,
+          profilePicture: inv.profilePicture,
+          resource: inv.resource,
+        })),
+        location: {
+          name: event.location.name,
+          address: event.location.address,
+          alias: event.location.alias,
+          coordinate: { lat: event.location.coordinate.lat, lng: event.location.coordinate.lng },
+        },
+        staticMapUrl: event.staticMapUrl,
+        status: event.status,
+        createdAt: event.createdAt,
+        scheduledTo: event.scheduledTo.map(s => ({
+          calendarId: s.calendarId,
+          userId: s.userId,
+        })),
+        organizerCalendar: {
+          calendarId: event.organizerCalendar.calendarId,
+          calendarDisplayName: event.organizerCalendar.calendarDisplayName,
+        },
+        service: event.service,
+        serviceIds: {
+          google: event.serviceIds.google,
+          microsoft: event.serviceIds.microsoft,
+          microsoftUniqueId: event.serviceIds.microsoftUniqueId,
+          apple: event.serviceIds.apple,
+          appleRecurrenceId: event.serviceIds.appleRecurrenceId,
+          sunsama: event.serviceIds.sunsama,
+        },
+        description: event.description,
+        sequence: event.sequence,
+        streamIds: event.streamIds,
+        lastModified: event.lastModified,
+        permissions: {
+          guestsCanModify: event.permissions.guestsCanModify,
+          guestsCanInviteOthers: event.permissions.guestsCanInviteOthers,
+          guestsCanSeeOtherGuests: event.permissions.guestsCanSeeOtherGuests,
+          anyoneCanAddSelf: event.permissions.anyoneCanAddSelf,
+          locked: event.permissions.locked,
+          privateCopy: event.permissions.privateCopy,
+        },
+        hangoutLink: event.hangoutLink,
+        googleCalendarURL: event.googleCalendarURL,
+        transparency: event.transparency,
+        visibility: event.visibility,
+        googleLocation: event.googleLocation,
+        conferenceData: event.conferenceData,
+        recurringEventInfo: event.recurringEventInfo
+          ? {
+              recurringEventId: event.recurringEventInfo.recurringEventId,
+              recurrence: event.recurringEventInfo.recurrence,
+            }
+          : null,
+        runDate: event.runDate
+          ? { startDate: event.runDate.startDate, endDate: event.runDate.endDate }
+          : null,
+        agenda: event.agenda.map(a => ({ _id: a._id, groupId: a.groupId })),
+        outcomes: event.outcomes.map(o => ({ _id: o._id, groupId: o.groupId })),
+        childTasks: event.childTasks.map(c => ({
+          taskId: c.taskId,
+          groupId: c.groupId,
+          userId: c.userId,
+        })),
+        visualizationPreferences: event.visualizationPreferences.map(vp => ({
+          userId: vp.userId,
+          settings: { blockProjections: vp.settings.blockProjections },
+        })),
+        seedTask: event.seedTask
+          ? { _id: event.seedTask._id, groupId: event.seedTask.groupId }
+          : null,
+        eventType: event.eventType,
+      });
+
+      expect(updateResult.success).toBe(true);
     });
   });
 });
