@@ -9,9 +9,18 @@ import { getAuthenticatedClient, hasCredentials, trackTaskForCleanup } from './s
 
 describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', () => {
   let client: SunsamaClient;
+  let googleCalendarId: string;
 
   beforeAll(async () => {
     client = await getAuthenticatedClient();
+    const user = await client.getUser();
+    const email = user.services?.google?.email;
+    if (!email) {
+      throw new Error(
+        'No Google Calendar email found - these tests require a Google Calendar integration'
+      );
+    }
+    googleCalendarId = email;
   });
 
   describe('createCalendarEvent', () => {
@@ -24,7 +33,8 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
       const result = await client.createCalendarEvent(
         `Test Calendar Event - ${timestamp}`,
         startDate,
-        endDate
+        endDate,
+        { calendarId: googleCalendarId, service: 'google' }
       );
 
       expect(result.success).toBe(true);
@@ -39,7 +49,8 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
       const result = await client.createCalendarEvent(
         `Test ISO Date Event - ${timestamp}`,
         startDate,
-        endDate
+        endDate,
+        { calendarId: googleCalendarId, service: 'google' }
       );
 
       expect(result.success).toBe(true);
@@ -58,6 +69,8 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
         startDate,
         endDate,
         {
+          calendarId: googleCalendarId,
+          service: 'google',
           description: 'Integration test event with options',
           streamIds: streams.length > 0 ? [streams[0]!._id] : [],
         }
@@ -82,7 +95,7 @@ describe.skipIf(!hasCredentials())('Calendar Event Operations (Integration)', ()
         `Test Seeded Event - ${timestamp}`,
         startDate,
         endDate,
-        { seedTaskId: taskId }
+        { calendarId: googleCalendarId, service: 'google', seedTaskId: taskId }
       );
 
       expect(result.success).toBe(true);
