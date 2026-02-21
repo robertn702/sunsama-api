@@ -82,13 +82,15 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
       throw new SunsamaValidationError(issue?.message ?? 'Validation error', field);
     }
 
-    // Convert dates to ISO strings
+    // Normalize dates to ISO strings
     const startDateStr =
       parsed.data.startDate instanceof Date
         ? parsed.data.startDate.toISOString()
-        : parsed.data.startDate;
+        : new Date(parsed.data.startDate).toISOString();
     const endDateStr =
-      parsed.data.endDate instanceof Date ? parsed.data.endDate.toISOString() : parsed.data.endDate;
+      parsed.data.endDate instanceof Date
+        ? parsed.data.endDate.toISOString()
+        : new Date(parsed.data.endDate).toISOString();
 
     // Ensure we have user context
     if (!this.userId || !this.groupId) {
@@ -127,7 +129,6 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
         name: '',
         address: '',
         alias: '',
-        coordinate: { lat: 0, lng: 0 },
       },
       staticMapUrl: '',
       status: 'scheduled',

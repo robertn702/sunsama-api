@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod/v4';
-import { SunsamaAuthError } from '../errors/index.js';
+import { SunsamaAuthError, SunsamaValidationError } from '../errors/index.js';
 
 /**
  * MongoDB ObjectId validation pattern
@@ -120,7 +120,7 @@ export function validateUpdateTaskCompleteArgs(args: {
 
 const isValidDate = (val: unknown): val is Date | string => {
   if (val instanceof Date) return !isNaN(val.getTime());
-  if (typeof val === 'string') return !isNaN(new Date(val).getTime());
+  if (typeof val === 'string') return isoDateSchema.safeParse(val).success;
   return false;
 };
 
@@ -129,7 +129,7 @@ const isValidDate = (val: unknown): val is Date | string => {
  */
 export const createCalendarEventArgsSchema = z
   .object({
-    title: z.string({ message: 'Title must be a string' }),
+    title: z.string({ message: 'Title must be a string' }).min(1, 'Title cannot be empty'),
     startDate: z.custom<Date | string>(isValidDate, { message: 'Invalid start date' }),
     endDate: z.custom<Date | string>(isValidDate, { message: 'Invalid end date' }),
     visibility: z
@@ -169,7 +169,7 @@ export function toISOString(value: Date | string): string {
   // If it's already a string, validate it's a proper date and return ISO format
   const date = new Date(value);
   if (isNaN(date.getTime())) {
-    throw new SunsamaAuthError('Invalid date provided');
+    throw new SunsamaValidationError('Invalid date provided');
   }
   return date.toISOString();
 }
