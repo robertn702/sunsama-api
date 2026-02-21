@@ -11,6 +11,7 @@ import type {
   CreateCalendarEventPayload,
   GraphQLRequest,
 } from '../../types/index.js';
+import { createCalendarEventArgsSchema } from '../../utils/validation.js';
 import { SunsamaClientBase } from '../base.js';
 import { TaskSchedulingMethods } from './task-scheduling.js';
 
@@ -67,28 +68,27 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
     endDate: Date | string,
     options?: CreateCalendarEventOptions
   ): Promise<CreateCalendarEventPayload> {
+    // Validate inputs with Zod schema
+    const parsed = createCalendarEventArgsSchema.safeParse({
+      title,
+      startDate,
+      endDate,
+      visibility: options?.visibility,
+      transparency: options?.transparency,
+    });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      const field = issue?.path?.join('.') ?? 'input';
+      throw new SunsamaValidationError(issue?.message ?? 'Validation error', field);
+    }
+
     // Convert dates to ISO strings
-    const startDateStr = startDate instanceof Date ? startDate.toISOString() : startDate;
-    const endDateStr = endDate instanceof Date ? endDate.toISOString() : endDate;
-
-    // Validate dates before making any API calls
-    const startMs = new Date(startDateStr).getTime();
-    const endMs = new Date(endDateStr).getTime();
-
-    if (isNaN(startMs)) {
-      throw new SunsamaValidationError('Invalid start date', 'startDate');
-    }
-
-    if (isNaN(endMs)) {
-      throw new SunsamaValidationError('Invalid end date', 'endDate');
-    }
-
-    if (startMs > endMs) {
-      throw new SunsamaValidationError(
-        'Start date must be before or equal to end date',
-        'startDate'
-      );
-    }
+    const startDateStr =
+      parsed.data.startDate instanceof Date
+        ? parsed.data.startDate.toISOString()
+        : parsed.data.startDate;
+    const endDateStr =
+      parsed.data.endDate instanceof Date ? parsed.data.endDate.toISOString() : parsed.data.endDate;
 
     // Ensure we have user context
     if (!this.userId || !this.groupId) {
@@ -183,7 +183,7 @@ export abstract class CalendarEventMethods extends TaskSchedulingMethods {
     const variables: CreateCalendarEventInput = {
       calendarEvent,
       groupId: this.groupId,
-      limitResponsePayload: true,
+      limitResponsePayload: options?.limitResponsePayload ?? true,
     };
 
     const request: GraphQLRequest<{ input: CreateCalendarEventInput }> = {
