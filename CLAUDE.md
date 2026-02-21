@@ -35,7 +35,8 @@ src/
 │       ├── task-lifecycle.ts  # createTask, deleteTask, updateTaskComplete/Uncomplete
 │       ├── task-updates.ts    # updateTaskText/Notes/PlannedTime/DueDate/Stream/SnoozeDate
 │       ├── subtasks.ts        # createSubtasks, updateSubtaskTitle, addSubtask, etc.
-│       └── task-scheduling.ts # reorderTask (top of chain → SunsamaClient extends this)
+│       ├── task-scheduling.ts # reorderTask
+│       └── calendar-events.ts # createCalendarEvent, updateCalendarEvent
 ├── queries/                   # GraphQL queries/mutations by domain
 │   ├── tasks/                 # Task operations
 │   ├── streams/               # Stream operations
@@ -55,7 +56,7 @@ src/
 
 **Client inheritance chain** (bottom to top):
 ```
-SunsamaClientBase → UserMethods → TaskLifecycleMethods → TaskUpdateMethods → SubtaskMethods → TaskSchedulingMethods → SunsamaClient
+SunsamaClientBase → UserMethods → TaskLifecycleMethods → TaskUpdateMethods → SubtaskMethods → TaskSchedulingMethods → CalendarEventMethods → SunsamaClient
 ```
 
 ## Architecture Patterns
@@ -178,19 +179,21 @@ describe.skipIf(!hasCredentials())('Feature Name (Integration)', () => {
 
 ## Common Pitfalls
 
-1. **Yjs Structure**: Must use XmlFragment → XmlElement → XmlText, not Text directly
-2. **Integration Tests**: Must use `getAuthenticatedClient()`, never create new sessions
-3. **ESM Imports**: Must include `.js` extension in relative imports
-4. **Time Units**: API uses seconds, public API uses minutes (convert in client)
-5. **GraphQL Responses**: Always destructure from `data` property
-6. **Task IDs**: Use `generateTaskId()` for custom IDs (MongoDB ObjectId format)
-7. **Input vs Response Types**: GraphQL Input types must NOT have `__typename` fields — only response types include `__typename`. When creating new Input types for nested objects (e.g., `CalendarEventInviteeInput`), mirror the response type but omit `__typename`.
-8. **Zod Field-Specific Errors**: Use `z.custom<T>(validator, { message })` instead of `z.union()` when you need field-specific error messages. `z.union()` produces generic "Invalid input" errors when all branches fail, while `z.custom()` emits the exact message you specify.
-9. **trackTaskForCleanup Timing**: Call `trackTaskForCleanup(taskId)` IMMEDIATELY after creating a task, BEFORE any assertions or operations that might throw. This ensures cleanup even if subsequent code throws an error.
-10. **Always normalize dates to ISO 8601**: When accepting `Date | string` inputs, always call `.toISOString()` on strings too (via `new Date(str).toISOString()`), not just on `Date` objects. The API expects strict ISO 8601 format — passing loosely-formatted strings like `"Feb 21, 2026"` or `"2026-02-21"` verbatim will break server-side parsing.
-11. **Zod date validation must use ISO 8601 regex**: The `isValidDate` helper and any Zod schema for date strings should reuse `isoDateSchema` (not plain `new Date(val)`) so only proper ISO 8601 datetime strings are accepted.
-12. **Validation vs Auth errors**: `toISOString` and other input-processing helpers must throw `SunsamaValidationError` (not `SunsamaAuthError`) for bad input — auth errors are reserved for authentication failures only.
-13. **Optional fields over zero-defaults**: For optional spatial/numeric API fields (e.g., coordinates), omit the field entirely rather than defaulting to `{ lat: 0, lng: 0 }` — zero coordinates are a real location (off the coast of Africa) and the API may treat them as such.
+- **Yjs Structure**: Must use XmlFragment → XmlElement → XmlText, not Text directly
+- **Integration Tests**: Must use `getAuthenticatedClient()`, never create new sessions
+- **ESM Imports**: Must include `.js` extension in relative imports
+- **Time Units**: API uses seconds, public API uses minutes (convert in client)
+- **GraphQL Responses**: Always destructure from `data` property
+- **Task IDs**: Use `generateTaskId()` for custom IDs (MongoDB ObjectId format)
+- **Input vs Response Types**: GraphQL Input types must NOT have `__typename` fields — only response types include `__typename`. When creating new Input types for nested objects (e.g., `CalendarEventInviteeInput`), mirror the response type but omit `__typename`.
+- **Zod Field-Specific Errors**: Use `z.custom<T>(validator, { message })` instead of `z.union()` when you need field-specific error messages. `z.union()` produces generic "Invalid input" errors when all branches fail, while `z.custom()` emits the exact message you specify.
+- **trackTaskForCleanup Timing**: Call `trackTaskForCleanup(taskId)` IMMEDIATELY after creating a task, BEFORE any assertions or operations that might throw. This ensures cleanup even if subsequent code throws an error.
+- **Always normalize dates to ISO 8601**: When accepting `Date | string` inputs, always call `.toISOString()` on strings too (via `new Date(str).toISOString()`), not just on `Date` objects. The API expects strict ISO 8601 format — passing loosely-formatted strings like `"Feb 21, 2026"` or `"2026-02-21"` verbatim will break server-side parsing.
+- **Zod date validation must use ISO 8601 regex**: The `isValidDate` helper and any Zod schema for date strings should reuse `isoDateSchema` (not plain `new Date(val)`) so only proper ISO 8601 datetime strings are accepted.
+- **Validation vs Auth errors**: `toISOString` and other input-processing helpers must throw `SunsamaValidationError` (not `SunsamaAuthError`) for bad input — auth errors are reserved for authentication failures only.
+- **Optional fields over zero-defaults**: For optional spatial/numeric API fields (e.g., coordinates), omit the field entirely rather than defaulting to `{ lat: 0, lng: 0 }` — zero coordinates are a real location (off the coast of Africa) and the API may treat them as such.
+- **Avoid type assertions (`as`)**: Never use `as never` or `as unknown as T` — these completely bypass TypeScript's type checking. If a test needs a partial object, either provide a proper fixture that satisfies the type, or use type-safe alternatives like `Partial<T>` with explicit field selection.
+- **`describe.skipIf` evaluates at module load time**: The condition in `describe.skipIf(condition)` is evaluated when the module loads, NOT lazily. Variables set in `beforeAll` will always be their initial value (e.g., `undefined`). Use early returns inside tests (e.g., `if (!googleCalendarId) return;`) instead.
 
 ## Development Workflow
 
