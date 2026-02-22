@@ -2,7 +2,7 @@
  * Task property update methods: text, notes, planned time, due date, stream, snooze
  */
 
-import { SunsamaAuthError } from '../../errors/index.js';
+import { SunsamaAuthError, SunsamaError } from '../../errors/index.js';
 import {
   UPDATE_TASK_DUE_DATE_MUTATION,
   UPDATE_TASK_NOTES_MUTATION,
@@ -10,12 +10,14 @@ import {
   UPDATE_TASK_SNOOZE_DATE_MUTATION,
   UPDATE_TASK_STREAM_MUTATION,
   UPDATE_TASK_TEXT_MUTATION,
+  UPDATE_TASKS_BACKLOG_FOLDER_MUTATION,
 } from '../../queries/index.js';
 import type {
   CollabSnapshot,
   GraphQLRequest,
   TaskNotesContent,
   UpdateTaskDueDateInput,
+  UpdateTaskMoveToPanelPayload,
   UpdateTaskNotesInput,
   UpdateTaskNotesOptions,
   UpdateTaskPayload,
@@ -23,6 +25,7 @@ import type {
   UpdateTaskSnoozeDateInput,
   UpdateTaskStreamInput,
   UpdateTaskTextInput,
+  UpdateTasksBacklogFolderInput,
 } from '../../types/index.js';
 import { htmlToMarkdown, markdownToHtml, createUpdatedCollabSnapshot } from '../../utils/index.js';
 import { TaskLifecycleMethods } from './task-lifecycle.js';
@@ -460,5 +463,61 @@ export abstract class TaskUpdateMethods extends TaskLifecycleMethods {
     }
 
     return (response.data as { updateTaskStream: UpdateTaskPayload }).updateTaskStream;
+  }
+
+  /**
+   * Updates the backlog folder assignment for one or more tasks
+   *
+   * This method moves tasks into a specific backlog folder or removes them from
+   * their current folder. It operates on multiple tasks at once.
+   *
+   * @param taskIds - Array of task IDs to update
+   * @param folderId - The folder ID to move tasks into, or null to remove from folder
+   * @returns The bulk update result with the array of updated task IDs
+   * @throws SunsamaError if no response data is received
+   * @throws SunsamaAuthError if not authenticated or request fails
+   *
+   * @example
+   * ```typescript
+   * // Move tasks into a folder
+   * const result = await client.updateTasksBacklogFolder(
+   *   ['taskId1', 'taskId2'],
+   *   'folderId123'
+   * );
+   *
+   * // Remove tasks from their folder
+   * const result = await client.updateTasksBacklogFolder(
+   *   ['taskId1', 'taskId2'],
+   *   null
+   * );
+   * ```
+   */
+  async updateTasksBacklogFolder(
+    taskIds: string[],
+    folderId: string | null
+  ): Promise<UpdateTaskMoveToPanelPayload> {
+    const variables: { input: UpdateTasksBacklogFolderInput } = {
+      input: {
+        taskIds,
+        folderId,
+      },
+    };
+
+    const request: GraphQLRequest<{ input: UpdateTasksBacklogFolderInput }> = {
+      operationName: 'updateTasksBacklogFolder',
+      variables,
+      query: UPDATE_TASKS_BACKLOG_FOLDER_MUTATION,
+    };
+
+    const response = await this.graphqlRequest<
+      { updateTasksBacklogFolder: UpdateTaskMoveToPanelPayload },
+      { input: UpdateTasksBacklogFolderInput }
+    >(request);
+
+    if (!response.data) {
+      throw new SunsamaError('No response data received');
+    }
+
+    return response.data.updateTasksBacklogFolder;
   }
 }

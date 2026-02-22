@@ -1557,6 +1557,19 @@ export interface UpdateTaskSubtaskUncompleteInput {
 }
 
 /**
+ * Input for updateTasksBacklogFolder mutation
+ *
+ * Moves tasks into or out of a backlog folder.
+ */
+export interface UpdateTasksBacklogFolderInput {
+  /** Array of task IDs to update */
+  taskIds: string[];
+
+  /** The folder ID to move tasks into, or null to remove from folder */
+  folderId: string | null;
+}
+
+/**
  * Input for updateTaskMoveToPanel mutation
  *
  * Moves/reorders a task within a day panel.

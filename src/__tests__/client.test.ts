@@ -800,6 +800,19 @@ describe('SunsamaClient', () => {
       );
     });
 
+    it('should have updateTasksBacklogFolder method', () => {
+      const client = new SunsamaClient();
+
+      expect(typeof client.updateTasksBacklogFolder).toBe('function');
+    });
+
+    it('should throw error when calling updateTasksBacklogFolder without authentication', async () => {
+      const client = new SunsamaClient();
+
+      // Should fail because no authentication
+      await expect(client.updateTasksBacklogFolder(['test-task-id'], null)).rejects.toThrow();
+    });
+
     it('should have reorderTask method', () => {
       const client = new SunsamaClient();
 
