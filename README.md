@@ -492,6 +492,13 @@ const folders = await client.getBacklogFolders();
 folders.forEach(folder => {
   console.log(folder.name, folder.position);
 });
+
+// Move tasks into a backlog folder
+const result = await client.updateTasksBacklogFolder(['taskId1', 'taskId2'], 'folderId');
+console.log('Updated tasks:', result.updatedTaskIds);
+
+// Remove tasks from their backlog folder
+await client.updateTasksBacklogFolder(['taskId1'], null);
 ```
 
 ### Streams
