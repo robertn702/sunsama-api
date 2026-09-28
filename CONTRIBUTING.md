@@ -107,7 +107,7 @@ src/
     └── *.test.ts              # Unit tests (mocked)
 ```
 
-When adding a new API method, add it to the appropriate file in `src/client/methods/` — **not** `src/client/index.ts` (which is just the assembled class). See `CLAUDE.md` for the full mapping.
+When adding a new API method, add it to the appropriate file in `src/client/methods/` — **not** `src/client/index.ts` (which is just the assembled class). See `AGENTS.md` for the full mapping.
 
 ## Guidelines
 

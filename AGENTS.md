@@ -1,4 +1,4 @@
-# Sunsama API TypeScript Wrapper - LLM Context
+# Sunsama API TypeScript Wrapper
 
 ## Project Overview
 TypeScript wrapper for Sunsama's GraphQL API. Provides type-safe access to daily planning and task management functionality. Published as NPM package with dual CJS/ESM builds.
